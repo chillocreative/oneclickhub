@@ -41,7 +41,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/  # Adjust this to your remote path (e.g., /domains/yourdomain.com/public_html/)
+          server-dir: ./  # Often safer for jailed FTP accounts; adjust if files don't land in the right place.
           exclude: |
             **/.git*
             **/.git*/**
