@@ -61,8 +61,8 @@ export default function Welcome({ auth, plans }) {
             </div>
 
             {/* Navigation */}
-            <nav className="fixed top-0 w-full z-[100] glass border-b border-white/20 dark:border-white/5">
-                <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+            <nav className="fixed top-0 w-full z-[100] glass border-b border-white/20 dark:border-white/5 h-20">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
                     <div className="flex items-center gap-2 group cursor-pointer flex-shrink-0">
                         <ApplicationLogo className="w-8 h-8 md:w-10 md:h-10 group-hover:rotate-12 transition-transform duration-300" />
                         <span className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
@@ -107,37 +107,42 @@ export default function Welcome({ auth, plans }) {
                         </button>
                     </div>
                 </div>
+            </nav>
 
-                {/* Mobile Menu Overlay */}
-                <AnimatePresence>
-                    {isMobileMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, x: '100%' }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="lg:hidden fixed inset-0 z-[200] bg-gradient-to-br from-[#FF6600] via-[#FF8800] to-[#FFB800] text-white"
-                        >
-                            {/* Menu Header inside overlay */}
-                            <div className="flex items-center justify-between px-6 h-20 border-b border-white/10">
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-white p-1.5 rounded-xl">
-                                        <ApplicationLogo className="w-7 h-7" />
-                                    </div>
-                                    <span className="text-xl font-black tracking-tighter text-white">
-                                        ONECLICKHUB
-                                    </span>
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, x: '100%' }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        className="lg:hidden fixed inset-0 z-[999] bg-[#FF6600] text-white flex flex-col"
+                    >
+                        {/* Background Gradient Layer */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#FF6600] via-[#FF8800] to-[#FFB800] z-[-1]" />
+
+                        {/* Menu Header */}
+                        <div className="flex items-center justify-between px-6 h-20 border-b border-white/10 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-white p-1.5 rounded-xl">
+                                    <ApplicationLogo className="w-7 h-7" />
                                 </div>
-                                <button
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="p-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"
-                                >
-                                    <X className="w-8 h-8 text-white" />
-                                </button>
+                                <span className="text-xl font-black tracking-tighter text-white uppercase">
+                                    OneClickHub
+                                </span>
                             </div>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="p-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"
+                            >
+                                <X className="w-8 h-8 text-white" />
+                            </button>
+                        </div>
 
-                            {/* Menu Links */}
-                            <div className="p-8 space-y-2 flex flex-col justify-center min-h-[70vh]">
+                        {/* Menu Links */}
+                        <div className="flex-1 overflow-y-auto px-8 py-12 flex flex-col justify-center">
+                            <div className="space-y-2">
                                 {[
                                     { name: 'Features', href: '#features' },
                                     { name: 'Solutions', href: '#solutions' },
@@ -151,47 +156,45 @@ export default function Welcome({ auth, plans }) {
                                         transition={{ delay: 0.1 + idx * 0.05 }}
                                         href={item.href}
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className="text-4xl font-black tracking-tighter hover:translate-x-4 transition-transform py-4 block"
+                                        className="text-4xl font-black tracking-tighter hover:translate-x-4 transition-transform py-4 block uppercase"
                                     >
                                         {item.name}
                                     </motion.a>
                                 ))}
+                            </div>
 
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="pt-12 border-t border-white/10"
-                                >
-                                    {!auth.user ? (
-                                        <div className="grid gap-4">
-                                            <Link href={route('login')} className="text-2xl font-bold py-2">Sign In</Link>
-                                            <Link
-                                                href={route('register')}
-                                                className="bg-white text-[#FF6600] text-center py-5 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-xl shadow-orange-950/20"
-                                            >
-                                                Get Started
-                                            </Link>
-                                        </div>
-                                    ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="mt-12 pt-12 border-t border-white/10"
+                            >
+                                {!auth.user ? (
+                                    <div className="grid gap-6">
+                                        <Link href={route('login')} className="text-2xl font-bold py-2">Sign In</Link>
                                         <Link
-                                            href={route('dashboard')}
-                                            className="bg-white text-[#FF6600] text-center py-5 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-xl shadow-orange-950/20 block"
+                                            href={route('register')}
+                                            className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20"
                                         >
-                                            Go to Dashboard
+                                            Get Started
                                         </Link>
-                                    )}
-                                </motion.div>
-                            </div>
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href={route('dashboard')}
+                                        className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20 block"
+                                    >
+                                        Go to Dashboard
+                                    </Link>
+                                )}
+                            </motion.div>
+                        </div>
 
-                            {/* Decorative element */}
-                            <div className="absolute bottom-10 left-10 opacity-10">
-                                <Zap className="w-32 h-32 text-white" />
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </nav>
+                        {/* Decorative element */}
+                        <Zap className="absolute bottom-10 right-10 w-32 h-32 text-white opacity-10 pointer-events-none" />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Hero Section */}
             <header className="relative pt-40 pb-20 px-6 hero-pattern">
@@ -201,7 +204,6 @@ export default function Welcome({ auth, plans }) {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.8 }}
                     >
-
                         <h1 className="text-6xl lg:text-8xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter mb-8 max-w-2xl">
                             Marketing <span className="text-gradient">Simplified</span> in One Click.
                         </h1>
@@ -371,7 +373,7 @@ export default function Welcome({ auth, plans }) {
                 </div>
             </section>
 
-            {/* Pricing Section (NEW) */}
+            {/* Pricing Section */}
             <section id="pricing" className="py-32 px-6 bg-gray-50 dark:bg-[#0c0c0c] relative transition-all">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in">
