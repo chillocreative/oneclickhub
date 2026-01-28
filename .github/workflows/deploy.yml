@@ -41,6 +41,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
           server-dir: ./
           dry-run: false
           dangerous-clean-slate: false # Set to true ONLY if you want to delete files on cPanel that aren't in Git
