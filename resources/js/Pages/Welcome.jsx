@@ -1,6 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Head, Link } from '@inertiajs/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
 import {
     MousePointerClick,
     Users,
@@ -14,10 +15,14 @@ import {
     Layout,
     Code,
     Search,
-    PenTool
+    PenTool,
+    Menu,
+    X
 } from 'lucide-react';
 
 export default function Welcome({ auth, plans }) {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     const categories = [
         { name: 'Catering', icon: <Utensils className="w-6 h-6" />, slug: 'catering' },
         { name: 'Event Hall', icon: <ShieldCheck className="w-6 h-6" />, slug: 'event-hall' },
@@ -56,39 +61,77 @@ export default function Welcome({ auth, plans }) {
             </div>
 
             {/* Navigation */}
-            <nav className="fixed top-0 w-full z-50 glass border-b border-white/20 dark:border-white/5">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2 group cursor-pointer">
-                        <ApplicationLogo className="w-10 h-10 group-hover:rotate-12 transition-transform duration-300" />
-                        <span className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
+            <nav className="fixed top-0 w-full z-[100] glass border-b border-white/20 dark:border-white/5">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-2 group cursor-pointer flex-shrink-0">
+                        <ApplicationLogo className="w-8 h-8 md:w-10 md:h-10 group-hover:rotate-12 transition-transform duration-300" />
+                        <span className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
                             ONECLICK<span className="text-gradient">HUB</span>
                         </span>
                     </div>
 
-                    <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                    {/* Desktop Navigation */}
+                    <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-600 dark:text-gray-300">
                         <a href="#features" className="hover:text-[#FF6600] transition-colors">Features</a>
                         <a href="#solutions" className="hover:text-[#FF6600] transition-colors">Solutions</a>
                         <a href="#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</a>
                         <a href="#pricing" className="hover:text-[#FF6600] transition-colors">Pricing</a>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4">
                         {auth.user ? (
-                            <Link href={route('dashboard')} className="btn-gradient px-6 py-2 text-sm">
+                            <Link href={route('dashboard')} className="btn-gradient px-4 md:px-6 py-2 text-xs md:text-sm">
                                 Dashboard
                             </Link>
                         ) : (
                             <>
-                                <Link href={route('login')} className="text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">
+                                <Link href={route('login')} className="hidden sm:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">
                                     Sign In
                                 </Link>
-                                <Link href={route('register')} className="btn-gradient px-6 py-2 text-sm">
+                                <Link href={route('register')} className="btn-gradient px-4 md:px-6 py-2 text-xs md:text-sm">
                                     Get Started
                                 </Link>
                             </>
                         )}
+
+                        {/* Mobile Menu Toggle */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors"
+                        >
+                            {isMobileMenuOpen ? (
+                                <X className="w-6 h-6 text-[#FF6600]" />
+                            ) : (
+                                <Menu className="w-6 h-6" />
+                            )}
+                        </button>
                     </div>
                 </div>
+
+                {/* Mobile Menu Overlay */}
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="lg:hidden absolute top-20 left-0 w-full glass border-b border-white/20 dark:border-white/5 overflow-hidden"
+                        >
+                            <div className="p-6 space-y-4 flex flex-col items-center text-center">
+                                <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Features</a>
+                                <a href="#solutions" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Solutions</a>
+                                <a href="#market" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">ASEAN Market</a>
+                                <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Pricing</a>
+
+                                <div className="w-full pt-4 border-t border-gray-100 dark:border-white/10 sm:hidden">
+                                    {!auth.user && (
+                                        <Link href={route('login')} className="block py-4 text-xl font-black text-[#FF6600]">Sign In</Link>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
 
             {/* Hero Section */}
