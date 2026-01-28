@@ -35,36 +35,38 @@ jobs:
           npm install
           npm run build
 
-      - name:  Set up SSH Agent
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: 📂 Deploy via SCP
+        uses: appleboy/scp-action@v0.1.7
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: 📂 Deploy via Rsync
-        run: |
-          rsync -rlgoDzvc --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            --exclude '/.git/' \
-            --exclude '/.github/' \
-            --exclude '/node_modules/' \
-            --exclude '/tests/' \
-            --exclude '.env' \
-            --exclude '.env.example' \
-            --exclude '.editorconfig' \
-            --exclude '.gitattributes' \
-            --exclude 'composer.json' \
-            --exclude 'composer.lock' \
-            --exclude 'package.json' \
-            --exclude 'package-lock.json' \
-            --exclude 'vite.config.js' \
-            --exclude 'postcss.config.js' \
-            --exclude 'tailwind.config.js' \
-            --exclude 'README.md' \
-            --exclude 'TECHNICAL_DOCS.md' \
-            --exclude 'phpunit.xml' \
-            --exclude 'docker-compose.yml' \
-            --exclude '/storage/framework/cache/' \
-            --exclude '/storage/framework/sessions/' \
-            --exclude '/storage/framework/views/' \
-            --exclude '/storage/logs/' \
-            ./ chilloc1@64.120.94.82:${{ secrets.REMOTE_TARGET }}
+          host: "64.120.94.82"
+          username: "chilloc1"
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: "./*"
+          target: ${{ secrets.REMOTE_TARGET }}
+          rm: false # Set to true if you want to clear the target folder before upload
+          strip_components: 0
+          exclude: |
+            .git/
+            .github/
+            node_modules/
+            tests/
+            .env
+            .env.example
+            .editorconfig
+            .gitattributes
+            composer.json
+            composer.lock
+            package.json
+            package-lock.json
+            vite.config.js
+            postcss.config.js
+            tailwind.config.js
+            README.md
+            TECHNICAL_DOCS.md
+            phpunit.xml
+            docker-compose.yml
+            storage/framework/cache/*
+            storage/framework/sessions/*
+            storage/framework/views/*
+            storage/logs/*
