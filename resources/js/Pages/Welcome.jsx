@@ -112,22 +112,81 @@ export default function Welcome({ auth, plans }) {
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="lg:hidden absolute top-20 left-0 w-full glass border-b border-white/20 dark:border-white/5 overflow-hidden"
+                            initial={{ opacity: 0, x: '100%' }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="lg:hidden fixed inset-0 z-[200] bg-gradient-to-br from-[#FF6600] via-[#FF8800] to-[#FFB800] text-white"
                         >
-                            <div className="p-6 space-y-4 flex flex-col items-center text-center">
-                                <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Features</a>
-                                <a href="#solutions" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Solutions</a>
-                                <a href="#market" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">ASEAN Market</a>
-                                <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="w-full py-2 text-lg font-bold text-gray-700 dark:text-gray-300 hover:text-[#FF6600] transition-colors">Pricing</a>
-
-                                <div className="w-full pt-4 border-t border-gray-100 dark:border-white/10 sm:hidden">
-                                    {!auth.user && (
-                                        <Link href={route('login')} className="block py-4 text-xl font-black text-[#FF6600]">Sign In</Link>
-                                    )}
+                            {/* Menu Header inside overlay */}
+                            <div className="flex items-center justify-between px-6 h-20 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <div className="bg-white p-1.5 rounded-xl">
+                                        <ApplicationLogo className="w-7 h-7" />
+                                    </div>
+                                    <span className="text-xl font-black tracking-tighter text-white">
+                                        ONECLICKHUB
+                                    </span>
                                 </div>
+                                <button
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="p-2 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"
+                                >
+                                    <X className="w-8 h-8 text-white" />
+                                </button>
+                            </div>
+
+                            {/* Menu Links */}
+                            <div className="p-8 space-y-2 flex flex-col justify-center min-h-[70vh]">
+                                {[
+                                    { name: 'Features', href: '#features' },
+                                    { name: 'Solutions', href: '#solutions' },
+                                    { name: 'ASEAN Market', href: '#market' },
+                                    { name: 'Pricing', href: '#pricing' }
+                                ].map((item, idx) => (
+                                    <motion.a
+                                        key={idx}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.1 + idx * 0.05 }}
+                                        href={item.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="text-4xl font-black tracking-tighter hover:translate-x-4 transition-transform py-4 block"
+                                    >
+                                        {item.name}
+                                    </motion.a>
+                                ))}
+
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 }}
+                                    className="pt-12 border-t border-white/10"
+                                >
+                                    {!auth.user ? (
+                                        <div className="grid gap-4">
+                                            <Link href={route('login')} className="text-2xl font-bold py-2">Sign In</Link>
+                                            <Link
+                                                href={route('register')}
+                                                className="bg-white text-[#FF6600] text-center py-5 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-xl shadow-orange-950/20"
+                                            >
+                                                Get Started
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            href={route('dashboard')}
+                                            className="bg-white text-[#FF6600] text-center py-5 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-xl shadow-orange-950/20 block"
+                                        >
+                                            Go to Dashboard
+                                        </Link>
+                                    )}
+                                </motion.div>
+                            </div>
+
+                            {/* Decorative element */}
+                            <div className="absolute bottom-10 left-10 opacity-10">
+                                <Zap className="w-32 h-32 text-white" />
                             </div>
                         </motion.div>
                     )}
