@@ -142,10 +142,7 @@ export default function Welcome({ auth, plans }) {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950/30 text-[#FF6600] text-xs font-bold uppercase tracking-widest mb-6 border border-orange-200 dark:border-orange-900/50">
-                            <Zap className="w-3 h-3 fill-current" />
-                            Empowering 50,000+ ASEAN Freelancers
-                        </div>
+
                         <h1 className="text-6xl lg:text-8xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter mb-8 max-w-2xl">
                             Marketing <span className="text-gradient">Simplified</span> in One Click.
                         </h1>
