@@ -39,6 +39,7 @@ jobs:
         uses: easingthemes/ssh-deploy@v5.1.0
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
           ARGS: "-rlgoDzvc -i --delete"
           SOURCE: "./"
           REMOTE_HOST: "64.120.94.82"
