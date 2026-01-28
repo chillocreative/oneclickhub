@@ -35,37 +35,37 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Deploy via SSH
-        uses: easingthemes/ssh-deploy@v5.1.0
+      - name: � Set up SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
-          ARGS: "-rlgoDzvc -i --delete"
-          SOURCE: "./"
-          REMOTE_HOST: "64.120.94.82"
-          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
-          EXCLUDE: |
-            "/.git/"
-            "/.github/"
-            "/node_modules/"
-            "/tests/"
-            ".env"
-            ".env.example"
-            ".editorconfig"
-            ".gitattributes"
-            "composer.json"
-            "composer.lock"
-            "package.json"
-            "package-lock.json"
-            "vite.config.js"
-            "postcss.config.js"
-            "tailwind.config.js"
-            "README.md"
-            "TECHNICAL_DOCS.md"
-            "phpunit.xml"
-            "docker-compose.yml"
-            "/storage/framework/cache/"
-            "/storage/framework/sessions/"
-            "/storage/framework/views/"
-            "/storage/logs/"
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+
+      - name: 📂 Deploy via Rsync
+        run: |
+          rsync -rlgoDzvc --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --exclude '/.git/' \
+            --exclude '/.github/' \
+            --exclude '/node_modules/' \
+            --exclude '/tests/' \
+            --exclude '.env' \
+            --exclude '.env.example' \
+            --exclude '.editorconfig' \
+            --exclude '.gitattributes' \
+            --exclude 'composer.json' \
+            --exclude 'composer.lock' \
+            --exclude 'package.json' \
+            --exclude 'package-lock.json' \
+            --exclude 'vite.config.js' \
+            --exclude 'postcss.config.js' \
+            --exclude 'tailwind.config.js' \
+            --exclude 'README.md' \
+            --exclude 'TECHNICAL_DOCS.md' \
+            --exclude 'phpunit.xml' \
+            --exclude 'docker-compose.yml' \
+            --exclude '/storage/framework/cache/' \
+            --exclude '/storage/framework/sessions/' \
+            --exclude '/storage/framework/views/' \
+            --exclude '/storage/logs/' \
+            ./ chilloc1@64.120.94.82:${{ secrets.REMOTE_TARGET }}
