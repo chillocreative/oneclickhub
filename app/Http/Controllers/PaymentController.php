@@ -44,37 +44,45 @@ class PaymentController extends Controller
         }
 
         // Process based on status
+        $transactionStatus = 'pending';
         if ($this->bayarcash->isSuccessful($status)) {
-            // Payment successful - update your order/subscription
-            Log::info("Bayarcash payment successful for order: {$orderNumber}", [
-                'transaction_id' => $transactionId,
-                'amount' => $callbackData['amount'] ?? null,
-            ]);
-
-            // TODO: Implement your business logic here
-            // Example: Update order status, activate subscription, send email, etc.
-            // $order = Order::where('order_number', $orderNumber)->first();
-            // $order?->markAsPaid($transactionId);
-
+            $transactionStatus = 'success';
         } elseif ($this->bayarcash->isFailed($status)) {
-            // Payment failed
-            Log::info("Bayarcash payment failed for order: {$orderNumber}", [
-                'transaction_id' => $transactionId,
-                'status' => $status,
-                'status_description' => $callbackData['status_description'] ?? null,
-            ]);
+            $transactionStatus = 'failed';
+        }
 
-            // TODO: Handle failed payment
-            // $order = Order::where('order_number', $orderNumber)->first();
-            // $order?->markAsFailed();
+        // Parse order number to find user and plan
+        // Format: PLAN-{user_id}-{plan_id}-{timestamp}
+        $parts = explode('-', $orderNumber);
+        $userId = $parts[1] ?? null;
+        $planId = $parts[2] ?? null;
 
-        } else {
-            // Payment pending or other status
-            Log::info("Bayarcash payment pending for order: {$orderNumber}", [
-                'transaction_id' => $transactionId,
-                'status' => $status,
-                'status_description' => $callbackData['status_description'] ?? null,
-            ]);
+        if ($userId) {
+            \App\Models\Transaction::updateOrCreate(
+                ['order_number' => $orderNumber],
+                [
+                    'user_id' => $userId,
+                    'subscription_plan_id' => $planId,
+                    'transaction_id' => $transactionId,
+                    'amount' => ($callbackData['amount'] ?? 0) / 100, // Bayarcash is in cents
+                    'currency' => 'MYR',
+                    'gateway' => 'bayarcash',
+                    'status' => $transactionStatus,
+                    'payload' => $callbackData,
+                ]
+            );
+
+            if ($transactionStatus === 'success') {
+                $user = \App\Models\User::find($userId);
+                $plan = \App\Models\SubscriptionPlan::find($planId);
+                if ($user && $plan) {
+                    $user->subscribeToPlan($plan, [
+                        'payment_gateway' => 'bayarcash',
+                        'transaction_id' => $transactionId,
+                        'amount_paid' => ($callbackData['amount'] ?? 0) / 100,
+                    ]);
+                }
+            }
         }
 
         // Return 200 OK to acknowledge receipt
@@ -145,36 +153,50 @@ class PaymentController extends Controller
                 ->with('error', 'Invalid payment data received.');
         }
 
-        if ($this->senangpay->isSuccessful($statusId)) {
-            // Payment successful
-            Log::info("SenangPay payment successful for order: {$orderId}", [
-                'transaction_id' => $transactionId,
-            ]);
+        $transactionStatus = $this->senangpay->isSuccessful($statusId) ? 'success' : 'failed';
 
-            // TODO: Implement your business logic here
-            // $order = Order::where('order_number', $orderId)->first();
-            // $order?->markAsPaid($transactionId);
+        // Parse order id to find user and plan
+        // Format: PLAN-{user_id}-{plan_id}-{timestamp}
+        $parts = explode('-', $orderId);
+        $userId = $parts[1] ?? null;
+        $planId = $parts[2] ?? null;
 
-            return redirect()->route('payment.success')
-                ->with('message', 'Payment successful!')
-                ->with('order_number', $orderId)
-                ->with('transaction_id', $transactionId);
-        } else {
-            // Payment failed
-            Log::info("SenangPay payment failed for order: {$orderId}", [
-                'transaction_id' => $transactionId,
-                'status_id' => $statusId,
-                'msg' => $callbackData['msg'] ?? null,
-            ]);
+        if ($userId) {
+            \App\Models\Transaction::updateOrCreate(
+                ['order_number' => $orderId],
+                [
+                    'user_id' => $userId,
+                    'subscription_plan_id' => $planId,
+                    'transaction_id' => $transactionId,
+                    'amount' => $callbackData['amount'] ?? 0,
+                    'currency' => 'MYR',
+                    'gateway' => 'senangpay',
+                    'status' => $transactionStatus,
+                    'payload' => $callbackData,
+                ]
+            );
 
-            // TODO: Handle failed payment
-            // $order = Order::where('order_number', $orderId)->first();
-            // $order?->markAsFailed();
+            if ($transactionStatus === 'success') {
+                $user = \App\Models\User::find($userId);
+                $plan = \App\Models\SubscriptionPlan::find($planId);
+                if ($user && $plan) {
+                    $user->subscribeToPlan($plan, [
+                        'payment_gateway' => 'senangpay',
+                        'transaction_id' => $transactionId,
+                        'amount_paid' => $callbackData['amount'] ?? 0,
+                    ]);
+                }
 
-            return redirect()->route('payment.failed')
-                ->with('error', $callbackData['msg'] ?? 'Payment was not successful. Please try again.')
-                ->with('order_number', $orderId);
+                return redirect()->route('payment.success')
+                    ->with('message', 'Payment successful!')
+                    ->with('order_number', $orderId)
+                    ->with('transaction_id', $transactionId);
+            }
         }
+
+        return redirect()->route('payment.failed')
+            ->with('error', $callbackData['msg'] ?? 'Payment was not successful. Please try again.')
+            ->with('order_number', $orderId);
     }
 
     /**

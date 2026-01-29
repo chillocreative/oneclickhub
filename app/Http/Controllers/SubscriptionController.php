@@ -132,5 +132,16 @@ class SubscriptionController extends Controller
 
         return back()->with('success', $gateway->name . ' configuration saved successfully.');
     }
+
+    public function transactions()
+    {
+        $transactions = \App\Models\Transaction::with(['user', 'plan'])
+            ->latest()
+            ->paginate(15);
+
+        return Inertia::render('Subscriptions/Transactions', [
+            'transactions' => $transactions
+        ]);
+    }
 }
 

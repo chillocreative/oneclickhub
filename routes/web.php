@@ -63,6 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/subscriptions/settings', [SubscriptionController::class, 'settings'])->name('subscriptions.settings');
         Route::get('/subscriptions/gateways', [SubscriptionController::class, 'gateways'])->name('subscriptions.gateways');
         Route::patch('/subscriptions/gateways/{gateway}', [SubscriptionController::class, 'updateGateway'])->name('subscriptions.gateways.update');
+        Route::get('/subscriptions/transactions', [SubscriptionController::class, 'transactions'])->name('subscriptions.transactions');
     });
 });
 

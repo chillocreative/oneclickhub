@@ -213,7 +213,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <SubItem href={route('subscriptions.plans')} label="Plans Management" active={route().current('subscriptions.plans')} />
                                 <SubItem href={route('subscriptions.settings')} label="Subscription Settings" active={route().current('subscriptions.settings')} />
                                 <SubItem href={route('subscriptions.gateways')} label="Payment Gateways" active={route().current('subscriptions.gateways')} />
-                                <SubItem href="#" label="Transactions" active={false} />
+                                <SubItem href={route('subscriptions.transactions')} label="Transactions" active={route().current('subscriptions.transactions')} />
                             </SidebarItem>
                         </div>
 

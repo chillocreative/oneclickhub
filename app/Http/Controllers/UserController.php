@@ -129,11 +129,27 @@ class UserController extends Controller
             'plan_id' => 'required|exists:subscription_plans,id',
         ]);
 
-        $plan = SubscriptionPlan::findOrFail($request->plan_id);
+        $plan = \App\Models\SubscriptionPlan::findOrFail($request->plan_id);
         
+        $transactionId = 'MANUAL-' . now()->timestamp . '-' . strtoupper(\Illuminate\Support\Str::random(4));
+
         $user->subscribeToPlan($plan, [
             'payment_gateway' => 'manual',
-            'transaction_id' => 'MANUAL-' . now()->timestamp,
+            'transaction_id' => $transactionId,
+            'amount_paid' => $plan->price,
+        ]);
+
+        // Record the transaction
+        \App\Models\Transaction::create([
+            'user_id' => $user->id,
+            'subscription_plan_id' => $plan->id,
+            'transaction_id' => $transactionId,
+            'order_number' => 'ORD-' . now()->format('YmdHis') . $user->id,
+            'amount' => $plan->price,
+            'currency' => 'MYR',
+            'gateway' => 'manual',
+            'status' => 'success',
+            'payment_method' => 'manual',
         ]);
 
         return back()->with('success', "Subscription assigned to {$user->name} successfully.");
