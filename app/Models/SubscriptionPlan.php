@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class SubscriptionPlan extends Model
@@ -19,7 +20,8 @@ class SubscriptionPlan extends Model
         'price' => 'decimal:2',
     ];
 
-    protected $appends = ['subscribers_count', 'formatted_price'];
+    // Note: subscribers_count is NOT in appends to avoid errors when subscriptions table doesn't exist
+    protected $appends = ['formatted_price'];
 
     /**
      * Boot method to auto-generate slug
@@ -50,13 +52,20 @@ class SubscriptionPlan extends Model
     }
 
     /**
-     * Get count of active subscribers
+     * Get count of active subscribers (safe method that won't error if table doesn't exist)
      */
     public function getSubscribersCountAttribute(): int
     {
-        return $this->subscriptions()
-            ->where('status', Subscription::STATUS_ACTIVE)
-            ->count();
+        try {
+            if (!Schema::hasTable('subscriptions')) {
+                return 0;
+            }
+            return $this->subscriptions()
+                ->where('status', Subscription::STATUS_ACTIVE)
+                ->count();
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 
     /**
@@ -75,4 +84,5 @@ class SubscriptionPlan extends Model
         return $this->interval === 'year' ? '/yr' : '/mo';
     }
 }
+
 

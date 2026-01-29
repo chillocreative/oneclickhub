@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -13,32 +14,44 @@ class UserController extends Controller
 {
     public function freelancers()
     {
-        $users = User::role('Freelancer')
-            ->with(['activeSubscription.plan'])
-            ->get()
-            ->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone_number' => $user->phone_number,
-                    'position' => $user->position,
-                    'identity_document' => $user->identity_document,
-                    'created_at' => $user->created_at,
-                    'subscription' => $user->activeSubscription ? [
-                        'id' => $user->activeSubscription->id,
-                        'status' => $user->activeSubscription->status,
-                        'starts_at' => $user->activeSubscription->starts_at,
-                        'ends_at' => $user->activeSubscription->ends_at,
-                        'plan' => $user->activeSubscription->plan ? [
-                            'id' => $user->activeSubscription->plan->id,
-                            'name' => $user->activeSubscription->plan->name,
-                            'price' => $user->activeSubscription->plan->price,
-                            'interval' => $user->activeSubscription->plan->interval,
-                        ] : null,
+        $subscriptionsTableExists = Schema::hasTable('subscriptions');
+        
+        $query = User::role('Freelancer');
+        
+        // Only load subscription relationships if the table exists
+        if ($subscriptionsTableExists) {
+            $query->with(['activeSubscription.plan']);
+        }
+        
+        $users = $query->get()->map(function ($user) use ($subscriptionsTableExists) {
+            $subscription = null;
+            
+            if ($subscriptionsTableExists && $user->activeSubscription) {
+                $subscription = [
+                    'id' => $user->activeSubscription->id,
+                    'status' => $user->activeSubscription->status,
+                    'starts_at' => $user->activeSubscription->starts_at,
+                    'ends_at' => $user->activeSubscription->ends_at,
+                    'plan' => $user->activeSubscription->plan ? [
+                        'id' => $user->activeSubscription->plan->id,
+                        'name' => $user->activeSubscription->plan->name,
+                        'price' => $user->activeSubscription->plan->price,
+                        'interval' => $user->activeSubscription->plan->interval,
                     ] : null,
                 ];
-            });
+            }
+            
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+                'position' => $user->position,
+                'identity_document' => $user->identity_document,
+                'created_at' => $user->created_at,
+                'subscription' => $subscription,
+            ];
+        });
 
         $plans = SubscriptionPlan::where('is_active', true)->get();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PaymentGateway;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -17,9 +18,17 @@ class SubscriptionController extends Controller
 
     public function plans()
     {
-        $plans = SubscriptionPlan::withCount(['subscriptions' => function ($query) {
-            $query->where('status', 'active');
-        }])->get();
+        // Check if subscriptions table exists before using withCount
+        if (Schema::hasTable('subscriptions')) {
+            $plans = SubscriptionPlan::withCount(['subscriptions' => function ($query) {
+                $query->where('status', 'active');
+            }])->get();
+        } else {
+            $plans = SubscriptionPlan::all()->map(function ($plan) {
+                $plan->subscriptions_count = 0;
+                return $plan;
+            });
+        }
         
         return Inertia::render('Subscriptions/Plans', [
             'plans' => $plans
@@ -76,11 +85,13 @@ class SubscriptionController extends Controller
 
     public function destroyPlan(SubscriptionPlan $plan)
     {
-        // Check if plan has active subscribers
-        $activeSubscribers = $plan->subscriptions()->where('status', 'active')->count();
-        
-        if ($activeSubscribers > 0) {
-            return back()->with('error', "Cannot delete plan with {$activeSubscribers} active subscriber(s). Please cancel their subscriptions first.");
+        // Check if plan has active subscribers (only if table exists)
+        if (Schema::hasTable('subscriptions')) {
+            $activeSubscribers = $plan->subscriptions()->where('status', 'active')->count();
+            
+            if ($activeSubscribers > 0) {
+                return back()->with('error', "Cannot delete plan with {$activeSubscribers} active subscriber(s). Please cancel their subscriptions first.");
+            }
         }
 
         $plan->delete();
