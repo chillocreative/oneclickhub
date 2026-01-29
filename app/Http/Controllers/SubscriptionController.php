@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PaymentGateway;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class SubscriptionController extends Controller
@@ -16,10 +17,83 @@ class SubscriptionController extends Controller
 
     public function plans()
     {
-        $plans = SubscriptionPlan::all();
+        $plans = SubscriptionPlan::withCount(['subscriptions' => function ($query) {
+            $query->where('status', 'active');
+        }])->get();
+        
         return Inertia::render('Subscriptions/Plans', [
             'plans' => $plans
         ]);
+    }
+
+    public function storePlan(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'interval' => 'required|string|in:month,year',
+            'features' => 'required|array|min:1',
+            'features.*' => 'required|string|max:255',
+            'is_active' => 'boolean',
+            'is_popular' => 'boolean',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        $validated['slug'] = Str::slug($validated['name']);
+        
+        // Ensure only one plan is popular
+        if ($request->is_popular) {
+            SubscriptionPlan::where('is_popular', true)->update(['is_popular' => false]);
+        }
+
+        SubscriptionPlan::create($validated);
+
+        return back()->with('success', 'Plan created successfully.');
+    }
+
+    public function updatePlan(Request $request, SubscriptionPlan $plan)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'interval' => 'required|string|in:month,year',
+            'features' => 'required|array|min:1',
+            'features.*' => 'required|string|max:255',
+            'is_active' => 'boolean',
+            'is_popular' => 'boolean',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        // Ensure only one plan is popular
+        if ($request->is_popular && !$plan->is_popular) {
+            SubscriptionPlan::where('is_popular', true)->update(['is_popular' => false]);
+        }
+
+        $plan->update($validated);
+
+        return back()->with('success', 'Plan updated successfully.');
+    }
+
+    public function destroyPlan(SubscriptionPlan $plan)
+    {
+        // Check if plan has active subscribers
+        $activeSubscribers = $plan->subscriptions()->where('status', 'active')->count();
+        
+        if ($activeSubscribers > 0) {
+            return back()->with('error', "Cannot delete plan with {$activeSubscribers} active subscriber(s). Please cancel their subscriptions first.");
+        }
+
+        $plan->delete();
+
+        return back()->with('success', 'Plan deleted successfully.');
+    }
+
+    public function togglePlanStatus(SubscriptionPlan $plan)
+    {
+        $plan->update(['is_active' => !$plan->is_active]);
+
+        $status = $plan->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Plan {$status} successfully.");
     }
 
     public function settings()
@@ -48,3 +122,4 @@ class SubscriptionController extends Controller
         return back()->with('success', $gateway->name . ' configuration saved successfully.');
     }
 }
+

@@ -50,10 +50,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/subscription', [UserController::class, 'assignSubscription'])->name('users.subscription.assign');
+        Route::delete('/users/{user}/subscription', [UserController::class, 'cancelSubscription'])->name('users.subscription.cancel');
 
         // Revenue Center (Subscriptions)
         Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
         Route::get('/subscriptions/plans', [SubscriptionController::class, 'plans'])->name('subscriptions.plans');
+        Route::post('/subscriptions/plans', [SubscriptionController::class, 'storePlan'])->name('subscriptions.plans.store');
+        Route::patch('/subscriptions/plans/{plan}', [SubscriptionController::class, 'updatePlan'])->name('subscriptions.plans.update');
+        Route::delete('/subscriptions/plans/{plan}', [SubscriptionController::class, 'destroyPlan'])->name('subscriptions.plans.destroy');
+        Route::patch('/subscriptions/plans/{plan}/toggle', [SubscriptionController::class, 'togglePlanStatus'])->name('subscriptions.plans.toggle');
         Route::get('/subscriptions/settings', [SubscriptionController::class, 'settings'])->name('subscriptions.settings');
         Route::get('/subscriptions/gateways', [SubscriptionController::class, 'gateways'])->name('subscriptions.gateways');
         Route::patch('/subscriptions/gateways/{gateway}', [SubscriptionController::class, 'updateGateway'])->name('subscriptions.gateways.update');
