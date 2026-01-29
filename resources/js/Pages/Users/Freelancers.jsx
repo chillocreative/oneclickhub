@@ -219,7 +219,7 @@ export default function Freelancers({ users, plans }) {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-10 rounded-xl bg-gradient-to-br from-[#FF6600] to-[#FF8533] flex items-center justify-center text-white font-black text-sm">
-                                                    {user.name?.charAt(0).toUpperCase()}
+                                                    {user.name ? user.name.charAt(0).toUpperCase() : '?'}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-gray-900 dark:text-white">{user.name}</p>
@@ -413,10 +413,10 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                                         <label
                                             key={plan.id}
                                             className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlanId == plan.id
-                                                    ? 'border-[#FF6600] bg-orange-50 dark:bg-orange-500/10'
-                                                    : isCurrentPlan
-                                                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
-                                                        : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10'
+                                                ? 'border-[#FF6600] bg-orange-50 dark:bg-orange-500/10'
+                                                : isCurrentPlan
+                                                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
+                                                    : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10'
                                                 }`}
                                         >
                                             <input

@@ -22,7 +22,7 @@ export default function Transactions({ transactions }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const getStatusStyle = (status) => {
-        switch (status.toLowerCase()) {
+        switch ((status || '').toLowerCase()) {
             case 'success':
                 return 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600';
             case 'failed':
@@ -35,7 +35,7 @@ export default function Transactions({ transactions }) {
     };
 
     const getStatusIcon = (status) => {
-        switch (status.toLowerCase()) {
+        switch ((status || '').toLowerCase()) {
             case 'success':
                 return <CheckCircle size={14} />;
             case 'failed':
@@ -48,7 +48,7 @@ export default function Transactions({ transactions }) {
     };
 
     const getGatewayIcon = (gateway) => {
-        switch (gateway.toLowerCase()) {
+        switch ((gateway || '').toLowerCase()) {
             case 'manual':
                 return <Wallet size={16} className="text-purple-500" />;
             default:
@@ -57,6 +57,7 @@ export default function Transactions({ transactions }) {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-MY', {
             day: 'numeric',
             month: 'short',
@@ -65,6 +66,12 @@ export default function Transactions({ transactions }) {
             minute: '2-digit'
         });
     };
+
+    const totalVolume = (transactions.data || []).reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
+    const successCount = (transactions.data || []).filter(t => t.status === 'success').length;
+    const successRate = (transactions.data || []).length > 0
+        ? Math.round((successCount / transactions.data.length) * 100)
+        : 0;
 
     return (
         <AuthenticatedLayout
@@ -95,7 +102,7 @@ export default function Transactions({ transactions }) {
                     >
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Volume</p>
                         <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            RM {transactions.data.reduce((acc, curr) => acc + parseFloat(curr.amount), 0).toLocaleString()}
+                            RM {totalVolume.toLocaleString()}
                         </h3>
                         <div className="flex items-center gap-2 mt-4 text-emerald-500">
                             <span className="size-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
@@ -113,9 +120,7 @@ export default function Transactions({ transactions }) {
                     >
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Success Rate</p>
                         <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            {transactions.data.length > 0
-                                ? Math.round((transactions.data.filter(t => t.status === 'success').length / transactions.data.length) * 100)
-                                : 0}%
+                            {successRate}%
                         </h3>
                         <div className="flex items-center gap-2 mt-4 text-blue-500">
                             <span className="size-8 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
@@ -247,17 +252,23 @@ export default function Transactions({ transactions }) {
                         </p>
                         <div className="flex items-center gap-2">
                             {transactions.links.map((link, i) => (
-                                <Link
-                                    key={i}
-                                    href={link.url}
-                                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${link.active
+                                link.url ? (
+                                    <Link
+                                        key={i}
+                                        href={link.url}
+                                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${link.active
                                             ? 'bg-[#FF6600] text-white shadow-lg shadow-[#FF6600]/30'
-                                            : !link.url
-                                                ? 'text-gray-300 pointer-events-none'
-                                                : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
-                                        }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
+                                            : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                                            }`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ) : (
+                                    <span
+                                        key={i}
+                                        className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-gray-300 pointer-events-none"
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                )
                             ))}
                         </div>
                     </div>

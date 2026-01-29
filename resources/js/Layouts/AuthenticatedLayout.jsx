@@ -282,7 +282,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <button className="flex items-center gap-4 p-1.5 rounded-2xl hover:bg-orange-50 dark:hover:bg-white/5 transition-all group">
                                     <div className="size-11 rounded-2xl bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[2.5px] shadow-lg group-hover:scale-105 transition-all">
                                         <div className="size-full bg-white dark:bg-gray-900 rounded-[11px] flex items-center justify-center font-black text-[#FF6600]">
-                                            {user.name.charAt(0)}
+                                            {user.name ? user.name.charAt(0) : '?'}
                                         </div>
                                     </div>
                                     <div className="hidden sm:block text-left">

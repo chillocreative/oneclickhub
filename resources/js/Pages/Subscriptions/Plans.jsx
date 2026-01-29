@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, Check, Zap, Shield, Crown, X, Users, Power } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 
@@ -183,7 +183,7 @@ function PlanModal({ show, onClose, plan }) {
     });
 
     // Reset form when plan changes
-    useState(() => {
+    useEffect(() => {
         if (plan) {
             setData({
                 name: plan.name || '',
