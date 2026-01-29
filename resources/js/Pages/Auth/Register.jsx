@@ -164,7 +164,7 @@ export default function Register() {
 
                             {selectedRole === 'Freelancer' && (
                                 <div className="bg-orange-50/50 dark:bg-orange-500/5 p-5 rounded-2xl border border-orange-100 dark:border-orange-500/10">
-                                    <InputLabel htmlFor="identity_document" value="Verification (SSM or MyKad)" />
+                                    <InputLabel htmlFor="identity_document" value="Verification (Must be a valid SSM Certificate)" />
                                     <div className="mt-2 relative">
                                         <input
                                             id="identity_document"
