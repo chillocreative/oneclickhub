@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\PaymentController;
 use App\Models\SubscriptionPlan;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,20 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// Payment Routes (public - no auth required for callbacks)
+Route::prefix('payment')->name('payment.')->group(function () {
+    // Bayarcash callbacks
+    Route::get('/bayarcash/return', [PaymentController::class, 'bayarcashReturn'])->name('bayarcash.return');
+    
+    // SenangPay callback (can be GET or POST)
+    Route::match(['get', 'post'], '/senangpay/callback', [PaymentController::class, 'senangpayCallback'])->name('senangpay.callback');
+    
+    // Payment status pages
+    Route::get('/success', [PaymentController::class, 'success'])->name('success');
+    Route::get('/failed', [PaymentController::class, 'failed'])->name('failed');
+    Route::get('/pending', [PaymentController::class, 'pending'])->name('pending');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -46,3 +61,4 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+

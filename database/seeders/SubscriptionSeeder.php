@@ -50,9 +50,9 @@ class SubscriptionSeeder extends Seeder
                 'is_active' => true,
                 'mode' => 'sandbox',
                 'settings' => [
-                    'api_key' => '',
-                    'api_secret' => '',
-                    'merchant_id' => '',
+                    'personal_access_token' => '',
+                    'portal_key' => '',
+                    'api_secret_key' => '',
                 ]
             ],
             [

@@ -114,19 +114,32 @@ function GatewayCard({ gateway, index }) {
                     {gateway.slug === 'bayarcash' && (
                         <>
                             <div className="space-y-2">
-                                <InputLabel value="API Key" />
+                                <InputLabel value="Personal Access Token" />
                                 <TextInput
+                                    type="password"
                                     className="w-full text-xs"
-                                    value={data.settings.api_key || ''}
-                                    onChange={e => updateSetting('api_key', e.target.value)}
+                                    placeholder="Bearer token from Bayarcash console"
+                                    value={data.settings.personal_access_token || ''}
+                                    onChange={e => updateSetting('personal_access_token', e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <InputLabel value="Merchant ID" />
+                                <InputLabel value="Portal Key" />
                                 <TextInput
                                     className="w-full text-xs"
-                                    value={data.settings.merchant_id || ''}
-                                    onChange={e => updateSetting('merchant_id', e.target.value)}
+                                    placeholder="Portal key from Bayarcash console"
+                                    value={data.settings.portal_key || ''}
+                                    onChange={e => updateSetting('portal_key', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <InputLabel value="API Secret Key" />
+                                <TextInput
+                                    type="password"
+                                    className="w-full text-xs"
+                                    placeholder="Secret key for checksum validation"
+                                    value={data.settings.api_secret_key || ''}
+                                    onChange={e => updateSetting('api_secret_key', e.target.value)}
                                 />
                             </div>
                         </>
