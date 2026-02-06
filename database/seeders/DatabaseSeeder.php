@@ -22,28 +22,22 @@ class DatabaseSeeder extends Seeder
             SubscriptionSeeder::class,
         ]);
 
+        // Admin User
         $admin = User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@example.com',
-            'phone_number' => '1111111111',
-            'password' => 'password',
+            'name' => 'Admin User',
+            'email' => 'admin@oneclickhub.com',
+            'phone_number' => '0123456789',
+            'password' => 'admin123',
         ]);
         $admin->assignRole('Admin');
 
-        $admin2 = User::create([
-            'name' => 'Admin Two',
-            'email' => 'admin2@example.com',
-            'phone_number' => '01110019843',
-            'password' => 'password',
+        // Regular User (Freelancer)
+        $regularUser = User::create([
+            'name' => 'Regular User',
+            'email' => 'user@oneclickhub.com',
+            'phone_number' => '0198765432',
+            'password' => 'user123',
         ]);
-        $admin2->assignRole('Admin');
-
-        $user = User::create([
-            'name' => 'Test User',
-            'email' => 'user@example.com',
-            'phone_number' => '2222222222',
-            'password' => 'password',
-        ]);
-        $user->assignRole('General User');
+        $regularUser->assignRole('General User');
     }
 }
