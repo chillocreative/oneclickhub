@@ -38,8 +38,10 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
             {/* Navigation Header */}
             <nav className="fixed top-0 w-full z-[100] glass border-b border-white/20 dark:border-white/5 h-20">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-full flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 group cursor-pointer border-none shadow-none bg-transparent hover:bg-transparent flex-shrink-0">
-                        <ApplicationLogo className="w-8 h-8 md:w-10 md:h-10 group-hover:rotate-12 transition-transform duration-300" />
+                    <Link href="/" className="flex items-center gap-3 group flex-none cursor-pointer border-none shadow-none bg-transparent hover:bg-transparent">
+                        <div className="flex-none flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:rotate-3 group-hover:scale-105 w-10 h-10 md:w-12 md:h-12">
+                            <ApplicationLogo />
+                        </div>
                         <span className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
                             ONECLICK<span className="text-[#FF6600]">HUB</span>
                         </span>
@@ -52,17 +54,17 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                         <Link href="/#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</Link>
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-4">
                         {auth?.user ? (
-                            <Link href={route('dashboard')} className="btn-gradient px-4 md:px-6 py-2 text-xs md:text-sm">
+                            <Link href={route('dashboard')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">
                                 Dashboard
                             </Link>
                         ) : (
                             <>
-                                <Link href={route('login')} className="hidden sm:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">
+                                <Link href={route('login')} className="hidden lg:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">
                                     Sign In
                                 </Link>
-                                <Link href={route('register')} className="btn-gradient px-4 md:px-6 py-2 text-xs md:text-sm">
+                                <Link href={route('register')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">
                                     Get Started
                                 </Link>
                             </>
@@ -98,11 +100,11 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
 
                         {/* Menu Header */}
                         <div className="flex items-center justify-between px-6 h-20 border-b border-white/10 shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="bg-white p-1.5 rounded-xl">
-                                    <ApplicationLogo className="w-7 h-7" />
+                            <div className="flex items-center gap-4 flex-none">
+                                <div className="flex-none w-10 h-10 flex items-center justify-center overflow-hidden">
+                                    <ApplicationLogo />
                                 </div>
-                                <span className="text-xl font-black tracking-tighter text-white uppercase">
+                                <span className="text-xl font-black tracking-tighter text-white uppercase whitespace-nowrap">
                                     OneClickHub
                                 </span>
                             </div>

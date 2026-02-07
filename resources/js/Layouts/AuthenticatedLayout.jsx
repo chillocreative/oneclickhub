@@ -143,9 +143,9 @@ export default function AuthenticatedLayout({ header, children }) {
 
                     {/* Logo Section */}
                     <div className="flex items-center justify-between mb-10 px-2 z-10 transition-all duration-300">
-                        <Link href="/" className="flex items-center gap-3">
-                            <div className="p-1.5 bg-white rounded-xl shadow-lg transform group-hover:rotate-12 transition-all">
-                                <ApplicationLogo className={`transition-all duration-300 ${isCollapsed ? 'w-8 h-8' : 'w-10 h-10'}`} />
+                        <Link href="/" className="flex items-center gap-3 group flex-none">
+                            <div className={`flex-none bg-white shadow-xl rounded-2xl flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:rotate-3 group-hover:scale-105 ${isCollapsed ? 'w-12 h-12 p-1.5' : 'w-16 h-16 p-2'}`}>
+                                <ApplicationLogo />
                             </div>
                             {!isCollapsed && (
                                 <motion.span
