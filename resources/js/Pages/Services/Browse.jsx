@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Briefcase, MapPin, Clock, User, Menu, X, Zap, SlidersHorizontal } from 'lucide-react';
+import { Search, Briefcase, MapPin, Clock, User, Menu, X, Zap, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
@@ -208,9 +208,7 @@ export default function BrowseServices({ services, categories, filters }) {
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
                         </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                        </div>
+                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     </div>
                 </div>
 
