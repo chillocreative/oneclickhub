@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Briefcase, MapPin, Clock, User, Menu, X, Zap } from 'lucide-react';
+import { Search, Briefcase, MapPin, Clock, User, Menu, X, Zap, SlidersHorizontal } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
@@ -194,25 +194,43 @@ export default function BrowseServices({ services, categories, filters }) {
 
             {/* Content */}
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
-                {/* Category Filters */}
-                <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 mb-8 scrollbar-hide">
-                    <div className="flex md:flex-wrap gap-2 min-w-max md:min-w-0">
-                        <button
-                            onClick={() => handleCategoryFilter(null)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${!filters.category ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
+                {/* Category Filters - Mobile Dropdown */}
+                <div className="md:hidden mb-6">
+                    <div className="relative">
+                        <SlidersHorizontal size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        <select
+                            value={filters.category || ''}
+                            onChange={(e) => handleCategoryFilter(e.target.value || null)}
+                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-[#0c0c0c] border border-gray-200 dark:border-white/10 text-sm font-bold text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-[#FF6600]/30 focus:border-[#FF6600] transition-all"
                         >
-                            {t('browse.all')}
-                        </button>
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleCategoryFilter(cat.id)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${String(filters.category) === String(cat.id) ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
-                            >
-                                {cat.name}
-                            </button>
-                        ))}
+                            <option value="">{t('browse.allCategories')}</option>
+                            {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
                     </div>
+                </div>
+
+                {/* Category Filters - Desktop Tag Cloud */}
+                <div className="hidden md:flex flex-wrap gap-2 mb-8">
+                    <button
+                        onClick={() => handleCategoryFilter(null)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${!filters.category ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
+                    >
+                        {t('browse.all')}
+                    </button>
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => handleCategoryFilter(cat.id)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${String(filters.category) === String(cat.id) ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Services Grid */}

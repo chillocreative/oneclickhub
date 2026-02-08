@@ -76,6 +76,8 @@
     "browse.searchBtn": "Search",
     "browse.resetBtn": "Reset",
     "browse.all": "All",
+    "browse.allCategories": "All Categories",
+    "browse.category": "Category",
     "browse.noResults": "No services found",
     "browse.noResultsHint": "Try adjusting your search or filters.",
     "browse.startingAt": "Starting at",
