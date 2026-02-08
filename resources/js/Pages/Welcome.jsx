@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import AnimatedPreloader from '@/Components/AnimatedPreloader';
 import { Head, Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState } from 'react';
@@ -23,6 +24,7 @@ import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 export default function Welcome({ auth, plans }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [showPreloader, setShowPreloader] = useState(true);
     const { t } = useLanguage();
 
     const categories = [
@@ -53,8 +55,11 @@ export default function Welcome({ auth, plans }) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c] selection:bg-[#FF6600] selection:text-white overflow-x-hidden font-sans">
-            <Head title={t('meta.title')} />
+        <>
+            {showPreloader && <AnimatedPreloader onComplete={() => setShowPreloader(false)} />}
+
+            <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c] selection:bg-[#FF6600] selection:text-white overflow-x-hidden font-sans">
+                <Head title={t('meta.title')} />
 
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -482,5 +487,6 @@ export default function Welcome({ auth, plans }) {
                 </div>
             </footer>
         </div>
+        </>
     );
 }
