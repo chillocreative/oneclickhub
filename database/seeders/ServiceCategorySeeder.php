@@ -21,6 +21,21 @@ class ServiceCategorySeeder extends Seeder
             'Graphic Designer',
             'Web Designer',
             'Proofreading',
+            'Content Writer',
+            'Social Media Manager',
+            'Digital Marketing',
+            'Video Editor',
+            'Voice Over Artist',
+            'Virtual Assistant',
+            'Translation',
+            'Music & Audio',
+            'Interior Design',
+            'Personal Trainer',
+            'Tutor / Educator',
+            'Mobile App Developer',
+            'Data Entry',
+            'Accounting & Bookkeeping',
+            'Legal Consultant',
         ];
 
         foreach ($categories as $category) {
