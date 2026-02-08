@@ -74,6 +74,7 @@
     "browse.subtitle": "Browse hundreds of services from top freelancers",
     "browse.search": "Search services...",
     "browse.searchBtn": "Search",
+    "browse.resetBtn": "Reset",
     "browse.all": "All",
     "browse.noResults": "No services found",
     "browse.noResultsHint": "Try adjusting your search or filters.",

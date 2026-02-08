@@ -177,6 +177,15 @@ export default function BrowseServices({ services, categories, filters }) {
                         <button type="submit" className="px-8 py-4 bg-[#2B313F] text-white rounded-2xl text-sm font-black hover:bg-[#1a1f2a] transition-colors">
                             {t('browse.searchBtn')}
                         </button>
+                        {(filters.search || filters.category) && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearch(''); router.get(route('services.browse')); }}
+                                className="px-8 py-4 bg-white/20 text-white border-2 border-white/30 rounded-2xl text-sm font-black hover:bg-white/30 transition-colors"
+                            >
+                                {t('browse.resetBtn')}
+                            </button>
+                        )}
                     </form>
                 </div>
             </div>
