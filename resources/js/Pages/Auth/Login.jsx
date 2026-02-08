@@ -102,51 +102,34 @@ export default function Login({ status, canResetPassword }) {
                     Demo Credentials
                 </h3>
                 <div className="space-y-3">
-                    {/* Admin Credentials */}
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                        <div className="mb-1 flex items-center gap-2">
-                            <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">
-                                Admin
-                            </span>
-                        </div>
-                        <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                                <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
-                                    0123456789
+                    {[
+                        { role: 'Admin', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', phone: '0123456789', password: 'admin123' },
+                        { role: 'Freelancer', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300', phone: '0187654321', password: 'freelancer123' },
+                        { role: 'Customer', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', phone: '0198765432', password: 'customer123' },
+                    ].map((cred) => (
+                        <button
+                            key={cred.role}
+                            type="button"
+                            onClick={() => { setData({ ...data, phone_number: cred.phone, password: cred.password }); }}
+                            className="w-full text-left rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800 hover:border-[#FF6600]/40 hover:bg-orange-50/50 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                        >
+                            <div className="mb-1 flex items-center gap-2">
+                                <span className={`rounded px-2 py-0.5 text-xs font-medium ${cred.color}`}>
+                                    {cred.role}
                                 </span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">Password:</span>
-                                <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
-                                    admin123
-                                </span>
+                            <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                                    <span className="font-mono font-medium text-gray-900 dark:text-gray-100">{cred.phone}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Password:</span>
+                                    <span className="font-mono font-medium text-gray-900 dark:text-gray-100">{cred.password}</span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Regular User Credentials */}
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
-                        <div className="mb-1 flex items-center gap-2">
-                            <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                User
-                            </span>
-                        </div>
-                        <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                                <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
-                                    0198765432
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600 dark:text-gray-400">Password:</span>
-                                <span className="font-mono font-medium text-gray-900 dark:text-gray-100">
-                                    user123
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                        </button>
+                    ))}
                 </div>
             </div>
         </GuestLayout>

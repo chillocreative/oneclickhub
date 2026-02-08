@@ -67,7 +67,7 @@ class User extends Authenticatable
     public function activeSubscription(): HasOne
     {
         return $this->hasOne(Subscription::class)
-            ->where('status', Subscription::STATUS_ACTIVE)
+            ->whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_CANCELLED])
             ->where(function ($query) {
                 $query->whereNull('ends_at')
                     ->orWhere('ends_at', '>', now());
@@ -95,6 +95,41 @@ class User extends Authenticatable
     /**
      * Subscribe to a plan
      */
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
+    public function bankingDetail(): HasOne
+    {
+        return $this->hasOne(BankingDetail::class);
+    }
+
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(FreelancerAvailability::class);
+    }
+
+    public function customerOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    public function freelancerOrders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'freelancer_id');
+    }
+
+    public function freelancerReviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'freelancer_id');
+    }
+
+    public function ssmVerification(): HasOne
+    {
+        return $this->hasOne(SsmVerification::class);
+    }
+
     public function subscribeToPlan(SubscriptionPlan $plan, array $paymentData = []): Subscription
     {
         // Cancel any existing active subscription
@@ -102,12 +137,10 @@ class User extends Authenticatable
             ->where('status', Subscription::STATUS_ACTIVE)
             ->update(['status' => Subscription::STATUS_CANCELLED]);
 
-        // Calculate end date based on plan interval
-        $endsAt = $plan->interval === 'year' 
-            ? now()->addYear() 
-            : now()->addMonth();
+        // Annual subscription: 365 days from now
+        $endsAt = now()->addDays(365);
 
-        return $this->subscriptions()->create([
+        $subscription = $this->subscriptions()->create([
             'subscription_plan_id' => $plan->id,
             'status' => Subscription::STATUS_ACTIVE,
             'starts_at' => now(),
@@ -116,6 +149,46 @@ class User extends Authenticatable
             'transaction_id' => $paymentData['transaction_id'] ?? null,
             'amount_paid' => $paymentData['amount_paid'] ?? $plan->price,
         ]);
+
+        // Start 30-day SSM grace period for freelancers without SSM verification
+        if ($this->hasRole('Freelancer') && !$this->ssmVerification) {
+            $this->ssmVerification()->create([
+                'status' => SsmVerification::STATUS_PENDING,
+                'grace_period_ends_at' => now()->addDays(30),
+            ]);
+        }
+
+        return $subscription;
+    }
+
+    public function ssmStatus(): string
+    {
+        $ssm = $this->ssmVerification;
+
+        if (!$ssm) {
+            return 'none';
+        }
+
+        if ($ssm->status === SsmVerification::STATUS_VERIFIED) {
+            return 'verified';
+        }
+
+        if ($ssm->isInGracePeriod()) {
+            return 'in_grace';
+        }
+
+        return 'expired';
+    }
+
+    public function canShowServices(): bool
+    {
+        $status = $this->ssmStatus();
+        return $status === 'verified' || $status === 'in_grace';
+    }
+
+    public function ssmGraceDaysRemaining(): int
+    {
+        return $this->ssmVerification?->gracePeriodDaysRemaining() ?? 0;
     }
 }
 

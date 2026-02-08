@@ -42,7 +42,7 @@ export default function Failed({ error, orderNumber }) {
 
                     <div className="flex flex-col sm:flex-row gap-4">
                         <Link
-                            href={route('subscriptions.plans')}
+                            href={route('subscribe.plans')}
                             className="flex-1 px-6 py-4 bg-[#FF6600] text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                             <RefreshCw size={16} /> Try Again

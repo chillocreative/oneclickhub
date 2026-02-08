@@ -40,7 +40,7 @@ class SubscriptionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'interval' => 'required|string|in:month,year',
+            'interval' => 'required|string|in:year',
             'features' => 'required|array|min:1',
             'features.*' => 'required|string|max:255',
             'is_active' => 'boolean',
@@ -65,7 +65,7 @@ class SubscriptionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'interval' => 'required|string|in:month,year',
+            'interval' => 'required|string|in:year',
             'features' => 'required|array|min:1',
             'features.*' => 'required|string|max:255',
             'is_active' => 'boolean',
@@ -107,6 +107,22 @@ class SubscriptionController extends Controller
         return back()->with('success', "Plan {$status} successfully.");
     }
 
+    public function cancelSelf()
+    {
+        $user = auth()->user();
+        $subscription = $user->activeSubscription;
+
+        if (!$subscription || $subscription->status !== \App\Models\Subscription::STATUS_ACTIVE) {
+            return back()->with('error', 'No active subscription to cancel.');
+        }
+
+        $subscription->update(['status' => \App\Models\Subscription::STATUS_CANCELLED]);
+
+        $remainingDays = $subscription->remaining_days;
+
+        return back()->with('success', "Subscription cancelled. You can still use your plan for {$remainingDays} more days until " . $subscription->ends_at->format('d M Y') . ".");
+    }
+
     public function settings()
     {
         return Inertia::render('Subscriptions/Settings');
@@ -133,15 +149,60 @@ class SubscriptionController extends Controller
         return back()->with('success', $gateway->name . ' configuration saved successfully.');
     }
 
-    public function transactions()
+    public function transactions(Request $request)
     {
-        $transactions = \App\Models\Transaction::with(['user', 'plan'])
-            ->latest()
-            ->paginate(15);
+        $query = \App\Models\Transaction::with(['user', 'plan'])->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('transaction_id', 'like', "%{$search}%")
+                  ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('gateway')) {
+            $query->where('gateway', $request->gateway);
+        }
+
+        $transactions = $query->paginate(15)->withQueryString();
 
         return Inertia::render('Subscriptions/Transactions', [
-            'transactions' => $transactions
+            'transactions' => $transactions,
+            'filters' => $request->only(['search', 'status', 'gateway']),
         ]);
+    }
+
+    public function transactionShow(\App\Models\Transaction $transaction)
+    {
+        $transaction->load(['user', 'plan']);
+
+        return Inertia::render('Subscriptions/TransactionShow', [
+            'transaction' => $transaction,
+        ]);
+    }
+
+    public function transactionUpdate(Request $request, \App\Models\Transaction $transaction)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:success,failed,pending,cancelled',
+        ]);
+
+        $transaction->update($validated);
+
+        return back()->with('success', 'Transaction status updated.');
+    }
+
+    public function transactionDestroy(\App\Models\Transaction $transaction)
+    {
+        $transaction->delete();
+
+        return redirect()->route('subscriptions.transactions')->with('success', 'Transaction deleted.');
     }
 }
 

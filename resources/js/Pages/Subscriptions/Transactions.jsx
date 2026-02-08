@@ -1,77 +1,66 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     Search,
     Download,
-    Filter,
     ArrowUpRight,
-    ArrowDownLeft,
     Clock,
     CheckCircle,
     XCircle,
-    MoreHorizontal,
     CreditCard,
     Wallet,
-    Calendar,
-    User
+    User,
+    Trash2,
+    Eye,
 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Transactions({ transactions }) {
-    const [searchQuery, setSearchQuery] = useState('');
+export default function Transactions({ transactions, filters = {} }) {
+    const [search, setSearch] = useState(filters.search || '');
 
     const getStatusStyle = (status) => {
         switch ((status || '').toLowerCase()) {
-            case 'success':
-                return 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600';
-            case 'failed':
-                return 'bg-red-100 dark:bg-red-500/10 text-red-500';
-            case 'pending':
-                return 'bg-amber-100 dark:bg-amber-500/10 text-amber-600';
-            default:
-                return 'bg-gray-100 dark:bg-white/5 text-gray-500';
+            case 'success': return 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600';
+            case 'failed': return 'bg-red-100 dark:bg-red-500/10 text-red-500';
+            case 'pending': return 'bg-amber-100 dark:bg-amber-500/10 text-amber-600';
+            default: return 'bg-gray-100 dark:bg-white/5 text-gray-500';
         }
     };
 
     const getStatusIcon = (status) => {
         switch ((status || '').toLowerCase()) {
-            case 'success':
-                return <CheckCircle size={14} />;
-            case 'failed':
-                return <XCircle size={14} />;
-            case 'pending':
-                return <Clock size={14} />;
-            default:
-                return null;
+            case 'success': return <CheckCircle size={14} />;
+            case 'failed': return <XCircle size={14} />;
+            case 'pending': return <Clock size={14} />;
+            default: return null;
         }
     };
 
     const getGatewayIcon = (gateway) => {
         switch ((gateway || '').toLowerCase()) {
-            case 'manual':
-                return <Wallet size={16} className="text-purple-500" />;
-            default:
-                return <CreditCard size={16} className="text-blue-500" />;
+            case 'manual': return <Wallet size={16} className="text-purple-500" />;
+            default: return <CreditCard size={16} className="text-blue-500" />;
         }
     };
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-MY', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        return new Date(dateString).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        router.get(route('subscriptions.transactions'), { ...filters, search }, { preserveState: true });
+    };
+
+    const filterByStatus = (status) => {
+        router.get(route('subscriptions.transactions'), { ...filters, status, search: filters.search }, { preserveState: true });
     };
 
     const totalVolume = (transactions.data || []).reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
     const successCount = (transactions.data || []).filter(t => t.status === 'success').length;
-    const successRate = (transactions.data || []).length > 0
-        ? Math.round((successCount / transactions.data.length) * 100)
-        : 0;
+    const successRate = (transactions.data || []).length > 0 ? Math.round((successCount / transactions.data.length) * 100) : 0;
 
     return (
         <AuthenticatedLayout
@@ -95,86 +84,62 @@ export default function Transactions({ transactions }) {
             <div className="space-y-6">
                 {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Volume</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            RM {totalVolume.toLocaleString()}
-                        </h3>
+                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">RM {totalVolume.toLocaleString()}</h3>
                         <div className="flex items-center gap-2 mt-4 text-emerald-500">
-                            <span className="size-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                                <ArrowUpRight size={16} />
-                            </span>
+                            <span className="size-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><ArrowUpRight size={16} /></span>
                             <span className="text-sm font-bold">This page</span>
                         </div>
                     </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Success Rate</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            {successRate}%
-                        </h3>
+                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{successRate}%</h3>
                         <div className="flex items-center gap-2 mt-4 text-blue-500">
-                            <span className="size-8 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
-                                <CheckCircle size={16} />
-                            </span>
+                            <span className="size-8 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center"><CheckCircle size={16} /></span>
                             <span className="text-sm font-bold">Verified</span>
                         </div>
                     </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Transactions</p>
-                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            {transactions.total}
-                        </h3>
+                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{transactions.total}</h3>
                         <div className="flex items-center gap-2 mt-4 text-[#FF6600]">
-                            <span className="size-8 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
-                                <Clock size={16} />
-                            </span>
+                            <span className="size-8 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center"><Clock size={16} /></span>
                             <span className="text-sm font-bold">Processed</span>
                         </div>
                     </motion.div>
                 </div>
 
                 {/* Main Content Area */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white dark:bg-[#111] rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none overflow-hidden"
-                >
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-[#111] rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none overflow-hidden">
                     <div className="p-8 border-b border-gray-50 dark:border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Search by Order ID, User..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-white/5 border-0 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#FF6600]/20"
-                            />
-                        </div>
+                        <form onSubmit={handleSearch} className="relative flex-1 max-w-md flex gap-3">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by Order ID, User..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-white/5 border-0 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#FF6600]/20"
+                                />
+                            </div>
+                            <button type="submit" className="btn-gradient px-5 py-3 text-xs font-black">Search</button>
+                        </form>
                         <div className="flex items-center gap-3">
-                            <button className="p-3 bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                                <Filter size={20} />
-                            </button>
-                            <button className="flex items-center gap-2 px-6 py-3 bg-[#FF6600] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all active:scale-95">
-                                <Download size={16} />
-                                Export
-                            </button>
+                            {/* Status filter pills */}
+                            {['success', 'pending', 'failed'].map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => filterByStatus(filters.status === s ? null : s)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${filters.status === s ? 'bg-[#FF6600] text-white' : 'bg-gray-50 dark:bg-white/5 text-gray-500 hover:bg-gray-100'}`}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                            {(filters.status || filters.search) && (
+                                <Link href={route('subscriptions.transactions')} className="px-4 py-2 text-xs font-black text-gray-400 hover:text-gray-600">Clear</Link>
+                            )}
                         </div>
                     </div>
 
@@ -192,13 +157,7 @@ export default function Transactions({ transactions }) {
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                                 {transactions.data.map((transaction, idx) => (
-                                    <motion.tr
-                                        key={transaction.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: idx * 0.05 }}
-                                        className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group"
-                                    >
+                                    <motion.tr key={transaction.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.05 }} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-[#FF6600]">
@@ -235,43 +194,43 @@ export default function Transactions({ transactions }) {
                                             </span>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <button className="p-2 text-gray-400 hover:text-[#FF6600] rounded-xl transition-colors">
-                                                <MoreHorizontal size={20} />
-                                            </button>
+                                            <Link href={route('subscriptions.transactions.show', transaction.id)} className="p-2 text-gray-400 hover:text-[#FF6600] rounded-xl transition-colors inline-block">
+                                                <Eye size={18} />
+                                            </Link>
                                         </td>
                                     </motion.tr>
                                 ))}
+                                {transactions.data.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="px-8 py-12 text-center text-gray-400 text-sm">No transactions found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
 
                     {/* Pagination */}
-                    <div className="p-8 border-t border-gray-50 dark:border-white/5 bg-gray-50/30 dark:bg-white/2 flex items-center justify-between">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                            Showing {transactions.from}-{transactions.to} of {transactions.total} transactions
-                        </p>
-                        <div className="flex items-center gap-2">
-                            {transactions.links.map((link, i) => (
-                                link.url ? (
-                                    <Link
-                                        key={i}
-                                        href={link.url}
-                                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${link.active
-                                            ? 'bg-[#FF6600] text-white shadow-lg shadow-[#FF6600]/30'
-                                            : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
-                                            }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ) : (
-                                    <span
-                                        key={i}
-                                        className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-gray-300 pointer-events-none"
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                )
-                            ))}
+                    {transactions.links && transactions.links.length > 3 && (
+                        <div className="p-8 border-t border-gray-50 dark:border-white/5 bg-gray-50/30 dark:bg-white/2 flex items-center justify-between">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                Showing {transactions.from}-{transactions.to} of {transactions.total} transactions
+                            </p>
+                            <div className="flex items-center gap-2">
+                                {transactions.links.map((link, i) => (
+                                    link.url ? (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${link.active ? 'bg-[#FF6600] text-white shadow-lg shadow-[#FF6600]/30' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'}`}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ) : (
+                                        <span key={i} className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-gray-300 pointer-events-none" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    )
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </motion.div>
             </div>
         </AuthenticatedLayout>

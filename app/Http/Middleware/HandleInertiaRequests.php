@@ -29,15 +29,39 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $unreadMessages = 0;
+        $notificationCount = 0;
+
+        if ($user) {
+            $unreadMessages = \App\Models\ChatMessage::whereHas('conversation', function ($q) use ($user) {
+                $q->where('user_one_id', $user->id)->orWhere('user_two_id', $user->id);
+            })->where('sender_id', '!=', $user->id)->whereNull('read_at')->count();
+
+            if ($user->hasRole('Admin')) {
+                $notificationCount = $user->unreadNotifications()->count();
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? array_merge(
+                    $user->toArray(),
+                    ['roles' => $user->getRoleNames()]
+                ) : null,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
+            'unreadMessages' => $unreadMessages,
+            'notificationCount' => $notificationCount,
+            'ssm' => $user && $user->hasRole('Freelancer') ? [
+                'status' => $user->ssmStatus(),
+                'graceDaysRemaining' => $user->ssmGraceDaysRemaining(),
+                'servicesHidden' => (bool) $user->ssmVerification?->services_hidden_at,
+            ] : null,
         ];
     }
 }

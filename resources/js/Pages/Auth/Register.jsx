@@ -8,9 +8,10 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Briefcase, ArrowLeft, ArrowRight, FileUp } from 'lucide-react';
 
-export default function Register() {
-    const [step, setStep] = useState('select'); // 'select' or 'form'
-    const [selectedRole, setSelectedRole] = useState(null);
+export default function Register({ planSlug }) {
+    const hasPlan = Boolean(planSlug);
+    const [step, setStep] = useState(hasPlan ? 'form' : 'select');
+    const [selectedRole, setSelectedRole] = useState(hasPlan ? 'Freelancer' : null);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -18,8 +19,9 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
-        role: '',
+        role: hasPlan ? 'Freelancer' : '',
         identity_document: null,
+        plan: planSlug || '',
     });
 
     const handleRoleSelect = (role) => {
@@ -31,6 +33,7 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
         post(route('register'), {
+            forceFormData: true,
             onFinish: () => reset('password', 'password_confirmation'),
         });
     };
@@ -102,11 +105,26 @@ export default function Register() {
                         exit={{ opacity: 0, x: -20 }}
                     >
                         <button
-                            onClick={() => setStep('select')}
+                            onClick={() => {
+                                setStep('select');
+                                setSelectedRole(null);
+                                setData('role', '');
+                            }}
                             className="flex items-center gap-2 text-xs font-black text-gray-400 hover:text-[#FF6600] mb-6 uppercase tracking-widest transition-colors"
                         >
                             <ArrowLeft size={16} /> Choose Role
                         </button>
+
+                        {hasPlan && (
+                            <div className="mb-6 p-4 rounded-2xl bg-orange-50/50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10">
+                                <p className="text-xs font-black text-[#FF6600] uppercase tracking-widest">
+                                    Selected Plan
+                                </p>
+                                <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mt-1">
+                                    {planSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                </p>
+                            </div>
+                        )}
 
                         <div className="mb-8">
                             <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
@@ -125,9 +143,10 @@ export default function Register() {
                                     className="mt-1 block w-full"
                                     autoComplete="name"
                                     isFocused={true}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) => setData('name', e.target.value.toUpperCase())}
                                     required
-                                    placeholder="e.g. Ahmad Faiz"
+                                    placeholder="e.g. AHMAD FAIZ"
+                                    style={{ textTransform: 'uppercase' }}
                                 />
                                 <InputError message={errors.name} className="mt-2" />
                             </div>
@@ -140,15 +159,17 @@ export default function Register() {
                                     value={data.phone_number}
                                     className="mt-1 block w-full"
                                     autoComplete="tel"
-                                    onChange={(e) => setData('phone_number', e.target.value)}
+                                    onChange={(e) => setData('phone_number', e.target.value.replace(/\D/g, '').slice(0, 11))}
                                     required
-                                    placeholder="e.g. 011..."
+                                    maxLength={11}
+                                    placeholder="e.g. 01112345678"
+                                    inputMode="numeric"
                                 />
                                 <InputError message={errors.phone_number} className="mt-2" />
                             </div>
 
                             <div>
-                                <InputLabel htmlFor="email" value="Email Address (Optional)" />
+                                <InputLabel htmlFor="email" value="Email Address" />
                                 <TextInput
                                     id="email"
                                     type="email"
@@ -157,6 +178,7 @@ export default function Register() {
                                     className="mt-1 block w-full"
                                     autoComplete="username"
                                     onChange={(e) => setData('email', e.target.value)}
+                                    required
                                     placeholder="your@email.com"
                                 />
                                 <InputError message={errors.email} className="mt-2" />

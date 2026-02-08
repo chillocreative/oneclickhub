@@ -52,6 +52,7 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                         <Link href="/#features" className="hover:text-[#FF6600] transition-colors">Features</Link>
                         <Link href="/#solutions" className="hover:text-[#FF6600] transition-colors">Solutions</Link>
                         <Link href="/#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</Link>
+                        <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">Services</Link>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -123,7 +124,8 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                                     { name: 'Features', href: '/#features' },
                                     { name: 'Solutions', href: '/#solutions' },
                                     { name: 'ASEAN Market', href: '/#market' },
-                                    { name: 'Pricing', href: '/#pricing' }
+                                    { name: 'Pricing', href: '/#pricing' },
+                                    { name: 'Services', href: route('services.browse') }
                                 ].map((item, idx) => (
                                     <Link
                                         key={idx}

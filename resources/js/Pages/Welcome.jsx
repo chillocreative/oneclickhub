@@ -78,6 +78,7 @@ export default function Welcome({ auth, plans }) {
                         <a href="#solutions" className="hover:text-[#FF6600] transition-colors">Solutions</a>
                         <a href="#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</a>
                         <a href="#pricing" className="hover:text-[#FF6600] transition-colors">Pricing</a>
+                        <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">Services</Link>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -149,7 +150,8 @@ export default function Welcome({ auth, plans }) {
                                     { name: 'Features', href: '#features' },
                                     { name: 'Solutions', href: '#solutions' },
                                     { name: 'ASEAN Market', href: '#market' },
-                                    { name: 'Pricing', href: '#pricing' }
+                                    { name: 'Pricing', href: '#pricing' },
+                                    { name: 'Services', href: route('services.browse') }
                                 ].map((item, idx) => (
                                     <motion.a
                                         key={idx}
@@ -406,14 +408,12 @@ export default function Welcome({ auth, plans }) {
                                 )}
                                 <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase mb-2">{plan.name}</h3>
                                 <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">
-                                    {plan.slug === 'starter-hub' && 'Perfect for new freelancers looking to build a local presence.'}
-                                    {plan.slug === 'premium-pro' && 'Designed for scaling experts who need high-performance tools.'}
-                                    {plan.slug === 'enterprise-hub' && 'Custom solutions for agency owners and top-tier ASEAN leaders.'}
+                                    Subscribe to {plan.name} and grow your freelance business annually.
                                 </p>
 
                                 <div className="flex items-baseline gap-1 mb-10">
                                     <span className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">RM {Math.round(plan.price)}</span>
-                                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">/{plan.interval}</span>
+                                    <span className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">/yr</span>
                                 </div>
 
                                 <div className="space-y-6 flex-1 mb-12">
@@ -429,7 +429,7 @@ export default function Welcome({ auth, plans }) {
                                     href={route('register', { plan: plan.slug })}
                                     className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest text-center transition-all ${plan.is_popular ? 'btn-gradient' : 'bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white hover:bg-[#FF6600]/10 hover:text-[#FF6600]'}`}
                                 >
-                                    {plan.price >= 999 ? 'Contact Sales' : (plan.is_popular ? 'Go Premium' : 'Get Started')}
+                                    {plan.is_popular ? 'Go Premium' : 'Get Started'}
                                 </Link>
                             </motion.div>
                         ))}

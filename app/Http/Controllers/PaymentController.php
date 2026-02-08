@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PaymentGateway;
+use App\Models\SubscriptionPlan;
+use App\Models\Transaction;
 use App\Services\BayarcashService;
 use App\Services\SenangpayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
@@ -16,6 +21,137 @@ class PaymentController extends Controller
     {
         $this->bayarcash = $bayarcash;
         $this->senangpay = $senangpay;
+    }
+
+    /**
+     * Show available subscription plans for selection
+     */
+    public function selectPlan()
+    {
+        $plans = SubscriptionPlan::where('is_active', true)->get();
+
+        return Inertia::render('Subscribe/Plans', [
+            'plans' => $plans,
+        ]);
+    }
+
+    /**
+     * Show checkout page for a specific plan
+     */
+    public function checkout(SubscriptionPlan $plan)
+    {
+        if (!$plan->is_active) {
+            return redirect()->route('subscribe.plans')
+                ->with('error', 'This plan is no longer available.');
+        }
+
+        $user = Auth::user();
+        if ($user->hasActiveSubscription()) {
+            return redirect()->route('dashboard')
+                ->with('success', 'You already have an active subscription.');
+        }
+
+        $gateways = PaymentGateway::where('is_active', true)->get()->map(function ($gw) {
+            return [
+                'slug' => $gw->slug,
+                'name' => $gw->name,
+            ];
+        });
+
+        return Inertia::render('Subscribe/Checkout', [
+            'plan' => $plan,
+            'gateways' => $gateways,
+        ]);
+    }
+
+    /**
+     * Initiate payment for a subscription plan
+     */
+    public function initiatePayment(Request $request, SubscriptionPlan $plan)
+    {
+        $request->validate([
+            'gateway' => 'required|string|in:bayarcash,senangpay',
+        ]);
+
+        $user = Auth::user();
+        $gateway = $request->input('gateway');
+
+        if ($user->hasActiveSubscription()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'You already have an active subscription.');
+        }
+
+        if (!$plan->is_active) {
+            return redirect()->route('subscribe.plans')
+                ->with('error', 'This plan is no longer available.');
+        }
+
+        $orderNumber = 'PLAN-' . $user->id . '-' . $plan->id . '-' . time();
+
+        Transaction::create([
+            'user_id' => $user->id,
+            'subscription_plan_id' => $plan->id,
+            'order_number' => $orderNumber,
+            'amount' => $plan->price,
+            'currency' => 'MYR',
+            'gateway' => $gateway,
+            'status' => 'pending',
+        ]);
+
+        if ($gateway === 'bayarcash') {
+            return $this->payWithBayarcash($user, $plan, $orderNumber);
+        }
+
+        return $this->payWithSenangpay($user, $plan, $orderNumber);
+    }
+
+    /**
+     * Create Bayarcash payment intent and redirect
+     */
+    protected function payWithBayarcash($user, SubscriptionPlan $plan, string $orderNumber)
+    {
+        $result = $this->bayarcash->createPaymentIntent([
+            'order_number' => $orderNumber,
+            'amount' => $plan->price,
+            'payer_name' => $user->name,
+            'payer_email' => $user->email ?? $user->phone_number . '@noemail.oneclickhub.com',
+            'payer_telephone_number' => $user->phone_number,
+            'return_url' => route('payment.bayarcash.return'),
+            'callback_url' => route('payment.bayarcash.callback'),
+        ]);
+
+        if ($result['success'] && !empty($result['payment_url'])) {
+            return Inertia::location($result['payment_url']);
+        }
+
+        Log::error('Bayarcash payment initiation failed', $result);
+
+        return redirect()->route('subscribe.checkout', $plan->slug)
+            ->with('error', 'Unable to connect to payment gateway. Please try again.');
+    }
+
+    /**
+     * Create SenangPay payment and redirect
+     */
+    protected function payWithSenangpay($user, SubscriptionPlan $plan, string $orderNumber)
+    {
+        $result = $this->senangpay->createPayment([
+            'detail' => 'Subscription: ' . $plan->name,
+            'amount' => $plan->price,
+            'order_id' => $orderNumber,
+            'name' => $user->name,
+            'email' => $user->email ?? '',
+            'phone' => $user->phone_number,
+        ]);
+
+        if ($result['success'] && !empty($result['payment_url'])) {
+            return Inertia::location($result['payment_url']);
+        }
+
+        Log::error('SenangPay payment initiation failed', $result);
+
+        return redirect()->route('subscribe.checkout', $plan->slug)
+            ->with('error', 'Unable to connect to payment gateway. Please try again.');
     }
 
     /**

@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { Wallet, Shield, Globe, ExternalLink, Settings2, Power } from 'lucide-react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
@@ -36,6 +37,7 @@ export default function PaymentGateways({ gateways }) {
 }
 
 function GatewayCard({ gateway, index }) {
+    const [logoError, setLogoError] = useState(false);
     const { data, setData, patch, processing } = useForm({
         is_active: gateway.is_active,
         mode: gateway.mode,
@@ -55,8 +57,8 @@ function GatewayCard({ gateway, index }) {
     };
 
     const getLogo = (slug) => {
-        if (slug === 'bayarcash') return 'https://bayarcash.com/wp-content/uploads/sites/2/2021/05/bayarcash-desktop-logo.png';
-        if (slug === 'senangpay') return 'https://senangpay.com/wp-content/uploads/2023/07/WEBSITE-senangPay-DOKU-LOGO.png';
+        if (slug === 'bayarcash') return 'https://cdn.bayarcash.com/bayarcash-logo.svg';
+        if (slug === 'senangpay') return 'https://app.senangpay.my/images/logo-senangpay.png';
         if (slug === 'paypal') return 'https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png';
         if (slug === 'stripe') return 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Stripe_Logo%2C_revised_2016.svg/2560px-Stripe_Logo%2C_revised_2016.svg.png';
         return '';
@@ -71,7 +73,11 @@ function GatewayCard({ gateway, index }) {
         >
             <div className="p-8 pb-0 flex items-center justify-between">
                 <div className="h-10 flex items-center bg-gray-50/50 dark:bg-white/5 px-4 rounded-xl">
-                    <img src={getLogo(gateway.slug)} alt={gateway.name} className="h-6 object-contain grayscale group-hover:grayscale-0 transition-all duration-500" />
+                    {logoError ? (
+                        <span className="text-sm font-black text-gray-700 dark:text-gray-300 tracking-tight">{gateway.name}</span>
+                    ) : (
+                        <img src={getLogo(gateway.slug)} alt={gateway.name} className="h-6 object-contain grayscale group-hover:grayscale-0 transition-all duration-500" onError={() => setLogoError(true)} />
+                    )}
                 </div>
                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${data.is_active ? 'bg-emerald-50 text-emerald-500' : 'bg-gray-50 text-gray-400'}`}>
                     <div className={`size-1.5 rounded-full ${data.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />

@@ -55,7 +55,7 @@ class Subscription extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', self::STATUS_ACTIVE)
+        return $query->whereIn('status', [self::STATUS_ACTIVE, self::STATUS_CANCELLED])
             ->where(function ($q) {
                 $q->whereNull('ends_at')
                     ->orWhere('ends_at', '>', now());
@@ -63,12 +63,15 @@ class Subscription extends Model
     }
 
     /**
-     * Check if subscription is active
+     * Check if subscription is active (cancelled subscriptions remain active until ends_at)
      */
     public function isActive(): bool
     {
-        return $this->status === self::STATUS_ACTIVE 
-            && ($this->ends_at === null || $this->ends_at->isFuture());
+        if ($this->ends_at !== null && $this->ends_at->isPast()) {
+            return false;
+        }
+
+        return in_array($this->status, [self::STATUS_ACTIVE, self::STATUS_CANCELLED]);
     }
 
     /**

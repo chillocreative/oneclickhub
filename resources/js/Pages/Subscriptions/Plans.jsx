@@ -106,7 +106,7 @@ export default function SubscriptionPlans({ plans }) {
                                 <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">{plan.name}</h3>
                                 <div className="flex items-baseline gap-1 mt-2">
                                     <span className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">RM {parseFloat(plan.price).toFixed(0)}</span>
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">/{plan.interval === 'year' ? 'yr' : 'mo'}</span>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">/yr</span>
                                 </div>
 
                                 {plan.subscriptions_count > 0 && (
@@ -175,7 +175,7 @@ function PlanModal({ show, onClose, plan }) {
     const { data, setData, post, patch, processing, errors, reset } = useForm({
         name: plan?.name || '',
         price: plan?.price || '',
-        interval: plan?.interval || 'month',
+        interval: 'year',
         features: plan?.features || [''],
         is_active: plan?.is_active ?? true,
         is_popular: plan?.is_popular ?? false,
@@ -188,7 +188,7 @@ function PlanModal({ show, onClose, plan }) {
             setData({
                 name: plan.name || '',
                 price: plan.price || '',
-                interval: plan.interval || 'month',
+                interval: 'year',
                 features: plan.features || [''],
                 is_active: plan.is_active ?? true,
                 is_popular: plan.is_popular ?? false,
@@ -301,14 +301,9 @@ function PlanModal({ show, onClose, plan }) {
                             </div>
                             <div className="space-y-2">
                                 <InputLabel value="Billing Interval" />
-                                <select
-                                    value={data.interval}
-                                    onChange={e => setData('interval', e.target.value)}
-                                    className="w-full bg-[#fcfcfc] dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-bold py-3 px-4 focus:ring-[#FF6600]/20"
-                                >
-                                    <option value="month">Monthly</option>
-                                    <option value="year">Yearly</option>
-                                </select>
+                                <div className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-bold py-3 px-4 text-gray-600 dark:text-gray-300">
+                                    Yearly (365 days)
+                                </div>
                             </div>
                         </div>
 

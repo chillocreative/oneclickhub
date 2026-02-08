@@ -18,9 +18,11 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'planSlug' => $request->query('plan'),
+        ]);
     }
 
     /**
@@ -32,10 +34,12 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20|unique:'.User::class,
-            'email' => 'nullable|string|lowercase|email|max:255|unique:'.User::class,
+            'phone_number' => 'required|digits_between:10,11|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'nullable|string|in:Freelancer,Customer',
             'identity_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'plan' => 'nullable|string|max:255',
         ]);
 
         $identityDocumentPath = null;
@@ -44,7 +48,7 @@ class RegisteredUserController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
+            'name' => strtoupper($request->name),
             'phone_number' => $request->phone_number,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -61,6 +65,23 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        // Freelancers: redirect to checkout or plan selection
+        if ($role === 'Freelancer') {
+            $planSlug = $request->input('plan');
+
+            if ($planSlug) {
+                $plan = \App\Models\SubscriptionPlan::where('slug', $planSlug)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($plan) {
+                    return redirect()->route('subscribe.checkout', $plan->slug);
+                }
+            }
+
+            return redirect()->route('subscribe.plans');
+        }
 
         return redirect(route('dashboard', absolute: false));
     }
