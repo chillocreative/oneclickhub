@@ -38,7 +38,7 @@ export default function SubscriptionSettings() {
                         </div>
                         <div>
                             <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Regional Configuration</h3>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Manage currencies and tax rules for ASEAN markets</p>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Manage currencies and tax rules for Malaysian market</p>
                         </div>
                     </div>
 

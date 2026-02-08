@@ -3,10 +3,12 @@ import { Link, usePage } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { Menu, X, Zap } from 'lucide-react';
+import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
     const { auth } = usePage().props;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { t } = useLanguage();
 
     return (
         <div className="min-h-screen flex flex-col items-center relative overflow-hidden bg-white dark:bg-[#0c0c0c] font-sans">
@@ -49,24 +51,24 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-600 dark:text-gray-300">
-                        <Link href="/#features" className="hover:text-[#FF6600] transition-colors">Features</Link>
-                        <Link href="/#solutions" className="hover:text-[#FF6600] transition-colors">Solutions</Link>
-                        <Link href="/#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</Link>
-                        <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">Services</Link>
+                        <Link href="/" className="hover:text-[#FF6600] transition-colors">{t('nav.home')}</Link>
+                        <Link href="/#pricing" className="hover:text-[#FF6600] transition-colors">{t('nav.pricing')}</Link>
+                        <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">{t('nav.services')}</Link>
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <LanguageSwitcher className="hidden lg:flex" />
                         {auth?.user ? (
                             <Link href={route('dashboard')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">
-                                Dashboard
+                                {t('nav.dashboard')}
                             </Link>
                         ) : (
                             <>
                                 <Link href={route('login')} className="hidden lg:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">
-                                    Sign In
+                                    {t('nav.signIn')}
                                 </Link>
                                 <Link href={route('register')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">
-                                    Get Started
+                                    {t('nav.getStarted')}
                                 </Link>
                             </>
                         )}
@@ -121,11 +123,9 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                         <div className="flex-1 overflow-y-auto px-8 py-12 flex flex-col justify-center">
                             <div className="space-y-2">
                                 {[
-                                    { name: 'Features', href: '/#features' },
-                                    { name: 'Solutions', href: '/#solutions' },
-                                    { name: 'ASEAN Market', href: '/#market' },
-                                    { name: 'Pricing', href: '/#pricing' },
-                                    { name: 'Services', href: route('services.browse') }
+                                    { name: t('nav.home'), href: '/' },
+                                    { name: t('nav.pricing'), href: '/#pricing' },
+                                    { name: t('nav.services'), href: route('services.browse') }
                                 ].map((item, idx) => (
                                     <Link
                                         key={idx}
@@ -138,6 +138,10 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                                 ))}
                             </div>
 
+                            <div className="mt-8">
+                                <LanguageSwitcher className="[&_button]:text-white [&_button]:text-lg [&_span]:text-white/40" />
+                            </div>
+
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -146,12 +150,12 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                             >
                                 {!auth?.user ? (
                                     <div className="grid gap-6">
-                                        <Link href={route('login')} className="text-2xl font-bold py-2">Sign In</Link>
+                                        <Link href={route('login')} className="text-2xl font-bold py-2">{t('nav.signIn')}</Link>
                                         <Link
                                             href={route('register')}
                                             className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20"
                                         >
-                                            Get Started
+                                            {t('nav.getStarted')}
                                         </Link>
                                     </div>
                                 ) : (
@@ -159,7 +163,7 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                                         href={route('dashboard')}
                                         className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20 block"
                                     >
-                                        Go to Dashboard
+                                        {t('nav.goToDashboard')}
                                     </Link>
                                 )}
                             </motion.div>
@@ -183,7 +187,7 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                 </div>
 
                 <p className="mt-8 text-sm text-gray-500 font-bold tracking-tight">
-                    &copy; 2026 OneClickHub Enterprise &bull; ASEAN Trusted
+                    {t('footer.trusted')}
                 </p>
             </motion.div>
         </div>

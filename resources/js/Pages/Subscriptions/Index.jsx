@@ -66,7 +66,7 @@ export default function SubscriptionIndex() {
                                 Subscription <span className="text-[#FF6600]">Analytics</span>
                             </h3>
                             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest leading-relaxed max-w-lg">
-                                Track the growth and performance of your subscription models across the ASEAN region.
+                                Track the growth and performance of your subscription models across Malaysia.
                             </p>
                         </div>
                         <button className="flex items-center gap-2 px-8 py-4 bg-[#FF6600] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all active:scale-95">

@@ -31,6 +31,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessNotification from '@/Components/SuccessNotification';
 import { router } from '@inertiajs/react';
+import { LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 const SidebarItem = ({ href, icon: Icon, label, active, collapsed, children }) => {
     const [isOpen, setIsOpen] = useState(active || false);
@@ -471,6 +472,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </Link>
                         </div>
 
+                        <LanguageSwitcher className="hidden sm:flex" />
                         <div className="h-10 w-px bg-gray-100 dark:bg-white/5 mx-2 hidden sm:block" />
 
                         <Dropdown>

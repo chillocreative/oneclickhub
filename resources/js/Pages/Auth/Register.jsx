@@ -7,11 +7,13 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Briefcase, ArrowLeft, ArrowRight, FileUp } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Register({ planSlug }) {
     const hasPlan = Boolean(planSlug);
     const [step, setStep] = useState(hasPlan ? 'form' : 'select');
     const [selectedRole, setSelectedRole] = useState(hasPlan ? 'Freelancer' : null);
+    const { t } = useLanguage();
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
@@ -40,7 +42,7 @@ export default function Register({ planSlug }) {
 
     return (
         <GuestLayout maxWidth={step === 'select' ? 'max-w-4xl' : 'max-w-md'}>
-            <Head title={`Register as ${selectedRole || 'User'}`} />
+            <Head title={`${t('register.registerAs')} ${selectedRole || 'User'}`} />
 
             <AnimatePresence mode="wait">
                 {step === 'select' ? (
@@ -53,9 +55,9 @@ export default function Register({ planSlug }) {
                     >
                         <div className="text-center mb-8">
                             <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                                JOIN THE <span className="text-[#FF6600]">HUB</span>
+                                {t('register.joinTitle')} <span className="text-[#FF6600]">{t('register.joinHighlight')}</span>
                             </h2>
-                            <p className="text-gray-500 text-sm font-bold">Choose your journey with One Click Hub</p>
+                            <p className="text-gray-500 text-sm font-bold">{t('register.chooseJourney')}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
@@ -69,8 +71,8 @@ export default function Register({ planSlug }) {
                                 <div className="size-16 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-[#FF6600] mb-4">
                                     <Users size={32} />
                                 </div>
-                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">Customer</h3>
-                                <p className="text-sm text-gray-500 font-bold max-w-[200px]">Find the best local freelancers for your needs</p>
+                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">{t('register.customer')}</h3>
+                                <p className="text-sm text-gray-500 font-bold max-w-[200px]">{t('register.customerDesc')}</p>
                             </motion.div>
 
                             <motion.div
@@ -83,8 +85,8 @@ export default function Register({ planSlug }) {
                                 <div className="size-16 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-[#FF6600] mb-4">
                                     <Briefcase size={32} />
                                 </div>
-                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">Freelancer</h3>
-                                <p className="text-sm text-gray-500 font-bold max-w-[200px]">Market your services to local & ASEAN customers</p>
+                                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-1">{t('register.freelancer')}</h3>
+                                <p className="text-sm text-gray-500 font-bold max-w-[200px]">{t('register.freelancerDesc')}</p>
                             </motion.div>
                         </div>
 
@@ -93,7 +95,7 @@ export default function Register({ planSlug }) {
                                 href={route('login')}
                                 className="text-sm font-bold text-gray-500 hover:text-[#FF6600] transition-colors"
                             >
-                                Already have an account? Log In
+                                {t('register.alreadyHave')}
                             </Link>
                         </div>
                     </motion.div>
@@ -112,13 +114,13 @@ export default function Register({ planSlug }) {
                             }}
                             className="flex items-center gap-2 text-xs font-black text-gray-400 hover:text-[#FF6600] mb-6 uppercase tracking-widest transition-colors"
                         >
-                            <ArrowLeft size={16} /> Choose Role
+                            <ArrowLeft size={16} /> {t('register.chooseRole')}
                         </button>
 
                         {hasPlan && (
                             <div className="mb-6 p-4 rounded-2xl bg-orange-50/50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10">
                                 <p className="text-xs font-black text-[#FF6600] uppercase tracking-widest">
-                                    Selected Plan
+                                    {t('register.selectedPlan')}
                                 </p>
                                 <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mt-1">
                                     {planSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -128,14 +130,14 @@ export default function Register({ planSlug }) {
 
                         <div className="mb-8">
                             <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                                REGISTER AS <span className="text-[#FF6600]">{selectedRole}</span>
+                                {t('register.registerAs')} <span className="text-[#FF6600]">{selectedRole}</span>
                             </h2>
-                            <p className="text-gray-500 text-sm font-bold">Fast and secure phone-based registration</p>
+                            <p className="text-gray-500 text-sm font-bold">{t('register.subtitle')}</p>
                         </div>
 
                         <form onSubmit={submit} className="space-y-4">
                             <div>
-                                <InputLabel htmlFor="name" value="Your Full Name" />
+                                <InputLabel htmlFor="name" value={t('register.name')} />
                                 <TextInput
                                     id="name"
                                     name="name"
@@ -145,14 +147,14 @@ export default function Register({ planSlug }) {
                                     isFocused={true}
                                     onChange={(e) => setData('name', e.target.value.toUpperCase())}
                                     required
-                                    placeholder="e.g. AHMAD FAIZ"
+                                    placeholder={t('register.namePlaceholder')}
                                     style={{ textTransform: 'uppercase' }}
                                 />
                                 <InputError message={errors.name} className="mt-2" />
                             </div>
 
                             <div>
-                                <InputLabel htmlFor="phone_number" value="Phone Number" />
+                                <InputLabel htmlFor="phone_number" value={t('register.phone')} />
                                 <TextInput
                                     id="phone_number"
                                     name="phone_number"
@@ -162,14 +164,14 @@ export default function Register({ planSlug }) {
                                     onChange={(e) => setData('phone_number', e.target.value.replace(/\D/g, '').slice(0, 11))}
                                     required
                                     maxLength={11}
-                                    placeholder="e.g. 01112345678"
+                                    placeholder={t('register.phonePlaceholder')}
                                     inputMode="numeric"
                                 />
                                 <InputError message={errors.phone_number} className="mt-2" />
                             </div>
 
                             <div>
-                                <InputLabel htmlFor="email" value="Email Address" />
+                                <InputLabel htmlFor="email" value={t('register.email')} />
                                 <TextInput
                                     id="email"
                                     type="email"
@@ -179,14 +181,14 @@ export default function Register({ planSlug }) {
                                     autoComplete="username"
                                     onChange={(e) => setData('email', e.target.value)}
                                     required
-                                    placeholder="your@email.com"
+                                    placeholder={t('register.emailPlaceholder')}
                                 />
                                 <InputError message={errors.email} className="mt-2" />
                             </div>
 
                             {selectedRole === 'Freelancer' && (
                                 <div className="bg-orange-50/50 dark:bg-orange-500/5 p-5 rounded-2xl border border-orange-100 dark:border-orange-500/10">
-                                    <InputLabel htmlFor="identity_document" value="Verification (Must be a valid SSM Certificate)" />
+                                    <InputLabel htmlFor="identity_document" value={t('register.verification')} />
                                     <div className="mt-2 relative">
                                         <input
                                             id="identity_document"
@@ -200,17 +202,17 @@ export default function Register({ planSlug }) {
                                             className="flex items-center justify-center gap-3 w-full py-4 border-2 border-dashed border-orange-200 dark:border-orange-500/20 rounded-xl cursor-pointer hover:bg-white transition-all text-sm font-bold text-orange-600"
                                         >
                                             <FileUp size={20} />
-                                            {data.identity_document ? data.identity_document.name : 'Choose File (PDF/JPG)'}
+                                            {data.identity_document ? data.identity_document.name : t('register.chooseFile')}
                                         </label>
                                     </div>
-                                    <p className="mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">Note: Required for freelancer verification</p>
+                                    <p className="mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('register.verificationNote')}</p>
                                     <InputError message={errors.identity_document} className="mt-2" />
                                 </div>
                             )}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <InputLabel htmlFor="password" value="Password" />
+                                    <InputLabel htmlFor="password" value={t('register.password')} />
                                     <TextInput
                                         id="password"
                                         type="password"
@@ -224,7 +226,7 @@ export default function Register({ planSlug }) {
                                     <InputError message={errors.password} className="mt-2" />
                                 </div>
                                 <div>
-                                    <InputLabel htmlFor="password_confirmation" value="Confirm" />
+                                    <InputLabel htmlFor="password_confirmation" value={t('register.confirm')} />
                                     <TextInput
                                         id="password_confirmation"
                                         type="password"
@@ -240,7 +242,7 @@ export default function Register({ planSlug }) {
 
                             <div className="pt-4">
                                 <PrimaryButton className="w-full py-4 text-sm font-black" disabled={processing}>
-                                    COMPLETE REGISTRATION <ArrowRight size={18} className="ml-2" />
+                                    {t('register.submit')} <ArrowRight size={18} className="ml-2" />
                                 </PrimaryButton>
                             </div>
                         </form>

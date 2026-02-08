@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -12,6 +13,7 @@ export default function Login({ status, canResetPassword }) {
         password: '',
         remember: false,
     });
+    const { t } = useLanguage();
 
     const submit = (e) => {
         e.preventDefault();
@@ -23,7 +25,7 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title={t('login.title')} />
 
             {status && (
                 <div className="mb-4 text-sm font-medium text-green-600">
@@ -33,7 +35,7 @@ export default function Login({ status, canResetPassword }) {
 
             <form onSubmit={submit}>
                 <div>
-                    <InputLabel htmlFor="phone_number" value="Phone Number" />
+                    <InputLabel htmlFor="phone_number" value={t('login.phone')} />
 
                     <TextInput
                         id="phone_number"
@@ -50,7 +52,7 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value={t('login.password')} />
 
                     <TextInput
                         id="password"
@@ -75,7 +77,7 @@ export default function Login({ status, canResetPassword }) {
                             }
                         />
                         <span className="ms-2 text-sm text-gray-600 dark:text-gray-400">
-                            Remember me
+                            {t('login.remember')}
                         </span>
                     </label>
                 </div>
@@ -86,12 +88,12 @@ export default function Login({ status, canResetPassword }) {
                             href={route('password.request')}
                             className="text-sm text-gray-600 underline hover:text-[#FF6600] focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                         >
-                            Forgot your password?
+                            {t('login.forgot')}
                         </Link>
                     )}
 
                     <PrimaryButton className="w-full sm:w-auto whitespace-nowrap px-10 py-3" disabled={processing}>
-                        Log in
+                        {t('login.submit')}
                     </PrimaryButton>
                 </div>
             </form>
@@ -99,7 +101,7 @@ export default function Login({ status, canResetPassword }) {
             {/* Demo Credentials */}
             <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
                 <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Demo Credentials
+                    {t('login.demoTitle')}
                 </h3>
                 <div className="space-y-3">
                     {[
@@ -120,11 +122,11 @@ export default function Login({ status, canResetPassword }) {
                             </div>
                             <div className="space-y-1 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                                    <span className="text-gray-600 dark:text-gray-400">{t('login.demoPhone')}</span>
                                     <span className="font-mono font-medium text-gray-900 dark:text-gray-100">{cred.phone}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Password:</span>
+                                    <span className="text-gray-600 dark:text-gray-400">{t('login.demoPassword')}</span>
                                     <span className="font-mono font-medium text-gray-900 dark:text-gray-100">{cred.password}</span>
                                 </div>
                             </div>

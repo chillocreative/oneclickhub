@@ -4,11 +4,13 @@ import { motion } from 'framer-motion';
 import { Search, Briefcase, MapPin, Clock, User, Menu, X, Zap } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 export default function BrowseServices({ services, categories, filters }) {
     const { auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { t } = useLanguage();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -24,7 +26,7 @@ export default function BrowseServices({ services, categories, filters }) {
 
     return (
         <div className="min-h-screen bg-[#FFFBF7] dark:bg-[#0c0c0c]">
-            <Head title="Browse Services" />
+            <Head title={t('browse.title')} />
 
             {/* Nav */}
             <nav className="sticky top-0 z-[100] bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
@@ -40,19 +42,19 @@ export default function BrowseServices({ services, categories, filters }) {
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-gray-600 dark:text-gray-300">
-                        <Link href="/#features" className="hover:text-[#FF6600] transition-colors">Features</Link>
-                        <Link href="/#solutions" className="hover:text-[#FF6600] transition-colors">Solutions</Link>
-                        <Link href="/#market" className="hover:text-[#FF6600] transition-colors">ASEAN Market</Link>
-                        <Link href={route('services.browse')} className="text-[#FF6600] font-bold">Services</Link>
+                        <Link href="/" className="hover:text-[#FF6600] transition-colors">{t('nav.home')}</Link>
+                        <Link href="/#pricing" className="hover:text-[#FF6600] transition-colors">{t('nav.pricing')}</Link>
+                        <Link href={route('services.browse')} className="text-[#FF6600] font-bold">{t('nav.services')}</Link>
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <LanguageSwitcher className="hidden lg:flex" />
                         {auth?.user ? (
-                            <Link href={route('dashboard')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">Dashboard</Link>
+                            <Link href={route('dashboard')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">{t('nav.dashboard')}</Link>
                         ) : (
                             <>
-                                <Link href={route('login')} className="hidden lg:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">Sign In</Link>
-                                <Link href={route('register')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">Get Started</Link>
+                                <Link href={route('login')} className="hidden lg:block text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-[#FF6600]">{t('nav.signIn')}</Link>
+                                <Link href={route('register')} className="hidden lg:inline-flex btn-gradient px-6 py-2 text-sm">{t('nav.getStarted')}</Link>
                             </>
                         )}
 
@@ -103,11 +105,9 @@ export default function BrowseServices({ services, categories, filters }) {
                         <div className="flex-1 overflow-y-auto px-8 py-12 flex flex-col justify-center">
                             <div className="space-y-2">
                                 {[
-                                    { name: 'Features', href: '/#features' },
-                                    { name: 'Solutions', href: '/#solutions' },
-                                    { name: 'ASEAN Market', href: '/#market' },
-                                    { name: 'Pricing', href: '/#pricing' },
-                                    { name: 'Services', href: route('services.browse') },
+                                    { name: t('nav.home'), href: '/' },
+                                    { name: t('nav.pricing'), href: '/#pricing' },
+                                    { name: t('nav.services'), href: route('services.browse') },
                                 ].map((item, idx) => (
                                     <Link
                                         key={idx}
@@ -120,6 +120,10 @@ export default function BrowseServices({ services, categories, filters }) {
                                 ))}
                             </div>
 
+                            <div className="mt-8">
+                                <LanguageSwitcher className="[&_button]:text-white [&_button]:text-lg [&_span]:text-white/40" />
+                            </div>
+
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -128,12 +132,12 @@ export default function BrowseServices({ services, categories, filters }) {
                             >
                                 {!auth?.user ? (
                                     <div className="grid gap-6">
-                                        <Link href={route('login')} className="text-2xl font-bold py-2">Sign In</Link>
+                                        <Link href={route('login')} className="text-2xl font-bold py-2">{t('nav.signIn')}</Link>
                                         <Link
                                             href={route('register')}
                                             className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20"
                                         >
-                                            Get Started
+                                            {t('nav.getStarted')}
                                         </Link>
                                     </div>
                                 ) : (
@@ -141,7 +145,7 @@ export default function BrowseServices({ services, categories, filters }) {
                                         href={route('dashboard')}
                                         className="bg-white text-[#FF6600] text-center py-6 rounded-[2rem] text-xl font-black uppercase tracking-widest shadow-2xl shadow-black/20 block"
                                     >
-                                        Go to Dashboard
+                                        {t('nav.goToDashboard')}
                                     </Link>
                                 )}
                             </motion.div>
@@ -156,9 +160,9 @@ export default function BrowseServices({ services, categories, filters }) {
             <div className="bg-gradient-to-br from-[#FF6600] to-[#FFB800] py-16">
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">
-                        Find the Perfect Service
+                        {t('browse.title')}
                     </h1>
-                    <p className="text-white/80 text-lg mb-8">Browse hundreds of services from top freelancers</p>
+                    <p className="text-white/80 text-lg mb-8">{t('browse.subtitle')}</p>
                     <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex gap-3">
                         <div className="flex-1 relative">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -166,12 +170,12 @@ export default function BrowseServices({ services, categories, filters }) {
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search services..."
+                                placeholder={t('browse.search')}
                                 className="w-full pl-12 pr-4 py-4 rounded-2xl border-none text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-white/50 outline-none"
                             />
                         </div>
                         <button type="submit" className="px-8 py-4 bg-[#2B313F] text-white rounded-2xl text-sm font-black hover:bg-[#1a1f2a] transition-colors">
-                            Search
+                            {t('browse.searchBtn')}
                         </button>
                     </form>
                 </div>
@@ -185,7 +189,7 @@ export default function BrowseServices({ services, categories, filters }) {
                         onClick={() => handleCategoryFilter(null)}
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${!filters.category ? 'bg-[#FF6600] text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
                     >
-                        All
+                        {t('browse.all')}
                     </button>
                     {categories.map((cat) => (
                         <button
@@ -202,8 +206,8 @@ export default function BrowseServices({ services, categories, filters }) {
                 {services.data.length === 0 ? (
                     <div className="text-center py-20">
                         <Briefcase size={48} className="mx-auto mb-4 text-gray-300" />
-                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No services found</h3>
-                        <p className="text-gray-400 text-sm">Try adjusting your search or filters.</p>
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('browse.noResults')}</h3>
+                        <p className="text-gray-400 text-sm">{t('browse.noResultsHint')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -230,11 +234,11 @@ export default function BrowseServices({ services, categories, filters }) {
                                         {service.delivery_days && (
                                             <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
                                                 <Clock size={12} />
-                                                <span>{service.delivery_days} days delivery</span>
+                                                <span>{service.delivery_days} {t('browse.daysDelivery')}</span>
                                             </div>
                                         )}
                                         <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-white/5">
-                                            <span className="text-xs text-gray-400 font-semibold">Starting at</span>
+                                            <span className="text-xs text-gray-400 font-semibold">{t('browse.startingAt')}</span>
                                             <span className="text-lg font-black text-[#FF6600]">RM {service.price_from}</span>
                                         </div>
                                     </div>
@@ -269,12 +273,12 @@ export default function BrowseServices({ services, categories, filters }) {
                         <span className="text-xl font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
                     </div>
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
-                        <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                        <a href="#" className="hover:text-white transition-colors">Terms</a>
-                        <a href="#" className="hover:text-white transition-colors">Local Offices</a>
-                        <a href="#" className="hover:text-white transition-colors">ASEAN Support</a>
+                        <a href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</a>
+                        <a href="#" className="hover:text-white transition-colors">{t('footer.terms')}</a>
+                        <a href="#" className="hover:text-white transition-colors">{t('footer.offices')}</a>
+                        <a href="#" className="hover:text-white transition-colors">{t('footer.support')}</a>
                     </div>
-                    <p className="text-gray-500 text-sm">© 2026 OneClickHub Enterprise. Designed for the Future.</p>
+                    <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                 </div>
             </footer>
         </div>
