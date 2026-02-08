@@ -8,8 +8,10 @@ import {
     Search, Plus, Edit2, Trash2, Crown, Zap, Shield,
     Calendar, Clock, XCircle, CheckCircle, Users, CreditCard
 } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Freelancers({ users, plans }) {
+    const { t } = useLanguage();
     const [selectedUser, setSelectedUser] = useState(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function Freelancers({ users, plans }) {
         if (!subscription) {
             return (
                 <span className="px-3 py-1 bg-gray-100 dark:bg-white/5 text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-full">
-                    No Plan
+                    {t('users.noPlan')}
                 </span>
             );
         }
@@ -79,7 +81,7 @@ export default function Freelancers({ users, plans }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                            FREELANCER <span className="text-[#FF6600]">LIST</span>
+                            {t('users.freelancerList')} <span className="text-[#FF6600]">{t('users.listHighlight')}</span>
                         </h2>
                         <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
                             <span>Users</span>
@@ -115,7 +117,7 @@ export default function Freelancers({ users, plans }) {
                             </div>
                             <div>
                                 <p className="text-2xl font-black text-gray-900 dark:text-white">{users.length}</p>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Freelancers</p>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('users.totalFreelancers')}</p>
                             </div>
                         </div>
                     </motion.div>
@@ -134,7 +136,7 @@ export default function Freelancers({ users, plans }) {
                                 <p className="text-2xl font-black text-gray-900 dark:text-white">
                                     {users.filter(u => u.subscription?.status === 'active').length}
                                 </p>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Subs</p>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('users.activeSubscribers')}</p>
                             </div>
                         </div>
                     </motion.div>
@@ -153,7 +155,7 @@ export default function Freelancers({ users, plans }) {
                                 <p className="text-2xl font-black text-gray-900 dark:text-white">
                                     {users.filter(u => !u.subscription).length}
                                 </p>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No Plan</p>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('users.pendingVerification')}</p>
                             </div>
                         </div>
                     </motion.div>
@@ -170,7 +172,7 @@ export default function Freelancers({ users, plans }) {
                             </div>
                             <div>
                                 <p className="text-2xl font-black text-gray-900 dark:text-white">{plans.length}</p>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Available Plans</p>
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('users.revenueGenerated')}</p>
                             </div>
                         </div>
                     </motion.div>
@@ -200,11 +202,11 @@ export default function Freelancers({ users, plans }) {
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-gray-50/50 dark:bg-white/5">
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Freelancer</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Contact</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Subscription</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Valid Until</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('users.freelancer')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('users.contact')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('users.subscription')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('users.validUntil')}</th>
+                                    <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('users.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50 dark:divide-white/5">
@@ -275,7 +277,7 @@ export default function Freelancers({ users, plans }) {
                                 {filteredUsers.length === 0 && (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
-                                            {searchQuery ? 'No freelancers found matching your search.' : 'No freelancers yet.'}
+                                            {t('users.noFreelancers')}
                                         </td>
                                     </tr>
                                 )}
@@ -309,6 +311,7 @@ export default function Freelancers({ users, plans }) {
 }
 
 function SubscriptionModal({ show, onClose, user, plans }) {
+    const { t } = useLanguage();
     const [selectedPlanId, setSelectedPlanId] = useState('');
     const [processing, setProcessing] = useState(false);
 
@@ -361,7 +364,7 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                 >
                     <div className="p-8 border-b border-gray-100 dark:border-white/5">
                         <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                            Manage <span className="text-[#FF6600]">Subscription</span>
+                            {t('users.manageSubscription')} <span className="text-[#FF6600]">{t('users.subscription')}</span>
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">for {user.name}</p>
                     </div>
@@ -372,7 +375,7 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-500/10 dark:to-emerald-500/5 rounded-2xl p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Current Plan</p>
+                                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">{t('users.currentPlan')}</p>
                                         <p className="text-xl font-black text-gray-900 dark:text-white">{user.subscription.plan?.name}</p>
                                         <p className="text-sm text-gray-500 mt-1">
                                             RM {parseFloat(user.subscription.plan?.price || 0).toFixed(2)} / {user.subscription.plan?.interval}
@@ -395,14 +398,14 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                             </div>
                         ) : (
                             <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-6 text-center">
-                                <p className="text-gray-500">No active subscription</p>
+                                <p className="text-gray-500">{t('users.noSubscription')}</p>
                             </div>
                         )}
 
                         {/* Assign New Plan */}
                         <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                                {user.subscription ? 'Change Plan' : 'Assign Plan'}
+                                {user.subscription ? t('users.changeAssignPlan') : t('users.assignPlan')}
                             </p>
                             <div className="space-y-3">
                                 {plans.map((plan, i) => {
@@ -451,14 +454,14 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                                 onClick={onClose}
                                 className="flex-1 px-6 py-4 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={handleAssign}
                                 disabled={processing || !selectedPlanId}
                                 className="flex-1 px-6 py-4 bg-[#FF6600] text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all disabled:opacity-50"
                             >
-                                {processing ? 'Processing...' : 'Assign Plan'}
+                                {processing ? 'Processing...' : t('users.assignPlan')}
                             </button>
                         </div>
                     </div>

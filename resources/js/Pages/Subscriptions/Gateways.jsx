@@ -6,19 +6,22 @@ import { Wallet, Shield, Globe, ExternalLink, Settings2, Power } from 'lucide-re
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function PaymentGateways({ gateways }) {
+    const { t } = useLanguage();
+
     return (
         <AuthenticatedLayout
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                        PAYMENT <span className="text-[#FF6600]">GATEWAYS</span>
+                        {t('subscriptions.gatewaysTitle')} <span className="text-[#FF6600]">{t('subscriptions.gatewaysHighlight')}</span>
                     </h2>
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        <span>Revenue Center</span>
+                        <span>{t('subscriptions.breadcrumbRevenueCenter')}</span>
                         <span className="size-1 bg-gray-300 rounded-full" />
-                        <span className="text-[#FF6600]">Gateway Management</span>
+                        <span className="text-[#FF6600]">{t('subscriptions.breadcrumbGateways')}</span>
                     </div>
                 </div>
             }
@@ -37,6 +40,7 @@ export default function PaymentGateways({ gateways }) {
 }
 
 function GatewayCard({ gateway, index }) {
+    const { t } = useLanguage();
     const [logoError, setLogoError] = useState(false);
     const { data, setData, patch, processing } = useForm({
         is_active: gateway.is_active,
@@ -208,7 +212,7 @@ function GatewayCard({ gateway, index }) {
                         disabled={processing}
                         className="px-6 py-4 bg-[#FF6600] text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {processing ? 'Saving...' : 'Save Configuration'}
+                        {processing ? 'Saving...' : t('common.save')}
                     </button>
                 </div>
             </form>

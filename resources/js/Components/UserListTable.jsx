@@ -1,7 +1,9 @@
 import { Search, Plus, Edit2, Trash2, MoreVertical, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function UserListTable({ title, users, role, onAddClick, onEdit, onDelete }) {
+    const { t } = useLanguage();
     return (
         <div className="bg-white dark:bg-[#111] rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none overflow-hidden transition-all duration-500">
             {/* Header Area */}
@@ -12,7 +14,7 @@ export default function UserListTable({ title, users, role, onAddClick, onEdit, 
                         className="flex items-center gap-2 px-6 py-3 bg-[#34C38F] hover:bg-[#2ca377] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#34C38F]/20 transition-all active:scale-95"
                     >
                         <Plus size={18} />
-                        Add New
+                        {t('users.addNew')}
                     </button>
                 </div>
 
@@ -20,7 +22,7 @@ export default function UserListTable({ title, users, role, onAddClick, onEdit, 
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#FF6600] transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search users..."
+                        placeholder={t('users.searchPlaceholder')}
                         className="w-full pl-12 pr-4 py-3 bg-[#fcfcfc] dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm focus:ring-2 focus:ring-[#FF6600]/20 focus:border-[#FF6600] transition-all"
                     />
                 </div>
@@ -31,10 +33,10 @@ export default function UserListTable({ title, users, role, onAddClick, onEdit, 
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-[#fcfcfc] dark:bg-white/[0.02]">
-                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em] first:rounded-tl-2xl">Name</th>
-                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Position / Role</th>
-                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Email</th>
-                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em] last:rounded-tr-2xl text-center">Action</th>
+                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em] first:rounded-tl-2xl">{t('users.name')}</th>
+                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('users.positionRole')}</th>
+                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('users.email')}</th>
+                            <th className="px-8 py-5 text-xs font-black text-gray-400 uppercase tracking-[0.2em] last:rounded-tr-2xl text-center">{t('users.action')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-white/5">
@@ -94,7 +96,7 @@ export default function UserListTable({ title, users, role, onAddClick, onEdit, 
                                         <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-3xl text-gray-300">
                                             <Search size={32} />
                                         </div>
-                                        <div className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">No users found</div>
+                                        <div className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">{t('users.noUsers')}</div>
                                     </div>
                                 </td>
                             </tr>
@@ -106,12 +108,12 @@ export default function UserListTable({ title, users, role, onAddClick, onEdit, 
             {/* Pagination Footer */}
             <div className="p-8 bg-[#fcfcfc] dark:bg-white/[0.01] border-t border-gray-50 dark:border-white/5 flex items-center justify-between">
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    Showing 1 to {users?.length || 0} of {users?.length || 0} users
+                    {t('users.showing')} 1 {t('users.to')} {users?.length || 0} {t('users.of')} {users?.length || 0}
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="px-4 py-2 border border-gray-100 dark:border-white/5 rounded-lg text-xs font-black text-gray-400 cursor-not-allowed uppercase tracking-widest transition-all">Previous</button>
+                    <button className="px-4 py-2 border border-gray-100 dark:border-white/5 rounded-lg text-xs font-black text-gray-400 cursor-not-allowed uppercase tracking-widest transition-all">{t('users.previous')}</button>
                     <button className="px-4 py-2 bg-[#FF6600] text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-[#FF6600]/20 transition-all">1</button>
-                    <button className="px-4 py-2 border border-gray-100 dark:border-white/5 rounded-lg text-xs font-black text-gray-400 cursor-not-allowed uppercase tracking-widest transition-all">Next</button>
+                    <button className="px-4 py-2 border border-gray-100 dark:border-white/5 rounded-lg text-xs font-black text-gray-400 cursor-not-allowed uppercase tracking-widest transition-all">{t('users.next')}</button>
                 </div>
             </div>
         </div>

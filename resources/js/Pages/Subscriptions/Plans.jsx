@@ -5,8 +5,10 @@ import { Plus, Edit2, Trash2, Check, Zap, Shield, Crown, X, Users, Power } from 
 import { useState, useEffect } from 'react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function SubscriptionPlans({ plans }) {
+    const { t } = useLanguage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState(null);
 
@@ -52,14 +54,14 @@ export default function SubscriptionPlans({ plans }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                            PLAN <span className="text-[#FF6600]">MANAGEMENT</span>
+                            {t('subscriptions.planManagement')} <span className="text-[#FF6600]">{t('subscriptions.planManagementHighlight')}</span>
                         </h2>
                         <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                            <span>Revenue Center</span>
+                            <span>{t('subscriptions.breadcrumbRevenueCenter')}</span>
                             <span className="size-1 bg-gray-300 rounded-full" />
-                            <span>Subscriptions</span>
+                            <span>{t('subscriptions.breadcrumbSubscriptions')}</span>
                             <span className="size-1 bg-gray-300 rounded-full" />
-                            <span className="text-[#FF6600]">Plans Management</span>
+                            <span className="text-[#FF6600]">{t('subscriptions.breadcrumbPlansManagement')}</span>
                         </div>
                     </div>
                     <button
@@ -67,7 +69,7 @@ export default function SubscriptionPlans({ plans }) {
                         className="flex items-center gap-2 px-6 py-3 bg-[#34C38F] hover:bg-[#2ca377] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#34C38F]/20 transition-all active:scale-95"
                     >
                         <Plus size={18} />
-                        New Plan
+                        {t('subscriptions.newPlan')}
                     </button>
                 </div>
             }
@@ -89,13 +91,13 @@ export default function SubscriptionPlans({ plans }) {
                         >
                             {plan.is_popular && (
                                 <div className="absolute top-8 -right-8 bg-[#FF6600] text-white text-[10px] font-black uppercase tracking-widest py-1 px-10 rotate-45 shadow-lg">
-                                    Popular
+                                    {t('subscriptions.popular')}
                                 </div>
                             )}
 
                             {!plan.is_active && (
                                 <div className="absolute top-4 left-4 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-black uppercase tracking-widest py-1 px-3 rounded-full">
-                                    Inactive
+                                    {t('subscriptions.inactive')}
                                 </div>
                             )}
 
@@ -112,7 +114,7 @@ export default function SubscriptionPlans({ plans }) {
                                 {plan.subscriptions_count > 0 && (
                                     <div className="flex items-center gap-1.5 mt-3 text-xs font-bold text-[#34C38F]">
                                         <Users size={14} />
-                                        {plan.subscriptions_count} active subscriber{plan.subscriptions_count !== 1 ? 's' : ''}
+                                        {plan.subscriptions_count} {plan.subscriptions_count !== 1 ? t('subscriptions.activeSubscribers2') : t('subscriptions.activeSubscriber')}
                                     </div>
                                 )}
                             </div>
@@ -134,7 +136,7 @@ export default function SubscriptionPlans({ plans }) {
                                     className="flex-1 flex items-center justify-center gap-2 p-4 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
                                 >
                                     <Edit2 size={16} />
-                                    Edit
+                                    {t('subscriptions.edit')}
                                 </button>
                                 <button
                                     onClick={() => handleDelete(plan)}
@@ -149,12 +151,12 @@ export default function SubscriptionPlans({ plans }) {
 
                 {plans.length === 0 && (
                     <div className="col-span-3 text-center py-20">
-                        <div className="text-gray-400 mb-4">No subscription plans yet</div>
+                        <div className="text-gray-400 mb-4">{t('subscriptions.noPlans')}</div>
                         <button
                             onClick={openCreateModal}
                             className="px-6 py-3 bg-[#FF6600] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#FF6600]/30"
                         >
-                            Create Your First Plan
+                            {t('subscriptions.createFirst')}
                         </button>
                     </div>
                 )}
@@ -170,6 +172,7 @@ export default function SubscriptionPlans({ plans }) {
 }
 
 function PlanModal({ show, onClose, plan }) {
+    const { t } = useLanguage();
     const isEditing = !!plan;
 
     const { data, setData, post, patch, processing, errors, reset } = useForm({
@@ -263,7 +266,7 @@ function PlanModal({ show, onClose, plan }) {
                     <div className="p-8 border-b border-gray-100 dark:border-white/5">
                         <div className="flex items-center justify-between">
                             <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                                {isEditing ? 'Edit' : 'New'} <span className="text-[#FF6600]">Plan</span>
+                                {isEditing ? t('subscriptions.editPlanTitle') : t('subscriptions.newPlanTitle')} <span className="text-[#FF6600]">{t('subscriptions.planLabel')}</span>
                             </h3>
                             <button
                                 onClick={onClose}
@@ -276,19 +279,19 @@ function PlanModal({ show, onClose, plan }) {
 
                     <form onSubmit={handleSubmit} className="p-8 space-y-6">
                         <div className="space-y-2">
-                            <InputLabel value="Plan Name" />
+                            <InputLabel value={t('subscriptions.planName')} />
                             <TextInput
                                 className="w-full"
                                 value={data.name}
                                 onChange={e => setData('name', e.target.value)}
-                                placeholder="e.g. Premium Pro"
+                                placeholder={t('subscriptions.planNamePlaceholder')}
                             />
                             {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <InputLabel value="Price (RM)" />
+                                <InputLabel value={t('subscriptions.priceRM')} />
                                 <TextInput
                                     type="number"
                                     step="0.01"
@@ -300,22 +303,22 @@ function PlanModal({ show, onClose, plan }) {
                                 {errors.price && <p className="text-red-500 text-xs">{errors.price}</p>}
                             </div>
                             <div className="space-y-2">
-                                <InputLabel value="Billing Interval" />
+                                <InputLabel value={t('subscriptions.billingInterval')} />
                                 <div className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm font-bold py-3 px-4 text-gray-600 dark:text-gray-300">
-                                    Yearly (365 days)
+                                    {t('subscriptions.yearly')}
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <InputLabel value="Features" />
+                                <InputLabel value={t('subscriptions.features')} />
                                 <button
                                     type="button"
                                     onClick={addFeature}
                                     className="text-xs font-bold text-[#FF6600] hover:underline"
                                 >
-                                    + Add Feature
+                                    {t('subscriptions.addFeature')}
                                 </button>
                             </div>
                             {data.features.map((feature, idx) => (
@@ -348,7 +351,7 @@ function PlanModal({ show, onClose, plan }) {
                                     onChange={e => setData('is_active', e.target.checked)}
                                     className="w-5 h-5 rounded-lg border-gray-300 text-[#FF6600] focus:ring-[#FF6600]/20"
                                 />
-                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Active</span>
+                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{t('subscriptions.active')}</span>
                             </label>
                             <label className="flex items-center gap-3 cursor-pointer">
                                 <input
@@ -357,7 +360,7 @@ function PlanModal({ show, onClose, plan }) {
                                     onChange={e => setData('is_popular', e.target.checked)}
                                     className="w-5 h-5 rounded-lg border-gray-300 text-[#FF6600] focus:ring-[#FF6600]/20"
                                 />
-                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Mark as Popular</span>
+                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{t('subscriptions.markPopular')}</span>
                             </label>
                         </div>
 
@@ -367,14 +370,14 @@ function PlanModal({ show, onClose, plan }) {
                                 onClick={onClose}
                                 className="flex-1 px-6 py-4 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-white/10 transition-all"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="flex-1 px-6 py-4 bg-[#FF6600] text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all disabled:opacity-50"
                             >
-                                {processing ? 'Saving...' : isEditing ? 'Update Plan' : 'Create Plan'}
+                                {processing ? 'Saving...' : t('subscriptions.savePlan')}
                             </button>
                         </div>
                     </form>

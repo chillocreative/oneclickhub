@@ -6,8 +6,10 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { useForm } from '@inertiajs/react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function UserEditModal({ show, onClose, user, role }) {
+    const { t } = useLanguage();
     const { data, setData, patch, processing, errors, reset } = useForm({
         name: '',
         phone_number: '',
@@ -38,7 +40,7 @@ export default function UserEditModal({ show, onClose, user, role }) {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                        EDIT <span className="text-[#FF6600]">{role}</span>
+                        {t('users.editUser')} <span className="text-[#FF6600]">{role}</span>
                     </h2>
                     <div className="size-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center font-black text-[#FF6600]">
                         {user?.name?.charAt(0)}
@@ -47,7 +49,7 @@ export default function UserEditModal({ show, onClose, user, role }) {
 
                 <form onSubmit={submit} className="space-y-6">
                     <div>
-                        <InputLabel htmlFor="name" value="Full Name" />
+                        <InputLabel htmlFor="name" value={t('users.fullName')} />
                         <TextInput
                             id="name"
                             value={data.name}
@@ -58,7 +60,7 @@ export default function UserEditModal({ show, onClose, user, role }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="phone_number" value="Phone Number" />
+                        <InputLabel htmlFor="phone_number" value={t('users.phoneNumber')} />
                         <TextInput
                             id="phone_number"
                             value={data.phone_number}
@@ -69,7 +71,7 @@ export default function UserEditModal({ show, onClose, user, role }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="email" value="Email" />
+                        <InputLabel htmlFor="email" value={t('users.email')} />
                         <TextInput
                             id="email"
                             type="email"
@@ -81,7 +83,7 @@ export default function UserEditModal({ show, onClose, user, role }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="position" value="Position / Role" />
+                        <InputLabel htmlFor="position" value={t('users.positionRole')} />
                         <TextInput
                             id="position"
                             value={data.position}
@@ -92,8 +94,8 @@ export default function UserEditModal({ show, onClose, user, role }) {
                     </div>
 
                     <div className="flex items-center justify-end gap-3 mt-10">
-                        <SecondaryButton onClick={onClose} type="button">Cancel</SecondaryButton>
-                        <PrimaryButton disabled={processing}>Save Changes</PrimaryButton>
+                        <SecondaryButton onClick={onClose} type="button">{t('users.cancel')}</SecondaryButton>
+                        <PrimaryButton disabled={processing}>{t('users.saveChanges')}</PrimaryButton>
                     </div>
                 </form>
             </div>

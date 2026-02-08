@@ -2,8 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { Calendar } from 'lucide-react';
 import AvailabilityCalendar from '@/Components/AvailabilityCalendar';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function ManageCalendar({ availabilities, bookedDates }) {
+    const { t } = useLanguage();
     const availableDates = availabilities.filter(a => a.type === 'available').map(a => a.date);
 
     const handleToggleDate = (date) => {
@@ -26,9 +28,9 @@ export default function ManageCalendar({ availabilities, bookedDates }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        My <span className="text-[#FF6600]">Calendar</span>
+                        {t('calendar.title')} <span className="text-[#FF6600]">{t('calendar.titleHighlight')}</span>
                     </h2>
-                    <p className="text-gray-400 text-sm font-semibold">Set your availability for bookings.</p>
+                    <p className="text-gray-400 text-sm font-semibold">{t('calendar.subtitle')}</p>
                 </div>
             }
         >
@@ -42,7 +44,7 @@ export default function ManageCalendar({ availabilities, bookedDates }) {
                         </div>
                         <div>
                             <h3 className="text-lg font-black text-gray-900 dark:text-white">Availability</h3>
-                            <p className="text-xs text-gray-400">Click dates to toggle availability. Red dates are already booked.</p>
+                            <p className="text-xs text-gray-400">{t('calendar.instructions')}</p>
                         </div>
                     </div>
 

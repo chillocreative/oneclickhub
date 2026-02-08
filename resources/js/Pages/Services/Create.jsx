@@ -2,8 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { ImagePlus, X } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function CreateService({ categories, service }) {
+    const { t } = useLanguage();
     const isEditing = Boolean(service);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -46,10 +48,10 @@ export default function CreateService({ categories, service }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        {isEditing ? 'Edit' : 'Create'} <span className="text-[#FF6600]">Service</span>
+                        {isEditing ? t('services.editTitle') : t('services.createTitle')} <span className="text-[#FF6600]">{t('services.serviceHighlight')}</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-semibold">
-                        {isEditing ? 'Update your service details.' : 'Add a new service listing.'}
+                        {isEditing ? t('services.editSubtitle') : t('services.createSubtitle')}
                     </p>
                 </div>
             }
@@ -60,26 +62,26 @@ export default function CreateService({ categories, service }) {
                 <div className="bg-white dark:bg-[#0c0c0c] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
                     {/* Title */}
                     <div>
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Service Title</label>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.serviceTitle')}</label>
                         <input
                             type="text"
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
                             className={inputClass}
-                            placeholder="e.g. Professional Photography Service"
+                            placeholder={t('services.serviceTitlePlaceholder')}
                         />
                         {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                     </div>
 
                     {/* Category */}
                     <div>
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Category</label>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.category')}</label>
                         <select
                             value={data.service_category_id}
                             onChange={(e) => setData('service_category_id', e.target.value)}
                             className={inputClass}
                         >
-                            <option value="">Select a category</option>
+                            <option value="">{t('services.selectCategory')}</option>
                             {categories.map((cat) => (
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
@@ -89,12 +91,12 @@ export default function CreateService({ categories, service }) {
 
                     {/* Description */}
                     <div>
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Description</label>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.description')}</label>
                         <textarea
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
                             className={`${inputClass} min-h-[150px] resize-y`}
-                            placeholder="Describe your service in detail..."
+                            placeholder={t('services.descriptionPlaceholder')}
                         />
                         {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                     </div>
@@ -102,7 +104,7 @@ export default function CreateService({ categories, service }) {
                     {/* Pricing */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Price From (RM)</label>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.priceFrom')}</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -114,7 +116,7 @@ export default function CreateService({ categories, service }) {
                             {errors.price_from && <p className="text-red-500 text-xs mt-1">{errors.price_from}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Price To (RM, optional)</label>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.priceTo')}</label>
                             <input
                                 type="number"
                                 step="0.01"
@@ -130,7 +132,7 @@ export default function CreateService({ categories, service }) {
                     {/* Delivery & Tags */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Delivery Days</label>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.deliveryDays')}</label>
                             <input
                                 type="number"
                                 value={data.delivery_days}
@@ -140,20 +142,20 @@ export default function CreateService({ categories, service }) {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Tags (comma separated)</label>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.tags')}</label>
                             <input
                                 type="text"
                                 value={data.tags}
                                 onChange={(e) => setData('tags', e.target.value)}
                                 className={inputClass}
-                                placeholder="photography, event, wedding"
+                                placeholder={t('services.tagsPlaceholder')}
                             />
                         </div>
                     </div>
 
                     {/* Images */}
                     <div>
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Images</label>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.images')}</label>
                         <div className="flex flex-wrap gap-4">
                             {previews.map((src, idx) => (
                                 <div key={idx} className="relative size-24 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10">
@@ -180,14 +182,14 @@ export default function CreateService({ categories, service }) {
                             disabled={processing}
                             className="btn-gradient px-8 py-3 text-sm font-bold disabled:opacity-50"
                         >
-                            {processing ? 'Saving...' : (isEditing ? 'Update Service' : 'Create Service')}
+                            {processing ? t('common.saving') : (isEditing ? t('services.updateService') : t('services.createService'))}
                         </button>
                         <button
                             type="button"
                             onClick={() => window.history.back()}
                             className="px-8 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </button>
                     </div>
                 </div>

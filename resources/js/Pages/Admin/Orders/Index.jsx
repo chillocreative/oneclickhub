@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { ShoppingBag, Package, Clock, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const statusColors = {
     pending_payment: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
@@ -24,6 +25,7 @@ const statusLabels = {
 };
 
 export default function AdminOrders({ orders, filters, stats }) {
+    const { t } = useLanguage();
     const [search, setSearch] = useState(filters.search || '');
 
     const handleSearch = (e) => {
@@ -48,7 +50,7 @@ export default function AdminOrders({ orders, filters, stats }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        Order <span className="text-[#FF6600]">Management</span>
+                        {t('admin.ordersTitle')} <span className="text-[#FF6600]">{t('admin.ordersHighlight')}</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-semibold">Overview of all platform orders.</p>
                 </div>
@@ -78,7 +80,7 @@ export default function AdminOrders({ orders, filters, stats }) {
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by order number or name..."
+                        placeholder={t('admin.searchOrders')}
                         className="flex-1 rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm px-4 py-3"
                     />
                     <button type="submit" className="btn-gradient px-6 py-3 text-xs font-black">Search</button>
@@ -95,13 +97,13 @@ export default function AdminOrders({ orders, filters, stats }) {
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-gray-100 dark:border-white/5">
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Order</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Service</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Customer</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Freelancer</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Amount</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Status</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">Date</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('admin.orderId')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.service')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.customer')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.freelancer')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.amount')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.status')}</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase">{t('orders.date')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-white/5">
@@ -126,7 +128,7 @@ export default function AdminOrders({ orders, filters, stats }) {
                         ))}
                         {orders.data.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="p-8 text-center text-gray-400 text-sm">No orders found.</td>
+                                <td colSpan={7} className="p-8 text-center text-gray-400 text-sm">{t('admin.noOrders')}</td>
                             </tr>
                         )}
                     </tbody>
@@ -136,7 +138,7 @@ export default function AdminOrders({ orders, filters, stats }) {
                 {orders.links && orders.links.length > 3 && (
                     <div className="p-4 border-t border-gray-50 dark:border-white/5 flex items-center justify-between">
                         <p className="text-xs font-bold text-gray-400">
-                            Showing {orders.from}-{orders.to} of {orders.total}
+                            {t('users.showing')} {orders.from}-{orders.to} {t('users.of')} {orders.total}
                         </p>
                         <div className="flex gap-1">
                             {orders.links.map((link, i) =>

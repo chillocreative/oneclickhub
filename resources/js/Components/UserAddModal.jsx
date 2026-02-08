@@ -6,8 +6,10 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { useForm } from '@inertiajs/react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function UserAddModal({ show, onClose, role }) {
+    const { t } = useLanguage();
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         phone_number: '',
@@ -32,7 +34,7 @@ export default function UserAddModal({ show, onClose, role }) {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                        ADD NEW <span className="text-[#FF6600]">{role}</span>
+                        {t('users.addUser')} <span className="text-[#FF6600]">{role}</span>
                     </h2>
                     <div className="size-12 rounded-2xl bg-[#34C38F]/10 flex items-center justify-center font-black text-[#34C38F]">
                         +
@@ -41,7 +43,7 @@ export default function UserAddModal({ show, onClose, role }) {
 
                 <form onSubmit={submit} className="space-y-6">
                     <div>
-                        <InputLabel htmlFor="name" value="Full Name" />
+                        <InputLabel htmlFor="name" value={t('users.fullName')} />
                         <TextInput
                             id="name"
                             value={data.name}
@@ -54,7 +56,7 @@ export default function UserAddModal({ show, onClose, role }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="phone_number" value="Phone Number" />
+                        <InputLabel htmlFor="phone_number" value={t('users.phoneNumber')} />
                         <TextInput
                             id="phone_number"
                             value={data.phone_number}
@@ -67,7 +69,7 @@ export default function UserAddModal({ show, onClose, role }) {
                     </div>
 
                     <div>
-                        <InputLabel htmlFor="email" value="Email Address" />
+                        <InputLabel htmlFor="email" value={t('users.email')} />
                         <TextInput
                             id="email"
                             type="email"
@@ -98,8 +100,8 @@ export default function UserAddModal({ show, onClose, role }) {
                     </div>
 
                     <div className="flex items-center justify-end gap-3 mt-10">
-                        <SecondaryButton onClick={() => { onClose(); reset(); }} type="button">Cancel</SecondaryButton>
-                        <PrimaryButton disabled={processing} className="bg-[#34C38F] border-[#34C38F] hover:bg-[#2ca377] text-white">Create User</PrimaryButton>
+                        <SecondaryButton onClick={() => { onClose(); reset(); }} type="button">{t('users.cancel')}</SecondaryButton>
+                        <PrimaryButton disabled={processing} className="bg-[#34C38F] border-[#34C38F] hover:bg-[#2ca377] text-white">{t('users.createUser')}</PrimaryButton>
                     </div>
                 </form>
             </div>

@@ -23,6 +23,7 @@ import {
     Pie,
     Cell,
 } from 'recharts';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const COLORS = ['#FF6600', '#FFB800', '#2B313F', '#FFD700', '#4CAF50', '#9C27B0'];
 
@@ -48,13 +49,14 @@ const StatCard = ({ label, value, icon: Icon, color }) => (
 );
 
 export default function AdminDashboard({ stats = {}, chartData = [], categoryBreakdown = [], topFreelancers = [], topCategories = [] }) {
+    const { t } = useLanguage();
     const statsCards = [
-        { label: 'Registered Freelancers', value: (stats.freelancers ?? 0).toLocaleString(), icon: Users, color: '#FF6600' },
-        { label: 'Registered Customers', value: (stats.customers ?? 0).toLocaleString(), icon: UserCheck, color: '#FFB800' },
-        { label: 'Total Revenue', value: formatRM(stats.revenue), icon: DollarSign, color: '#2B313F' },
-        { label: 'Total Orders', value: (stats.orders ?? 0).toLocaleString(), icon: ShoppingBag, color: '#FF6600' },
-        { label: 'Active Subscriptions', value: (stats.activeSubscriptions ?? 0).toLocaleString(), icon: CreditCard, color: '#FFB800' },
-        { label: 'Pending SSM', value: (stats.pendingSsm ?? 0).toLocaleString(), icon: FileCheck, color: '#2B313F' },
+        { label: t('dashboard.admin.registeredFreelancers'), value: (stats.freelancers ?? 0).toLocaleString(), icon: Users, color: '#FF6600' },
+        { label: t('dashboard.admin.registeredCustomers'), value: (stats.customers ?? 0).toLocaleString(), icon: UserCheck, color: '#FFB800' },
+        { label: t('dashboard.admin.totalRevenue'), value: formatRM(stats.revenue), icon: DollarSign, color: '#2B313F' },
+        { label: t('dashboard.admin.totalOrders'), value: (stats.orders ?? 0).toLocaleString(), icon: ShoppingBag, color: '#FF6600' },
+        { label: t('dashboard.admin.activeSubscriptions'), value: (stats.activeSubscriptions ?? 0).toLocaleString(), icon: CreditCard, color: '#FFB800' },
+        { label: t('dashboard.admin.pendingSsm'), value: (stats.pendingSsm ?? 0).toLocaleString(), icon: FileCheck, color: '#2B313F' },
     ];
 
     const categoryWithColors = categoryBreakdown.map((c, i) => ({
@@ -72,16 +74,16 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            Overview <span className="text-[#FF6600]">Dashboard</span>
+                            {t('dashboard.admin.title')} <span className="text-[#FF6600]">{t('dashboard.admin.titleHighlight')}</span>
                         </h2>
-                        <p className="text-gray-400 text-sm font-semibold">Welcome back! Here's what's happening with Hub today.</p>
+                        <p className="text-gray-400 text-sm font-semibold">{t('dashboard.admin.subtitle')}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl">
                             <div className="size-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Whatsapp Online</span>
+                            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">{t('dashboard.admin.whatsappOnline')}</span>
                         </div>
-                        <button className="btn-gradient px-6 py-2 text-xs">Generate Report</button>
+                        <button className="btn-gradient px-6 py-2 text-xs">{t('dashboard.admin.generateReport')}</button>
                     </div>
                 </div>
             }
@@ -99,8 +101,8 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                     <div className="lg:col-span-2 bg-white dark:bg-[#0c0c0c] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5">
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Order Analytics</h3>
-                                <p className="text-gray-400 text-xs font-semibold">Last 7 days performance</p>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{t('dashboard.admin.orderAnalytics')}</h3>
+                                <p className="text-gray-400 text-xs font-semibold">{t('dashboard.admin.last7Days')}</p>
                             </div>
                         </div>
                         <div className="h-[300px] w-full mt-4">
@@ -121,7 +123,7 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400 text-sm">No order data for the last 7 days</div>
+                                <div className="flex items-center justify-center h-full text-gray-400 text-sm">{t('dashboard.admin.noOrderData')}</div>
                             )}
                         </div>
                     </div>
@@ -129,8 +131,8 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                     <div className="bg-[#2B313F] p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden flex flex-col">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF6600]/10 blur-[60px] rounded-full" />
                         <div className="relative flex-1">
-                            <h3 className="text-xl font-bold text-white tracking-tight mb-2 text-center">Service Categories</h3>
-                            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest text-center mb-8">Distribution by category</p>
+                            <h3 className="text-xl font-bold text-white tracking-tight mb-2 text-center">{t('dashboard.admin.serviceCategories')}</h3>
+                            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest text-center mb-8">{t('dashboard.admin.distributionByCategory')}</p>
                             <div className="h-48 relative flex items-center justify-center">
                                 {categoryWithColors.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
@@ -145,7 +147,7 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                                 ) : null}
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                                     <div className="text-3xl font-black text-white">{totalServices}</div>
-                                    <div className="text-[10px] font-bold text-white/50 tracking-widest">TOTAL SERVICES</div>
+                                    <div className="text-[10px] font-bold text-white/50 tracking-widest">{t('dashboard.admin.totalServices')}</div>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +162,7 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                                 </div>
                             ))}
                             {categoryWithColors.length === 0 && (
-                                <p className="text-white/40 text-xs text-center">No categories yet</p>
+                                <p className="text-white/40 text-xs text-center">{t('dashboard.admin.noCategories')}</p>
                             )}
                         </div>
                     </div>
@@ -169,7 +171,7 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white dark:bg-[#0c0c0c] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Top 5 Freelancers</h3>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">{t('dashboard.admin.top5Freelancers')}</h3>
                         </div>
                         <div className="space-y-6">
                             {topFreelancers.length > 0 ? topFreelancers.map((f, i) => (
@@ -192,20 +194,20 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                                     </div>
                                 </div>
                             )) : (
-                                <p className="text-gray-400 text-sm text-center py-8">No completed orders yet</p>
+                                <p className="text-gray-400 text-sm text-center py-8">{t('dashboard.admin.noCompletedOrders')}</p>
                             )}
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-[#0c0c0c] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden">
                         <div className="absolute top-[-20%] left-[-20%] w-[50%] h-[50%] bg-[#FF6600]/5 rounded-full blur-[80px]" />
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-8">Top Order Categories</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-8">{t('dashboard.admin.topOrderCategories')}</h3>
                         <div className="space-y-8 relative z-10">
                             {topCategories.length > 0 ? topCategories.map((cat, i) => (
                                 <div key={i}>
                                     <div className="flex justify-between mb-2">
                                         <span className="text-xs font-bold text-gray-900 dark:text-white">{cat.name}</span>
-                                        <span className="text-[10px] font-bold text-gray-400">{cat.order_count.toLocaleString()} orders</span>
+                                        <span className="text-[10px] font-bold text-gray-400">{cat.order_count.toLocaleString()} {t('dashboard.admin.orders')}</span>
                                     </div>
                                     <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                         <motion.div
@@ -218,7 +220,7 @@ export default function AdminDashboard({ stats = {}, chartData = [], categoryBre
                                     </div>
                                 </div>
                             )) : (
-                                <p className="text-gray-400 text-sm text-center py-8">No orders yet</p>
+                                <p className="text-gray-400 text-sm text-center py-8">{t('dashboard.admin.noOrders')}</p>
                             )}
                         </div>
                     </div>

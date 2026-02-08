@@ -1,8 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function SuccessNotification({ message, onClear }) {
+    const { t } = useLanguage();
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
@@ -36,7 +38,7 @@ export default function SuccessNotification({ message, onClear }) {
                         </div>
 
                         <div className="text-center space-y-1">
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Success!</h3>
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">{t('common.success')}</h3>
                             <p className="text-sm font-bold text-gray-400 leading-relaxed uppercase tracking-widest">{message}</p>
                         </div>
 

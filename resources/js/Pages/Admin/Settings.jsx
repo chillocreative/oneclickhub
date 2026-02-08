@@ -3,8 +3,10 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Settings, Key } from 'lucide-react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function AdminSettings({ openai_api_key }) {
+    const { t } = useLanguage();
     const { flash } = usePage().props;
     const { data, setData, patch, processing, errors } = useForm({
         openai_api_key: openai_api_key || '',
@@ -20,7 +22,7 @@ export default function AdminSettings({ openai_api_key }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        Admin <span className="text-[#FF6600]">Settings</span>
+                        {t('admin.settingsTitle')} <span className="text-[#FF6600]">{t('admin.settingsHighlight')}</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-semibold">Configure system integrations.</p>
                 </div>
@@ -35,20 +37,20 @@ export default function AdminSettings({ openai_api_key }) {
                             <Key size={24} className="text-[#FF6600]" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white">OpenAI Integration</h3>
-                            <p className="text-xs text-gray-400">Used for SSM certificate verification via GPT-4o Vision.</p>
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">{t('admin.openaiConfig')}</h3>
+                            <p className="text-xs text-gray-400">{t('admin.openaiConfigDesc')}</p>
                         </div>
                     </div>
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <InputLabel value="OpenAI API Key" />
+                            <InputLabel value={t('admin.apiKey')} />
                             <TextInput
                                 type="password"
                                 className="w-full"
                                 value={data.openai_api_key}
                                 onChange={e => setData('openai_api_key', e.target.value)}
-                                placeholder="sk-..."
+                                placeholder={t('admin.apiKeyPlaceholder')}
                             />
                             {errors.openai_api_key && <p className="text-red-500 text-xs">{errors.openai_api_key}</p>}
                         </div>
@@ -58,7 +60,7 @@ export default function AdminSettings({ openai_api_key }) {
                             disabled={processing}
                             className="w-full py-4 btn-gradient font-black text-sm uppercase tracking-widest disabled:opacity-50"
                         >
-                            {processing ? 'Saving...' : 'Save Settings'}
+                            {processing ? 'Saving...' : t('common.save')}
                         </button>
                     </form>
                 </div>

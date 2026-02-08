@@ -2,12 +2,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { CreditCard, Zap, TrendingUp, Users, CheckCircle } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function SubscriptionIndex() {
+    const { t } = useLanguage();
+
     const stats = [
-        { label: 'Active Subscribers', value: '1,284', grow: '+12%', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
-        { label: 'Monthly Revenue', value: 'RM 12,450', grow: '+8.4%', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-        { label: 'Subscription Rate', value: '42%', grow: '+2.1%', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50' },
+        { label: t('subscriptions.activeSubscribers'), value: '1,284', grow: '+12%', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
+        { label: t('subscriptions.monthlyRevenue'), value: 'RM 12,450', grow: '+8.4%', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+        { label: t('subscriptions.subscriptionRate'), value: '42%', grow: '+2.1%', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50' },
     ];
 
     return (
@@ -15,12 +18,12 @@ export default function SubscriptionIndex() {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                        REVENUE <span className="text-[#FF6600]">OVERVIEW</span>
+                        {t('subscriptions.revenueOverview')} <span className="text-[#FF6600]">{t('subscriptions.revenueOverviewHighlight')}</span>
                     </h2>
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        <span>Revenue Center</span>
+                        <span>{t('subscriptions.breadcrumbRevenueCenter')}</span>
                         <span className="size-1 bg-gray-300 rounded-full" />
-                        <span className="text-[#FF6600]">Subscriptions</span>
+                        <span className="text-[#FF6600]">{t('subscriptions.breadcrumbSubscriptions')}</span>
                     </div>
                 </div>
             }
@@ -63,14 +66,14 @@ export default function SubscriptionIndex() {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                         <div>
                             <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase mb-2">
-                                Subscription <span className="text-[#FF6600]">Analytics</span>
+                                {t('subscriptions.analytics')} <span className="text-[#FF6600]">{t('subscriptions.analyticsHighlight')}</span>
                             </h3>
                             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest leading-relaxed max-w-lg">
-                                Track the growth and performance of your subscription models across Malaysia.
+                                {t('subscriptions.analyticsDesc')}
                             </p>
                         </div>
                         <button className="flex items-center gap-2 px-8 py-4 bg-[#FF6600] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all active:scale-95">
-                            Extract Data Report
+                            {t('subscriptions.extractReport')}
                         </button>
                     </div>
 
@@ -78,12 +81,12 @@ export default function SubscriptionIndex() {
                         {/* Highlights Chart Placeholder */}
                         <div className="aspect-video bg-[#fcfcfc] dark:bg-white/5 rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10 flex items-center justify-center flex-col gap-4">
                             <CreditCard size={48} className="text-gray-300" />
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Revenue Growth Chart coming soon</span>
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.chartComingSoon')}</span>
                         </div>
 
                         {/* Recent Subscribers List */}
                         <div className="space-y-6">
-                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Recent Subscribers</h4>
+                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">{t('subscriptions.recentSubscribers')}</h4>
                             {[
                                 { name: 'Ahmad Faisal', plan: 'Premium Pro', date: '2 mins ago', amount: 'RM 199' },
                                 { name: 'Tristan Tan', plan: 'Starter Hub', date: '3 hours ago', amount: 'RM 49' },

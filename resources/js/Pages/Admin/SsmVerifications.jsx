@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import { FileCheck, Check, X, Eye, Trash2, Search, ShieldCheck, Clock, XCircle, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const statusColors = {
     pending: 'bg-yellow-50 text-yellow-600',
@@ -11,6 +12,7 @@ const statusColors = {
 };
 
 export default function SsmVerifications({ verifications, filters = {}, stats = {} }) {
+    const { t } = useLanguage();
     const [viewing, setViewing] = useState(null);
     const [verifying, setVerifying] = useState(null);
     const [deleting, setDeleting] = useState(null);
@@ -55,7 +57,7 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        SSM <span className="text-[#FF6600]">Verifications</span>
+                        {t('admin.ssmTitle')} <span className="text-[#FF6600]">{t('admin.ssmHighlight')}</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-semibold">Review freelancer business certificates.</p>
                 </div>
@@ -85,7 +87,7 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by freelancer name, company, or registration..."
+                        placeholder={t('admin.searchSsm')}
                         className="flex-1 rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm px-4 py-3"
                     />
                     <button type="submit" className="btn-gradient px-6 py-3 text-xs font-black">Search</button>
@@ -101,13 +103,13 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-gray-100 dark:border-white/5">
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Freelancer</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.freelancerName')}</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Company</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Reg. No.</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.ssmStatus')}</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Grace Period</th>
-                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Date</th>
-                            <th className="text-right p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.submittedDate')}</th>
+                            <th className="text-right p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.ssmActions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-white/5">
@@ -132,22 +134,22 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                                 <td className="p-4 text-gray-400 text-xs">{new Date(v.created_at).toLocaleDateString()}</td>
                                 <td className="p-4 text-right space-x-2">
                                     <button onClick={() => setViewing(v)} className="px-3 py-1 text-xs font-bold text-[#FF6600] bg-orange-50 dark:bg-orange-500/10 rounded-lg">
-                                        <Eye size={12} className="inline mr-1" /> View
+                                        <Eye size={12} className="inline mr-1" /> {t('admin.viewCertificate')}
                                     </button>
                                     {v.status !== 'verified' && (
                                         <button onClick={() => { setVerifying(v); form.setData({ status: 'verified', admin_notes: '' }); }} className="px-3 py-1 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-500/10 rounded-lg">
-                                            <Check size={12} className="inline mr-1" /> Verify
+                                            <Check size={12} className="inline mr-1" /> {t('admin.verifySsm')}
                                         </button>
                                     )}
                                     <button onClick={() => setDeleting(v)} className="px-3 py-1 text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 rounded-lg">
-                                        <Trash2 size={12} className="inline mr-1" /> Delete
+                                        <Trash2 size={12} className="inline mr-1" /> {t('admin.deleteSsm')}
                                     </button>
                                 </td>
                             </tr>
                         ))}
                         {verifications.data.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="p-8 text-center text-gray-400 text-sm">No verifications found.</td>
+                                <td colSpan={7} className="p-8 text-center text-gray-400 text-sm">{t('admin.noSubmissions')}</td>
                             </tr>
                         )}
                     </tbody>
@@ -181,7 +183,7 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
             {viewing && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewing(null)}>
                     <div className="bg-white dark:bg-[#111] rounded-[2rem] p-6 max-w-2xl w-full max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">SSM Document</h3>
+                        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">{t('admin.ssmCertificate')}</h3>
 
                         <div className="p-5 rounded-2xl bg-gray-50 dark:bg-white/5 space-y-2 mb-4">
                             <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
@@ -273,7 +275,7 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                                 rows={3}
                             />
                             <div className="flex gap-3">
-                                <button type="button" onClick={() => setVerifying(null)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">Cancel</button>
+                                <button type="button" onClick={() => setVerifying(null)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">{t('common.cancel')}</button>
                                 <button type="submit" disabled={form.processing} className="flex-1 btn-gradient py-3 text-xs font-black">Submit</button>
                             </div>
                         </form>
@@ -285,13 +287,13 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
             {deleting && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDeleting(null)}>
                     <div className="bg-white dark:bg-[#111] rounded-[2rem] p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-black text-red-600 mb-3">Delete Verification</h3>
+                        <h3 className="text-lg font-black text-red-600 mb-3">{t('admin.deleteSsm')}</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                            Delete SSM verification for <span className="font-black">{deleting.user?.name}</span>? This cannot be undone.
+                            {t('admin.confirmDelete')}
                         </p>
                         <div className="flex gap-3">
-                            <button onClick={() => setDeleting(null)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">Cancel</button>
-                            <button onClick={() => handleDelete(deleting.id)} className="flex-1 py-3 text-xs font-black text-white bg-red-500 rounded-xl hover:bg-red-600">Delete</button>
+                            <button onClick={() => setDeleting(null)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">{t('common.cancel')}</button>
+                            <button onClick={() => handleDelete(deleting.id)} className="flex-1 py-3 text-xs font-black text-white bg-red-500 rounded-xl hover:bg-red-600">{t('common.delete')}</button>
                         </div>
                     </div>
                 </div>

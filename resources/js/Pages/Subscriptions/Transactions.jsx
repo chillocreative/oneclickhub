@@ -15,8 +15,10 @@ import {
     Eye,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Transactions({ transactions, filters = {} }) {
+    const { t } = useLanguage();
     const [search, setSearch] = useState(filters.search || '');
 
     const getStatusStyle = (status) => {
@@ -68,12 +70,12 @@ export default function Transactions({ transactions, filters = {} }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                            REVENUE <span className="text-[#FF6600]">TRANSACTIONS</span>
+                            {t('subscriptions.transactionsTitle')} <span className="text-[#FF6600]">{t('subscriptions.transactionsHighlight')}</span>
                         </h2>
                         <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                            <span>Revenue Center</span>
+                            <span>{t('subscriptions.breadcrumbRevenueCenter')}</span>
                             <span className="size-1 bg-gray-300 rounded-full" />
-                            <span className="text-[#FF6600]">Transactions</span>
+                            <span className="text-[#FF6600]">{t('subscriptions.breadcrumbTransactions')}</span>
                         </div>
                     </div>
                 </div>
@@ -85,7 +87,7 @@ export default function Transactions({ transactions, filters = {} }) {
                 {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Volume</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t('subscriptions.totalRevenue')}</p>
                         <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">RM {totalVolume.toLocaleString()}</h3>
                         <div className="flex items-center gap-2 mt-4 text-emerald-500">
                             <span className="size-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><ArrowUpRight size={16} /></span>
@@ -93,7 +95,7 @@ export default function Transactions({ transactions, filters = {} }) {
                         </div>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Success Rate</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t('subscriptions.successfulPayments')}</p>
                         <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{successRate}%</h3>
                         <div className="flex items-center gap-2 mt-4 text-blue-500">
                             <span className="size-8 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center"><CheckCircle size={16} /></span>
@@ -101,7 +103,7 @@ export default function Transactions({ transactions, filters = {} }) {
                         </div>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white dark:bg-[#111] rounded-[2rem] p-8 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Total Transactions</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{t('subscriptions.totalTransactions')}</p>
                         <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter">{transactions.total}</h3>
                         <div className="flex items-center gap-2 mt-4 text-[#FF6600]">
                             <span className="size-8 rounded-full bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center"><Clock size={16} /></span>
@@ -118,7 +120,7 @@ export default function Transactions({ transactions, filters = {} }) {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Search by Order ID, User..."
+                                    placeholder={t('subscriptions.searchTransactions')}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-white/5 border-0 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#FF6600]/20"
@@ -147,11 +149,11 @@ export default function Transactions({ transactions, filters = {} }) {
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-gray-50/50 dark:bg-white/5 text-left">
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Transaction / User</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Plan</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Gateway</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.transactionId')} / {t('subscriptions.user')}</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.plan')}</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.amount')}</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.gateway')}</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('subscriptions.status')}</th>
                                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -202,7 +204,7 @@ export default function Transactions({ transactions, filters = {} }) {
                                 ))}
                                 {transactions.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-8 py-12 text-center text-gray-400 text-sm">No transactions found.</td>
+                                        <td colSpan={6} className="px-8 py-12 text-center text-gray-400 text-sm">{t('subscriptions.noTransactions')}</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -213,7 +215,7 @@ export default function Transactions({ transactions, filters = {} }) {
                     {transactions.links && transactions.links.length > 3 && (
                         <div className="p-8 border-t border-gray-50 dark:border-white/5 bg-gray-50/30 dark:bg-white/2 flex items-center justify-between">
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                Showing {transactions.from}-{transactions.to} of {transactions.total} transactions
+                                {t('users.showing')} {transactions.from}-{transactions.to} {t('users.of')} {transactions.total} transactions
                             </p>
                             <div className="flex items-center gap-2">
                                 {transactions.links.map((link, i) => (

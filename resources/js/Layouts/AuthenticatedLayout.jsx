@@ -31,7 +31,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessNotification from '@/Components/SuccessNotification';
 import { router } from '@inertiajs/react';
-import { LanguageSwitcher } from '@/Contexts/LanguageContext';
+import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
 const SidebarItem = ({ href, icon: Icon, label, active, collapsed, children }) => {
     const [isOpen, setIsOpen] = useState(active || false);
@@ -95,17 +95,17 @@ const SubItem = ({ href, label, active }) => (
     </Link>
 );
 
-function AdminSidebar({ collapsed }) {
+function AdminSidebar({ collapsed, t }) {
     return (
         <>
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Overview'}
+                    {collapsed ? '...' : t('sidebar.overview')}
                 </div>
                 <SidebarItem
                     href={route('dashboard')}
                     icon={LayoutDashboard}
-                    label="Analytics Hub"
+                    label={t('sidebar.analyticsHub')}
                     active={route().current('dashboard')}
                     collapsed={collapsed}
                 />
@@ -113,60 +113,60 @@ function AdminSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'User Management'}
+                    {collapsed ? '...' : t('sidebar.userManagement')}
                 </div>
                 <SidebarItem
                     icon={ShieldCheck}
-                    label="User Control"
+                    label={t('sidebar.userControl')}
                     active={route().current('users.*')}
                     collapsed={collapsed}
                 >
-                    <SubItem href={route('users.freelancers')} label="Freelancers" active={route().current('users.freelancers')} />
-                    <SubItem href={route('users.customers')} label="Customers" active={route().current('users.customers')} />
-                    <SubItem href={route('users.admins')} label="Admins & Staff" active={route().current('users.admins')} />
+                    <SubItem href={route('users.freelancers')} label={t('sidebar.freelancers')} active={route().current('users.freelancers')} />
+                    <SubItem href={route('users.customers')} label={t('sidebar.customers')} active={route().current('users.customers')} />
+                    <SubItem href={route('users.admins')} label={t('sidebar.adminsStaff')} active={route().current('users.admins')} />
                 </SidebarItem>
             </div>
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Revenue Center'}
+                    {collapsed ? '...' : t('sidebar.revenueCenter')}
                 </div>
                 <SidebarItem
                     icon={CreditCard}
-                    label="Subscriptions"
+                    label={t('sidebar.subscriptions')}
                     active={route().current('subscriptions.*')}
                     collapsed={collapsed}
                 >
-                    <SubItem href={route('subscriptions.index')} label="Overview" active={route().current('subscriptions.index')} />
-                    <SubItem href={route('subscriptions.plans')} label="Plans Management" active={route().current('subscriptions.plans')} />
-                    <SubItem href={route('subscriptions.settings')} label="Subscription Settings" active={route().current('subscriptions.settings')} />
-                    <SubItem href={route('subscriptions.gateways')} label="Payment Gateways" active={route().current('subscriptions.gateways')} />
-                    <SubItem href={route('subscriptions.transactions')} label="Transactions" active={route().current('subscriptions.transactions')} />
+                    <SubItem href={route('subscriptions.index')} label={t('sidebar.subOverview')} active={route().current('subscriptions.index')} />
+                    <SubItem href={route('subscriptions.plans')} label={t('sidebar.plansManagement')} active={route().current('subscriptions.plans')} />
+                    <SubItem href={route('subscriptions.settings')} label={t('sidebar.subscriptionSettings')} active={route().current('subscriptions.settings')} />
+                    <SubItem href={route('subscriptions.gateways')} label={t('sidebar.paymentGateways')} active={route().current('subscriptions.gateways')} />
+                    <SubItem href={route('subscriptions.transactions')} label={t('sidebar.transactions')} active={route().current('subscriptions.transactions')} />
                 </SidebarItem>
             </div>
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Operations'}
+                    {collapsed ? '...' : t('sidebar.operations')}
                 </div>
                 <SidebarItem
                     href={route('admin.orders.index')}
                     icon={ShoppingBag}
-                    label="Orders"
+                    label={t('sidebar.orders')}
                     active={route().current('admin.orders.*')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('admin.ssm.index')}
                     icon={FileCheck}
-                    label="SSM Verifications"
+                    label={t('sidebar.ssmVerifications')}
                     active={route().current('admin.ssm.*')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('admin.categories.index')}
                     icon={Layers}
-                    label="Categories"
+                    label={t('sidebar.categories')}
                     active={route().current('admin.categories.*')}
                     collapsed={collapsed}
                 />
@@ -174,19 +174,19 @@ function AdminSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'System'}
+                    {collapsed ? '...' : t('sidebar.system')}
                 </div>
                 <SidebarItem
                     href={route('admin.settings')}
                     icon={Settings}
-                    label="Settings"
+                    label={t('sidebar.settings')}
                     active={route().current('admin.settings')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('profile.edit')}
                     icon={User}
-                    label="Profile"
+                    label={t('sidebar.profile')}
                     active={route().current('profile.edit')}
                     collapsed={collapsed}
                 />
@@ -195,17 +195,17 @@ function AdminSidebar({ collapsed }) {
     );
 }
 
-function FreelancerSidebar({ collapsed }) {
+function FreelancerSidebar({ collapsed, t }) {
     return (
         <>
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Overview'}
+                    {collapsed ? '...' : t('sidebar.overview')}
                 </div>
                 <SidebarItem
                     href={route('dashboard')}
                     icon={LayoutDashboard}
-                    label="My Dashboard"
+                    label={t('sidebar.myDashboard')}
                     active={route().current('dashboard')}
                     collapsed={collapsed}
                 />
@@ -213,35 +213,35 @@ function FreelancerSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Services'}
+                    {collapsed ? '...' : t('sidebar.servicesSection')}
                 </div>
                 <SidebarItem
                     icon={Briefcase}
-                    label="My Services"
+                    label={t('sidebar.myServices')}
                     active={route().current('my-services.*')}
                     collapsed={collapsed}
                 >
-                    <SubItem href={route('my-services.index')} label="All Services" active={route().current('my-services.index')} />
-                    <SubItem href={route('my-services.create')} label="Create New" active={route().current('my-services.create')} />
+                    <SubItem href={route('my-services.index')} label={t('sidebar.allServices')} active={route().current('my-services.index')} />
+                    <SubItem href={route('my-services.create')} label={t('sidebar.createNew')} active={route().current('my-services.create')} />
                 </SidebarItem>
                 <SidebarItem
                     href={route('calendar.index')}
                     icon={Calendar}
-                    label="Calendar"
+                    label={t('sidebar.calendar')}
                     active={route().current('calendar.*')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('orders.freelancer')}
                     icon={ShoppingBag}
-                    label="Orders"
+                    label={t('sidebar.orders')}
                     active={route().current('orders.freelancer')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('chat.index')}
                     icon={MessageCircle}
-                    label="Messages"
+                    label={t('sidebar.messages')}
                     active={route().current('chat.*')}
                     collapsed={collapsed}
                 />
@@ -249,26 +249,26 @@ function FreelancerSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Account'}
+                    {collapsed ? '...' : t('sidebar.account')}
                 </div>
                 <SidebarItem
                     href={route('subscribe.plans')}
                     icon={CreditCard}
-                    label="Subscription"
+                    label={t('sidebar.subscription')}
                     active={route().current('subscribe.*')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('settings.banking')}
                     icon={Landmark}
-                    label="Banking Details"
+                    label={t('sidebar.bankingDetails')}
                     active={route().current('settings.banking')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('profile.edit')}
                     icon={Settings}
-                    label="Profile"
+                    label={t('sidebar.profile')}
                     active={route().current('profile.edit')}
                     collapsed={collapsed}
                 />
@@ -277,17 +277,17 @@ function FreelancerSidebar({ collapsed }) {
     );
 }
 
-function CustomerSidebar({ collapsed }) {
+function CustomerSidebar({ collapsed, t }) {
     return (
         <>
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Overview'}
+                    {collapsed ? '...' : t('sidebar.overview')}
                 </div>
                 <SidebarItem
                     href={route('dashboard')}
                     icon={LayoutDashboard}
-                    label="Dashboard"
+                    label={t('sidebar.dashboard')}
                     active={route().current('dashboard')}
                     collapsed={collapsed}
                 />
@@ -295,26 +295,26 @@ function CustomerSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Explore'}
+                    {collapsed ? '...' : t('sidebar.explore')}
                 </div>
                 <SidebarItem
                     href={route('services.browse')}
                     icon={Globe}
-                    label="Browse Services"
+                    label={t('sidebar.browseServices')}
                     active={route().current('services.browse')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('orders.customer')}
                     icon={ShoppingBag}
-                    label="My Bookings"
+                    label={t('sidebar.myBookings')}
                     active={route().current('orders.customer')}
                     collapsed={collapsed}
                 />
                 <SidebarItem
                     href={route('chat.index')}
                     icon={MessageCircle}
-                    label="Messages"
+                    label={t('sidebar.messages')}
                     active={route().current('chat.*')}
                     collapsed={collapsed}
                 />
@@ -322,12 +322,12 @@ function CustomerSidebar({ collapsed }) {
 
             <div className="space-y-2">
                 <div className={`px-4 text-[10px] font-black text-white/60 uppercase tracking-[0.3em] ${collapsed ? 'text-center' : ''}`}>
-                    {collapsed ? '...' : 'Account'}
+                    {collapsed ? '...' : t('sidebar.account')}
                 </div>
                 <SidebarItem
                     href={route('profile.edit')}
                     icon={Settings}
-                    label="Profile"
+                    label={t('sidebar.profile')}
                     active={route().current('profile.edit')}
                     collapsed={collapsed}
                 />
@@ -344,6 +344,7 @@ export default function AuthenticatedLayout({ header, children }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const { t } = useLanguage();
 
     const isAdmin = roles.includes('Admin');
     const isFreelancer = roles.includes('Freelancer');
@@ -425,9 +426,9 @@ export default function AuthenticatedLayout({ header, children }) {
 
                     {/* Navigation */}
                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar z-10 space-y-8">
-                        {isAdmin && <AdminSidebar collapsed={isCollapsed} />}
-                        {!isAdmin && isFreelancer && <FreelancerSidebar collapsed={isCollapsed} />}
-                        {!isAdmin && !isFreelancer && <CustomerSidebar collapsed={isCollapsed} />}
+                        {isAdmin && <AdminSidebar collapsed={isCollapsed} t={t} />}
+                        {!isAdmin && isFreelancer && <FreelancerSidebar collapsed={isCollapsed} t={t} />}
+                        {!isAdmin && !isFreelancer && <CustomerSidebar collapsed={isCollapsed} t={t} />}
                     </div>
                 </div>
             </aside>
@@ -446,7 +447,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             <Search size={18} />
                             <input
                                 type="text"
-                                placeholder="Search..."
+                                placeholder={t('header.search')}
                                 className="bg-transparent border-none p-0 text-sm focus:ring-0 placeholder-gray-500 w-full"
                             />
                         </div>
@@ -490,8 +491,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </button>
                             </Dropdown.Trigger>
                             <Dropdown.Content>
-                                <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                                <Dropdown.Link href={route('logout')} method="post" as="button">Logout</Dropdown.Link>
+                                <Dropdown.Link href={route('profile.edit')}>{t('header.profile')}</Dropdown.Link>
+                                <Dropdown.Link href={route('logout')} method="post" as="button">{t('header.logout')}</Dropdown.Link>
                             </Dropdown.Content>
                         </Dropdown>
                     </div>
@@ -501,8 +502,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="mx-10 mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl flex items-center gap-3">
                         <FileCheck size={20} className="text-yellow-600 flex-shrink-0" />
                         <p className="text-sm font-bold text-yellow-800">
-                            Upload your SSM certificate within <span className="text-yellow-900 font-black">{ssm.graceDaysRemaining} day(s)</span> to keep your services visible.
-                            <Link href={route('settings.banking')} className="ml-2 underline text-[#FF6600] hover:text-[#FF8800]">Upload now</Link>
+                            {t('header.ssmGracePrefix')} <span className="text-yellow-900 font-black">{ssm.graceDaysRemaining} day(s)</span> {t('header.ssmGraceSuffix')}
+                            <Link href={route('settings.banking')} className="ml-2 underline text-[#FF6600] hover:text-[#FF8800]">{t('header.uploadNow')}</Link>
                         </p>
                     </div>
                 )}
@@ -510,8 +511,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="mx-10 mt-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
                         <FileCheck size={20} className="text-red-600 flex-shrink-0" />
                         <p className="text-sm font-bold text-red-800">
-                            Your services are hidden because your SSM verification has expired. Upload a valid SSM certificate to reactivate.
-                            <Link href={route('settings.banking')} className="ml-2 underline text-[#FF6600] hover:text-[#FF8800]">Upload now</Link>
+                            {t('header.ssmExpired')}
+                            <Link href={route('settings.banking')} className="ml-2 underline text-[#FF6600] hover:text-[#FF8800]">{t('header.uploadNow')}</Link>
                         </p>
                     </div>
                 )}

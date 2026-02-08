@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { Landmark, FileCheck, Upload } from 'lucide-react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 const ssmStatusColors = {
     pending: 'bg-yellow-50 text-yellow-600',
@@ -12,6 +13,7 @@ const ssmStatusColors = {
 };
 
 export default function BankingDetails({ bankingDetail, ssmVerification }) {
+    const { t } = useLanguage();
     const { flash } = usePage().props;
 
     const { data, setData, patch, processing, errors } = useForm({
@@ -37,9 +39,9 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        Banking <span className="text-[#FF6600]">Details</span>
+                        {t('settings.bankingTitle')} <span className="text-[#FF6600]">{t('settings.bankingHighlight')}</span>
                     </h2>
-                    <p className="text-gray-400 text-sm font-semibold">Your bank account and business verification.</p>
+                    <p className="text-gray-400 text-sm font-semibold">{t('settings.subtitle')}</p>
                 </div>
             }
         >
@@ -60,34 +62,34 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
-                            <InputLabel value="Bank Name" />
+                            <InputLabel value={t('settings.bankName')} />
                             <TextInput
                                 className="w-full"
                                 value={data.bank_name}
                                 onChange={e => setData('bank_name', e.target.value)}
-                                placeholder="e.g. Maybank, CIMB, Bank Islam"
+                                placeholder={t('settings.bankNamePlaceholder')}
                             />
                             {errors.bank_name && <p className="text-red-500 text-xs">{errors.bank_name}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel value="Account Number" />
+                            <InputLabel value={t('settings.accountNumber')} />
                             <TextInput
                                 className="w-full"
                                 value={data.account_number}
                                 onChange={e => setData('account_number', e.target.value)}
-                                placeholder="e.g. 1234567890"
+                                placeholder={t('settings.accountNumberPlaceholder')}
                             />
                             {errors.account_number && <p className="text-red-500 text-xs">{errors.account_number}</p>}
                         </div>
 
                         <div className="space-y-2">
-                            <InputLabel value="Account Holder Name" />
+                            <InputLabel value={t('settings.accountHolder')} />
                             <TextInput
                                 className="w-full"
                                 value={data.account_holder_name}
                                 onChange={e => setData('account_holder_name', e.target.value)}
-                                placeholder="Full name as on bank account"
+                                placeholder={t('settings.accountHolderPlaceholder')}
                             />
                             {errors.account_holder_name && <p className="text-red-500 text-xs">{errors.account_holder_name}</p>}
                         </div>
@@ -97,7 +99,7 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
                             disabled={processing}
                             className="w-full py-4 btn-gradient font-black text-sm uppercase tracking-widest disabled:opacity-50"
                         >
-                            {processing ? 'Saving...' : 'Save Banking Details'}
+                            {processing ? 'Saving...' : t('common.save')}
                         </button>
                     </form>
                 </div>
@@ -109,8 +111,8 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
                             <FileCheck size={24} className="text-[#FF6600]" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white">SSM Verification</h3>
-                            <p className="text-xs text-gray-400">Upload your SSM certificate for business verification.</p>
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">{t('settings.ssmVerification')}</h3>
+                            <p className="text-xs text-gray-400">{t('settings.ssmUpload')}</p>
                         </div>
                     </div>
 

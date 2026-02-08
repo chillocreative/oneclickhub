@@ -1,8 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { MessageCircle } from 'lucide-react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function ChatIndex({ conversations }) {
+    const { t } = useLanguage();
     const general = conversations.filter(c => c.type === 'general');
     const order = conversations.filter(c => c.type === 'order');
 
@@ -40,9 +42,9 @@ export default function ChatIndex({ conversations }) {
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
-                        <span className="text-[#FF6600]">Messages</span>
+                        {t('chat.messagesTitle')} <span className="text-[#FF6600]">{t('chat.messagesHighlight')}</span>
                     </h2>
-                    <p className="text-gray-400 text-sm font-semibold">Your conversations.</p>
+                    <p className="text-gray-400 text-sm font-semibold">{t('chat.subtitle')}</p>
                 </div>
             }
         >
@@ -53,15 +55,15 @@ export default function ChatIndex({ conversations }) {
                     <div className="size-20 mx-auto mb-6 rounded-3xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
                         <MessageCircle size={40} className="text-[#FF6600]" />
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No Messages Yet</h3>
-                    <p className="text-gray-400 text-sm">Start a conversation by messaging a freelancer from their service page.</p>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{t('chat.noMessages')}</h3>
+                    <p className="text-gray-400 text-sm">{t('chat.noMessagesDesc')}</p>
                 </div>
             ) : (
                 <div className="space-y-6">
                     {order.length > 0 && (
                         <div className="bg-white dark:bg-[#0c0c0c] rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
                             <div className="px-6 pt-5 pb-2">
-                                <h3 className="text-xs font-black text-[#FF6600] uppercase tracking-widest">Order Chats</h3>
+                                <h3 className="text-xs font-black text-[#FF6600] uppercase tracking-widest">{t('chat.orderChats')}</h3>
                             </div>
                             <div className="divide-y divide-gray-50 dark:divide-white/5 px-2 pb-2">
                                 {order.map(conv => <ConversationItem key={conv.id} conv={conv} />)}
@@ -72,7 +74,7 @@ export default function ChatIndex({ conversations }) {
                     {general.length > 0 && (
                         <div className="bg-white dark:bg-[#0c0c0c] rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
                             <div className="px-6 pt-5 pb-2">
-                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">General</h3>
+                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('chat.general')}</h3>
                             </div>
                             <div className="divide-y divide-gray-50 dark:divide-white/5 px-2 pb-2">
                                 {general.map(conv => <ConversationItem key={conv.id} conv={conv} />)}

@@ -5,21 +5,24 @@ import { Settings, CreditCard, Globe, Bell, ShieldCheck } from 'lucide-react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function SubscriptionSettings() {
+    const { t } = useLanguage();
+
     return (
         <AuthenticatedLayout
             header={
                 <div>
                     <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                        SUBSCRIPTION <span className="text-[#FF6600]">SETTINGS</span>
+                        {t('subscriptions.settingsTitle')} <span className="text-[#FF6600]">{t('subscriptions.settingsHighlight')}</span>
                     </h2>
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        <span>Revenue Center</span>
+                        <span>{t('subscriptions.breadcrumbRevenueCenter')}</span>
                         <span className="size-1 bg-gray-300 rounded-full" />
-                        <span>Subscriptions</span>
+                        <span>{t('subscriptions.breadcrumbSubscriptions')}</span>
                         <span className="size-1 bg-gray-300 rounded-full" />
-                        <span className="text-[#FF6600]">Settings</span>
+                        <span className="text-[#FF6600]">{t('subscriptions.breadcrumbSettings')}</span>
                     </div>
                 </div>
             }
@@ -37,14 +40,14 @@ export default function SubscriptionSettings() {
                             <Globe size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Regional Configuration</h3>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Manage currencies and tax rules for Malaysian market</p>
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">{t('subscriptions.regionalConfig')}</h3>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('subscriptions.regionalConfigDesc')}</p>
                         </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-4">
-                            <InputLabel htmlFor="currency" value="Default Currency" />
+                            <InputLabel htmlFor="currency" value={t('subscriptions.currency')} />
                             <select className="w-full bg-[#fcfcfc] dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl text-sm focus:ring-2 focus:ring-[#FF6600]/20 focus:border-[#FF6600] py-3 px-4 font-bold text-gray-700 dark:text-gray-300">
                                 <option>MYR (Malaysian Ringgit)</option>
                                 <option>SGD (Singapore Dollar)</option>
@@ -53,7 +56,7 @@ export default function SubscriptionSettings() {
                             </select>
                         </div>
                         <div className="space-y-4">
-                            <InputLabel htmlFor="tax" value="Global Tax Rate (%)" />
+                            <InputLabel htmlFor="tax" value={t('subscriptions.taxRate')} />
                             <TextInput id="tax" defaultValue="6" className="w-full" />
                         </div>
                     </div>
@@ -70,8 +73,8 @@ export default function SubscriptionSettings() {
                             <Bell size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">Billing Notifications</h3>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Configure automated WhatsApp & Email reminders</p>
+                            <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">{t('subscriptions.billingNotifications')}</h3>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('subscriptions.billingNotificationsDesc')}</p>
                         </div>
                     </div>
 

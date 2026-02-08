@@ -4,8 +4,10 @@ import UserListTable from '@/Components/UserListTable';
 import UserEditModal from '@/Components/UserEditModal';
 import UserAddModal from '@/Components/UserAddModal';
 import { useState } from 'react';
+import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Admins({ users }) {
+    const { t } = useLanguage();
     const [selectedUser, setSelectedUser] = useState(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -27,7 +29,7 @@ export default function Admins({ users }) {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
-                            ADMIN & <span className="text-[#FF6600]">STAFF</span>
+                            {t('users.adminList')} <span className="text-[#FF6600]">{t('users.listHighlight')}</span>
                         </h2>
                         <div className="flex items-center gap-2 text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
                             <span>Users</span>
