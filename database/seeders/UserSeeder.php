@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -20,14 +19,18 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($freelancers as $data) {
-            $user = User::create([
-                'name' => $data['name'],
-                'phone_number' => $data['phone_number'],
-                'email' => $data['email'],
-                'position' => $data['position'],
-                'password' => Hash::make('password'),
-            ]);
-            $user->assignRole('Freelancer');
+            $user = User::updateOrCreate(
+                ['phone_number' => $data['phone_number']],
+                [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'position' => $data['position'],
+                    'password' => 'password',
+                ]
+            );
+            if (!$user->hasRole('Freelancer')) {
+                $user->assignRole('Freelancer');
+            }
         }
 
         // Seed Customers
@@ -38,13 +41,17 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($customers as $data) {
-            $user = User::create([
-                'name' => $data['name'],
-                'phone_number' => $data['phone_number'],
-                'email' => $data['email'],
-                'password' => Hash::make('password'),
-            ]);
-            $user->assignRole('Customer');
+            $user = User::updateOrCreate(
+                ['phone_number' => $data['phone_number']],
+                [
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => 'password',
+                ]
+            );
+            if (!$user->hasRole('Customer')) {
+                $user->assignRole('Customer');
+            }
         }
     }
 }

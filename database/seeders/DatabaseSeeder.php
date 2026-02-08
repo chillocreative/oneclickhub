@@ -25,32 +25,44 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Admin
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@oneclickhub.com',
-            'phone_number' => '0123456789',
-            'password' => 'admin123',
-        ]);
-        $admin->assignRole('Admin');
+        $admin = User::updateOrCreate(
+            ['phone_number' => '0123456789'],
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@oneclickhub.com',
+                'password' => 'admin123',
+            ]
+        );
+        if (!$admin->hasRole('Admin')) {
+            $admin->assignRole('Admin');
+        }
 
         // Freelancer
-        $freelancer = User::create([
-            'name' => 'Freelancer Demo',
-            'email' => 'freelancer@oneclickhub.com',
-            'phone_number' => '0187654321',
-            'password' => 'freelancer123',
-            'position' => 'Web Developer',
-        ]);
-        $freelancer->assignRole('Freelancer');
+        $freelancer = User::updateOrCreate(
+            ['phone_number' => '0187654321'],
+            [
+                'name' => 'Freelancer Demo',
+                'email' => 'freelancer@oneclickhub.com',
+                'password' => 'freelancer123',
+                'position' => 'Web Developer',
+            ]
+        );
+        if (!$freelancer->hasRole('Freelancer')) {
+            $freelancer->assignRole('Freelancer');
+        }
 
         // Customer
-        $customer = User::create([
-            'name' => 'Customer Demo',
-            'email' => 'customer@oneclickhub.com',
-            'phone_number' => '0198765432',
-            'password' => 'customer123',
-        ]);
-        $customer->assignRole('Customer');
+        $customer = User::updateOrCreate(
+            ['phone_number' => '0198765432'],
+            [
+                'name' => 'Customer Demo',
+                'email' => 'customer@oneclickhub.com',
+                'password' => 'customer123',
+            ]
+        );
+        if (!$customer->hasRole('Customer')) {
+            $customer->assignRole('Customer');
+        }
 
         // --- Demo data for Freelancer ---
 
