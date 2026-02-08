@@ -157,13 +157,13 @@ export default function BrowseServices({ services, categories, filters }) {
             </AnimatePresence>
 
             {/* Hero / Search */}
-            <div className="bg-gradient-to-br from-[#FF6600] to-[#FFB800] py-16">
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">
+            <div className="bg-gradient-to-br from-[#FF6600] to-[#FFB800] py-10 md:py-16">
+                <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
+                    <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-3 md:mb-4">
                         {t('browse.title')}
                     </h1>
-                    <p className="text-white/80 text-lg mb-8">{t('browse.subtitle')}</p>
-                    <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex gap-3">
+                    <p className="text-white/80 text-sm md:text-lg mb-6 md:mb-8">{t('browse.subtitle')}</p>
+                    <form onSubmit={handleSearch} className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
                         <div className="flex-1 relative">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
@@ -171,44 +171,48 @@ export default function BrowseServices({ services, categories, filters }) {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder={t('browse.search')}
-                                className="w-full pl-12 pr-4 py-4 rounded-2xl border-none text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-white/50 outline-none"
+                                className="w-full pl-12 pr-4 py-3.5 md:py-4 rounded-2xl border-none text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-white/50 outline-none"
                             />
                         </div>
-                        <button type="submit" className="px-8 py-4 bg-[#2B313F] text-white rounded-2xl text-sm font-black hover:bg-[#1a1f2a] transition-colors">
-                            {t('browse.searchBtn')}
-                        </button>
-                        {(filters.search || filters.category) && (
-                            <button
-                                type="button"
-                                onClick={() => { setSearch(''); router.get(route('services.browse')); }}
-                                className="px-8 py-4 bg-white/20 text-white border-2 border-white/30 rounded-2xl text-sm font-black hover:bg-white/30 transition-colors"
-                            >
-                                {t('browse.resetBtn')}
+                        <div className="flex gap-2 sm:gap-3">
+                            <button type="submit" className="flex-1 sm:flex-none px-6 md:px-8 py-3.5 md:py-4 bg-[#2B313F] text-white rounded-2xl text-sm font-black hover:bg-[#1a1f2a] transition-colors">
+                                {t('browse.searchBtn')}
                             </button>
-                        )}
+                            {(filters.search || filters.category) && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setSearch(''); router.get(route('services.browse')); }}
+                                    className="flex-1 sm:flex-none px-6 md:px-8 py-3.5 md:py-4 bg-white/20 text-white border-2 border-white/30 rounded-2xl text-sm font-black hover:bg-white/30 transition-colors"
+                                >
+                                    {t('browse.resetBtn')}
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
                 {/* Category Filters */}
-                <div className="flex flex-wrap gap-2 mb-8">
-                    <button
-                        onClick={() => handleCategoryFilter(null)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${!filters.category ? 'bg-[#FF6600] text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
-                    >
-                        {t('browse.all')}
-                    </button>
-                    {categories.map((cat) => (
+                <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0 mb-8 scrollbar-hide">
+                    <div className="flex md:flex-wrap gap-2 min-w-max md:min-w-0">
                         <button
-                            key={cat.id}
-                            onClick={() => handleCategoryFilter(cat.id)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${String(filters.category) === String(cat.id) ? 'bg-[#FF6600] text-white' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
+                            onClick={() => handleCategoryFilter(null)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${!filters.category ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
                         >
-                            {cat.name}
+                            {t('browse.all')}
                         </button>
-                    ))}
+                        {categories.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => handleCategoryFilter(cat.id)}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${String(filters.category) === String(cat.id) ? 'bg-[#FF6600] text-white shadow-md shadow-[#FF6600]/20' : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:border-[#FF6600]'}`}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Services Grid */}
