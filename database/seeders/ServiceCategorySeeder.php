@@ -39,10 +39,10 @@ class ServiceCategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            \App\Models\ServiceCategory::create([
-                'name' => $category,
-                'slug' => \Illuminate\Support\Str::slug($category),
-            ]);
+            \App\Models\ServiceCategory::firstOrCreate(
+                ['slug' => \Illuminate\Support\Str::slug($category)],
+                ['name' => $category],
+            );
         }
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -162,8 +163,10 @@ class ServiceController extends Controller
 
     public function browse(Request $request)
     {
-        $query = Service::active()->with(['user', 'category'])
-            ->whereHas('user', function ($q) {
+        $query = Service::active()->with(['user', 'category']);
+
+        if (Schema::hasTable('ssm_verifications')) {
+            $query->whereHas('user', function ($q) {
                 $q->whereHas('ssmVerification', function ($sq) {
                     $sq->where('status', 'verified')
                         ->orWhere(function ($gq) {
@@ -172,6 +175,7 @@ class ServiceController extends Controller
                         });
                 });
             });
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
