@@ -150,6 +150,8 @@
     "sidebar.messages": "Messages",
     "sidebar.subscription": "Subscription",
     "sidebar.bankingDetails": "Banking Details",
+    "sidebar.bankAccount": "Bank Account",
+    "sidebar.ssmCertificate": "SSM Certificate",
     "sidebar.dashboard": "Dashboard",
     "sidebar.browseServices": "Browse Services",
     "sidebar.myBookings": "My Bookings",

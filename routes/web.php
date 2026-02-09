@@ -69,6 +69,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/banking', [BankingDetailController::class, 'edit'])->name('settings.banking');
     Route::patch('/settings/banking', [BankingDetailController::class, 'update'])->name('settings.banking.update');
 
+    // SSM Certificate
+    Route::get('/settings/ssm-certificate', [BankingDetailController::class, 'ssmCertificate'])->name('settings.ssm.certificate');
+
     // Calendar management
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::post('/calendar', [CalendarController::class, 'update'])->name('calendar.update');

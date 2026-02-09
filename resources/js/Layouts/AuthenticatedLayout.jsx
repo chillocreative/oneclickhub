@@ -259,12 +259,14 @@ function FreelancerSidebar({ collapsed, t }) {
                     collapsed={collapsed}
                 />
                 <SidebarItem
-                    href={route('settings.banking')}
                     icon={Landmark}
                     label={t('sidebar.bankingDetails')}
-                    active={route().current('settings.banking')}
+                    active={route().current('settings.banking') || route().current('settings.ssm.*')}
                     collapsed={collapsed}
-                />
+                >
+                    <SubItem href={route('settings.banking')} label={t('sidebar.bankAccount')} active={route().current('settings.banking')} />
+                    <SubItem href={route('settings.ssm.certificate')} label={t('sidebar.ssmCertificate')} active={route().current('settings.ssm.certificate')} />
+                </SidebarItem>
                 <SidebarItem
                     href={route('profile.edit')}
                     icon={Settings}

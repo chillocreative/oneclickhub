@@ -11,6 +11,12 @@ class BankingDetailController extends Controller
     {
         return Inertia::render('Settings/BankingDetails', [
             'bankingDetail' => auth()->user()->bankingDetail,
+        ]);
+    }
+
+    public function ssmCertificate()
+    {
+        return Inertia::render('Settings/SsmCertificate', [
             'ssmVerification' => auth()->user()->ssmVerification ? array_merge(
                 auth()->user()->ssmVerification->toArray(),
                 ['grace_days_remaining' => auth()->user()->ssmVerification->gracePeriodDaysRemaining()]
