@@ -24,6 +24,10 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
 
     const ssmForm = useForm({ document: null });
 
+    // Check if SSM certificate is expired
+    const isExpired = ssmVerification?.expiry_date && new Date(ssmVerification.expiry_date) < new Date();
+    const displayStatus = isExpired ? 'non-verified' : ssmVerification?.status;
+
     const submit = (e) => {
         e.preventDefault();
         patch(route('settings.banking.update'));
@@ -117,7 +121,7 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
                     </div>
 
                     {/* Expired Certificate Warning */}
-                    {ssmVerification?.status === 'expired' && (
+                    {isExpired && (
                         <div className="mb-6 p-4 rounded-2xl flex items-center gap-3 bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/50">
                             <FileCheck size={18} className="text-red-600 dark:text-red-400" />
                             <p className="text-sm font-bold text-red-800 dark:text-red-300">
@@ -127,7 +131,7 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
                     )}
 
                     {/* Grace Period & Services Hidden Warning */}
-                    {ssmVerification?.grace_period_ends_at && ssmVerification.status !== 'verified' && ssmVerification.status !== 'expired' && (
+                    {!isExpired && ssmVerification?.grace_period_ends_at && ssmVerification.status !== 'verified' && (
                         <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 ${ssmVerification.services_hidden_at ? 'bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/50' : 'bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800/50'}`}>
                             <FileCheck size={18} className={ssmVerification.services_hidden_at ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'} />
                             <p className={`text-sm font-bold ${ssmVerification.services_hidden_at ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>
@@ -153,8 +157,8 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
 
                                 <span className="text-gray-400 font-bold">Status:</span>
                                 <span>
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black ${ssmStatusColors[ssmVerification.status]}`}>
-                                        {ssmVerification.status}
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${isExpired ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' : ssmStatusColors[ssmVerification.status]}`}>
+                                        {displayStatus}
                                     </span>
                                 </span>
                             </div>
