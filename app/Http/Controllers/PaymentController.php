@@ -200,7 +200,7 @@ class PaymentController extends Controller
                     'user_id' => $userId,
                     'subscription_plan_id' => $planId,
                     'transaction_id' => $transactionId,
-                    'amount' => ($callbackData['amount'] ?? 0) / 100, // Bayarcash is in cents
+                    'amount' => $callbackData['amount'] ?? 0, // Bayarcash v3 returns amount in MYR
                     'currency' => 'MYR',
                     'gateway' => 'bayarcash',
                     'status' => $transactionStatus,
@@ -215,7 +215,7 @@ class PaymentController extends Controller
                     $user->subscribeToPlan($plan, [
                         'payment_gateway' => 'bayarcash',
                         'transaction_id' => $transactionId,
-                        'amount_paid' => ($callbackData['amount'] ?? 0) / 100,
+                        'amount_paid' => $callbackData['amount'] ?? 0,
                     ]);
                 }
             }

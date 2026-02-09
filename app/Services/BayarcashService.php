@@ -352,14 +352,15 @@ class BayarcashService
     }
 
     /**
-     * Format amount to cents (Bayarcash expects amount in cents)
+     * Format amount for Bayarcash v3 API
+     * Note: Bayarcash v3 expects amount in MYR (not cents)
      *
      * @param float|int $amount Amount in ringgit
-     * @return int Amount in cents
+     * @return float Amount in MYR
      */
-    protected function formatAmount($amount): int
+    protected function formatAmount($amount): float
     {
-        return (int) round($amount * 100);
+        return (float) round($amount, 2);
     }
 
     /**
