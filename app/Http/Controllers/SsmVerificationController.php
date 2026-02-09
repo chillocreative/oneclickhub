@@ -11,6 +11,23 @@ use Inertia\Inertia;
 
 class SsmVerificationController extends Controller
 {
+    public function viewDocument()
+    {
+        $verification = SsmVerification::where('user_id', auth()->id())->first();
+
+        if (!$verification || !$verification->document_path) {
+            abort(404, 'SSM document not found.');
+        }
+
+        $filePath = Storage::disk('public')->path($verification->document_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found.');
+        }
+
+        return response()->file($filePath);
+    }
+
     public function upload(Request $request)
     {
         $request->validate([

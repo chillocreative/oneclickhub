@@ -165,12 +165,12 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
 
                             {ssmVerification.document_path && (
                                 <a
-                                    href={`/storage/${ssmVerification.document_path}`}
+                                    href={route('settings.ssm.view')}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 mt-2 px-4 py-2 text-xs font-black text-[#FF6600] bg-orange-50 dark:bg-orange-500/10 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all"
                                 >
-                                    <FileCheck size={14} /> View SSM
+                                    <FileCheck size={14} /> {t('settings.viewSsm')}
                                 </a>
                             )}
                         </div>

@@ -94,6 +94,7 @@ Route::middleware('auth')->group(function () {
 
     // SSM verification
     Route::post('/settings/ssm-upload', [SsmVerificationController::class, 'upload'])->name('settings.ssm.upload');
+    Route::get('/settings/ssm-document', [SsmVerificationController::class, 'viewDocument'])->name('settings.ssm.view');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
