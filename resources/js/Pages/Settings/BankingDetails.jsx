@@ -116,13 +116,24 @@ export default function BankingDetails({ bankingDetail, ssmVerification }) {
                         </div>
                     </div>
 
-                    {ssmVerification?.grace_period_ends_at && ssmVerification.status !== 'verified' && (
-                        <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 ${ssmVerification.services_hidden_at ? 'bg-red-50 border border-red-200' : 'bg-yellow-50 border border-yellow-200'}`}>
-                            <FileCheck size={18} className={ssmVerification.services_hidden_at ? 'text-red-600' : 'text-yellow-600'} />
-                            <p className={`text-sm font-bold ${ssmVerification.services_hidden_at ? 'text-red-800' : 'text-yellow-800'}`}>
+                    {/* Expired Certificate Warning */}
+                    {ssmVerification?.status === 'expired' && (
+                        <div className="mb-6 p-4 rounded-2xl flex items-center gap-3 bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/50">
+                            <FileCheck size={18} className="text-red-600 dark:text-red-400" />
+                            <p className="text-sm font-bold text-red-800 dark:text-red-300">
+                                {t('settings.ssmExpiredWarning')}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Grace Period & Services Hidden Warning */}
+                    {ssmVerification?.grace_period_ends_at && ssmVerification.status !== 'verified' && ssmVerification.status !== 'expired' && (
+                        <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 ${ssmVerification.services_hidden_at ? 'bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/50' : 'bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800/50'}`}>
+                            <FileCheck size={18} className={ssmVerification.services_hidden_at ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'} />
+                            <p className={`text-sm font-bold ${ssmVerification.services_hidden_at ? 'text-red-800 dark:text-red-300' : 'text-yellow-800 dark:text-yellow-300'}`}>
                                 {ssmVerification.services_hidden_at
-                                    ? 'Your services are hidden. Upload a valid SSM certificate to reactivate.'
-                                    : `Grace period: ${ssmVerification.grace_days_remaining} day(s) remaining to upload SSM.`
+                                    ? t('settings.servicesHidden')
+                                    : `${t('settings.gracePeriodPrefix')} ${ssmVerification.grace_days_remaining} ${t('settings.gracePeriodSuffix')}`
                                 }
                             </p>
                         </div>
