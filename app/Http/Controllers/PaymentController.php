@@ -126,8 +126,17 @@ class PaymentController extends Controller
 
         Log::error('Bayarcash payment initiation failed', $result);
 
+        $errorMessage = 'Unable to connect to payment gateway. Please try again.';
+
+        // Add more specific error message if available
+        if (!empty($result['details']['message'])) {
+            $errorMessage .= ' Error: ' . $result['details']['message'];
+        } elseif (!empty($result['error'])) {
+            $errorMessage .= ' (' . $result['error'] . ')';
+        }
+
         return redirect()->route('subscribe.checkout', $plan->slug)
-            ->with('error', 'Unable to connect to payment gateway. Please try again.');
+            ->with('error', $errorMessage);
     }
 
     /**

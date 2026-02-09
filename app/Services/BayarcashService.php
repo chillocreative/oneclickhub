@@ -121,8 +121,19 @@ class BayarcashService
                 $payload['payer_bank_code'] = $data['payer_bank_code'];
             }
 
+            Log::info('Bayarcash payment intent request', [
+                'url' => "{$this->baseUrl}/payment-intents",
+                'payload' => $payload,
+                'has_token' => !empty($this->getToken())
+            ]);
+
             $response = Http::withToken($this->getToken())
                 ->post("{$this->baseUrl}/payment-intents", $payload);
+
+            Log::info('Bayarcash payment intent response', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
 
             if ($response->successful()) {
                 $responseData = $response->json();
@@ -136,13 +147,15 @@ class BayarcashService
 
             Log::error('Bayarcash payment intent failed', [
                 'response' => $response->body(),
-                'status' => $response->status()
+                'status' => $response->status(),
+                'payload_sent' => $payload
             ]);
 
             return [
                 'success' => false,
                 'error' => 'Failed to create payment intent',
-                'details' => $response->json()
+                'details' => $response->json(),
+                'status_code' => $response->status()
             ];
         } catch (\Exception $e) {
             Log::error('Bayarcash payment intent exception', [
@@ -353,14 +366,14 @@ class BayarcashService
 
     /**
      * Format amount for Bayarcash v3 API
-     * Note: Bayarcash v3 expects amount in MYR (not cents)
+     * Note: Bayarcash v3 expects amount as decimal number (e.g., 199.00)
      *
      * @param float|int $amount Amount in ringgit
-     * @return float Amount in MYR
+     * @return string Amount in MYR as string with 2 decimal places
      */
-    protected function formatAmount($amount): float
+    protected function formatAmount($amount): string
     {
-        return (float) round($amount, 2);
+        return number_format($amount, 2, '.', '');
     }
 
     /**
