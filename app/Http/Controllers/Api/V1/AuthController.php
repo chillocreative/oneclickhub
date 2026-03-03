@@ -50,7 +50,12 @@ class AuthController extends Controller
         $token = $user->createToken('mobile')->plainTextToken;
 
         return $this->success([
-            'user' => new UserResource($user->load('roles')),
+            'user' => new UserResource($user->load([
+                'roles',
+                'activeSubscription.plan',
+                'ssmVerification',
+                'bankingDetail',
+            ])),
             'token' => $token,
         ], 'Registration successful', 201);
     }
@@ -87,7 +92,12 @@ class AuthController extends Controller
         $token = $user->createToken('mobile')->plainTextToken;
 
         return $this->success([
-            'user' => new UserResource($user->load('roles')),
+            'user' => new UserResource($user->load([
+                'roles',
+                'activeSubscription.plan',
+                'ssmVerification',
+                'bankingDetail',
+            ])),
             'token' => $token,
         ], 'Login successful');
     }

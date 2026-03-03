@@ -20,6 +20,8 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      // Refresh user data to get latest subscription status (e.g. admin-approved)
+      ref.read(authProvider.notifier).fetchUser();
       ref.read(plansProvider.notifier).loadPlans();
     });
   }
@@ -224,7 +226,11 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
           ? const ShimmerLoading(type: ShimmerType.list)
           : RefreshIndicator(
               color: AppColors.primary,
-              onRefresh: () => ref.read(plansProvider.notifier).loadPlans(),
+              onRefresh: () async {
+                // Refresh both user data and plans
+                await ref.read(authProvider.notifier).fetchUser();
+                await ref.read(plansProvider.notifier).loadPlans();
+              },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
@@ -586,10 +592,7 @@ class _PaymentWebViewScreenState extends State<_PaymentWebViewScreen> {
         path.startsWith('/payment/failed') ||
         path.startsWith('/payment/pending')) {
       _hasPopped = true;
-      // Determine result based on path
-      final isSuccess = path.contains('success');
       final isFailed = path.contains('failed');
-      // Pop with result: true = success/pending (refresh data), false = failed
       if (mounted) {
         Navigator.pop(context, !isFailed);
       }
