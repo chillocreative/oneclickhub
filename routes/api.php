@@ -16,3 +16,5 @@ Route::get('/categories', function () {
 Route::post('/payment/bayarcash/callback', [PaymentController::class, 'bayarcashCallback'])
     ->name('api.payment.bayarcash.callback');
 
+// API V1 Routes
+Route::prefix('v1')->group(base_path('routes/api/v1.php'));

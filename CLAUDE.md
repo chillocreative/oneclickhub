@@ -1,284 +1,309 @@
 # CLAUDE.md
+# Claude Self-Update Protocol — ENTERPRISE DOCTRINE
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+> Classification: Internal AI Governance
+> Authority Level: CRITICAL
+> Applies To: Claude (All Execution Contexts)
+> Status: Living Document
 
-## Project Overview
+---
 
-OneClickHub is a multi-tenant service marketplace platform connecting service providers (freelancers) with customers. Built with Laravel 12 and React (via Inertia.js), it features subscription management, payment gateway integration, and role-based access control.
+# 1. PURPOSE
 
-**Tech Stack:**
-- Backend: Laravel 12 (PHP 8.3)
-- Frontend: React.js via Inertia.js
-- Database: MySQL
-- Auth: Laravel Sanctum + Spatie Permission (phone-based login)
-- Payment Gateways: Bayarcash, SenangPay
-- Styling: Tailwind CSS with custom design system
-- State Management: Inertia.js (server-driven)
-- Animations: Framer Motion
-- Icons: Lucide React
+This document defines the mandatory self-update protocol for Claude.
 
-## Development Commands
+Claude must continuously evolve its operational knowledge to prevent:
 
-### Running the Development Environment
-```bash
-# Start all dev services (Laravel server, queue, logs, Vite) concurrently
-composer dev
+- Repeated mistakes
+- Architectural drift
+- Preference violations
+- Context regression
+- Knowledge inconsistency
 
-# Alternative: run services separately
-php artisan serve          # Laravel development server
-php artisan queue:listen   # Queue worker
-php artisan pail           # Real-time logs
-npm run dev                # Vite dev server
-```
+This is not documentation.
+This is operational memory discipline.
 
-### Testing
-```bash
-# Run all tests
-composer test
-# or
-php artisan test
+Principle:
+SYSTEM > MEMORY
 
-# Run specific test suite
-php artisan test --testsuite=Feature
-php artisan test --testsuite=Unit
+If it is not written here, it does not exist.
 
-# Run specific test file
-php artisan test tests/Feature/ExampleTest.php
+---
 
-# Run with coverage
-php artisan test --coverage
-```
+# 2. CORE DOCTRINE
 
-### Code Quality
-```bash
-# Format code with Laravel Pint
-./vendor/bin/pint
+Claude must update this file whenever durable knowledge is discovered.
 
-# Fix specific file/directory
-./vendor/bin/pint app/Http/Controllers
-```
+Failure to update constitutes:
+- Governance breach
+- Pattern instability
+- Future error risk
 
-### Database
-```bash
-# Run migrations
-php artisan migrate
+Claude is not reactive.
+Claude is self-correcting.
 
-# Rollback migrations
-php artisan migrate:rollback
+---
 
-# Fresh migration with seed
-php artisan migrate:fresh --seed
+# 3. UPDATE TRIGGERS
 
-# Create new migration
-php artisan make:migration create_table_name
-```
+## 3.1 Explicit Triggers (User-Initiated)
 
-### Build
-```bash
-# Production build
-npm run build
+Claude MUST update when:
 
-# Watch mode for development
-npm run dev
-```
+1. User corrects a mistake
+   Example: "Do not use MySQL. We use PostgreSQL."
 
-## Architecture
+2. User expresses a durable preference
+   Example: "Use service layer, not fat controllers."
 
-### Authentication & Authorization
-- **Primary login identifier**: Phone number (not email)
-- **Three user roles**: Admin, Freelancer, Customer
-- Uses Spatie Permission package for RBAC
-- Laravel Sanctum for API authentication (future mobile app)
-- Middleware: `role:Admin` for admin-only routes
+3. A better pattern is discovered during implementation
 
-### User Roles & Access
-- **Admin**: Full system access - user management, subscription plans, payment gateway settings, revenue tracking
-- **Freelancer**: Service providers who subscribe to plans to list services
-- **Customer**: General users who book services
+4. A gotcha or edge case is identified that could cause future errors
 
-### Subscription System
-Freelancers subscribe to plans to access platform features:
-- **Models**: `SubscriptionPlan`, `Subscription`, `Transaction`
-- **Payment flow**: User selects plan → Gateway (Bayarcash/SenangPay) → Callback → Subscription activated
-- Plans have: name, price, duration (days), features (JSON), status (active/inactive)
-- Subscriptions track: user, plan, dates (start/end), status, auto-renewal
+---
 
-### Payment Gateway Integration
-Two payment services are integrated via service layer pattern:
-- **BayarcashService** (`app/Services/BayarcashService.php`)
-- **SenangpayService** (`app/Services/SenangpayService.php`)
+## 3.2 Implicit Triggers (Claude-Initiated)
 
-Each service handles:
-- Payment link generation
-- Signature/hash validation
-- Return/callback URL processing
-- Transaction status updates
+Claude MUST update when:
 
-**Payment callback routes** (public, no auth):
-- Bayarcash: `/payment/bayarcash/return`
-- SenangPay: `/payment/senangpay/callback` (supports GET/POST)
-- Status pages: `/payment/success`, `/payment/failed`, `/payment/pending`
+1. Same mistake occurs twice
+2. An assumption is invalidated
+3. Architecture direction changes
+4. Security rule is clarified
+5. Tooling or environment changes
+6. Pattern conflict is detected
 
-### Data Models
-Core models in `app/Models/`:
-- **User**: Extended with `position` field, HasRoles trait, subscription relationship
-- **Subscription**: Belongs to User and SubscriptionPlan, tracks status/dates
-- **SubscriptionPlan**: Defines available plans with features (JSON)
-- **Transaction**: Records all payment transactions with gateway details
-- **PaymentGateway**: Stores gateway credentials (Bayarcash, SenangPay)
-- **ServiceCategory**: Service types (e.g., Catering, Event Hall)
+Claude does NOT wait for user correction.
 
-### Frontend Structure (Inertia.js)
-```
-resources/js/
-├── Pages/              # Full page components (Inertia.js)
-│   ├── Auth/          # Login, Register
-│   ├── Dashboard.jsx  # Main dashboard
-│   ├── Welcome.jsx    # Landing page with subscription plans
-│   ├── Users/         # User management (Admin)
-│   ├── Subscriptions/ # Revenue center (Admin)
-│   ├── Payment/       # Payment status pages
-│   └── Profile/       # User profile
-├── Components/        # Reusable React components
-├── Layouts/           # Page layouts (e.g., AuthenticatedLayout)
-└── app.jsx           # Inertia app setup
-```
+---
 
-**Inertia.js patterns:**
-- Controllers return: `Inertia::render('PageName', ['data' => $data])`
-- Props passed from backend are available directly in React components
-- Forms use `useForm()` hook from `@inertiajs/react`
-- Routes accessed via `route()` helper (Ziggy)
+# 4. SEVERITY CLASSIFICATION
 
-### Backend Structure
-```
-app/
-├── Http/Controllers/
-│   ├── Auth/                    # Authentication controllers
-│   ├── UserController.php       # Admin user management
-│   ├── SubscriptionController.php  # Subscription/plan management
-│   ├── PaymentController.php    # Payment gateway callbacks
-│   └── ProfileController.php    # User profile
-├── Models/                      # Eloquent models
-├── Services/                    # Payment gateway services
-└── Providers/                   # Service providers
-```
+Every update must be classified.
 
-### Routes
-- **Web routes** (`routes/web.php`): Inertia.js pages, auth required except landing/payment callbacks
-- **API routes** (`routes/api.php`): REST API for future mobile app (Sanctum auth)
-- **Admin routes**: Wrapped in `middleware('role:Admin')` group
+🔴 CRITICAL
+- Architecture
+- Security
+- Data integrity
+- Core system design
 
-## Important Conventions
+🟡 STRUCTURAL
+- Patterns
+- Framework conventions
+- Process rules
 
-### Phone Number Authentication
-- Users login with phone number (not email)
-- Email is optional (nullable)
-- When working on auth features, always consider phone as primary identifier
+🔵 PREFERENCE
+- Styling
+- Naming
+- Formatting
+- Non-breaking decisions
 
-### Service Layer Pattern
-- Payment logic lives in `app/Services/` not controllers
-- Each gateway has dedicated service class with consistent interface
-- Controllers call service methods and handle responses
+Severity determines update priority and documentation placement.
 
-### Subscription Status Flow
-```
-pending → active (on successful payment)
-active → cancelled (manual cancellation)
-active → expired (end_date passed)
-```
+---
 
-### Database Schema Checks
-Before querying certain tables (like `subscriptions`), check if they exist:
-```php
-Schema::hasTable('subscriptions')
-```
-This prevents errors during fresh installations.
+# 5. MANDATORY UPDATE PROCEDURE
 
-### Frontend State Management
-- Use Inertia.js props for server-side data (no Redux/Context needed)
-- Forms: `useForm()` from `@inertiajs/react`
-- Page visits: `router.visit()` or `router.get()`
-- Flash messages passed via `$page.props.flash`
+When a trigger occurs, Claude MUST:
 
-### Styling Conventions
-- Tailwind CSS utility classes (no custom CSS unless necessary)
-- Design system color palette defined in `tailwind.config.js`
-- Responsive design: mobile-first approach
-- Animations via Framer Motion for complex interactions
+1. Apply fix to the current task immediately
+2. Update relevant section in this file
+3. If rule-based → update DO / DON'T section
+4. If architectural → update Architecture section
+5. If new edge case → document under Gotchas
+6. Assign severity level
+7. Bump version number
+8. Append to Changelog
 
-## Common Patterns
+No step may be skipped.
 
-### Creating Admin-Only Features
-```php
-// In routes/web.php
-Route::middleware(['auth', 'role:Admin'])->group(function () {
-    Route::get('/admin-feature', [Controller::class, 'method']);
-});
-```
+---
 
-### Payment Gateway Flow
-1. User initiates payment → Controller validates → Service creates payment link
-2. User completes payment on gateway → Gateway redirects to callback URL
-3. Callback controller → Service validates signature → Update transaction/subscription
+# 6. DOCUMENTATION STRUCTURE
 
-### Working with Subscriptions
-```php
-// Check if user has active subscription
-$user->activeSubscription() // Returns Subscription model or null
+All durable knowledge must belong to one of these sections:
 
-// Assign subscription
-$user->subscriptions()->create([...]);
+- Architecture
+- Standards
+- DO / DON'T
+- Preferences
+- Security
+- Gotchas
+- Environment
+- Tooling
 
-// Cancel subscription
-$subscription->update(['status' => 'cancelled', 'end_date' => now()]);
-```
+No floating rules allowed.
 
-### Inertia.js Page Creation
-```php
-// Controller
-return Inertia::render('PageName', [
-    'data' => $data,
-    'canEdit' => auth()->user()->can('edit-something'),
-]);
-```
+---
 
-```jsx
-// resources/js/Pages/PageName.jsx
-export default function PageName({ data, canEdit }) {
-    return <div>...</div>;
-}
-```
+# 7. RULE FORMATS
 
-## Environment Setup
+## 7.1 Rule Format
 
-### Required .env Variables
-```
-# Database
-DB_CONNECTION=mysql
-DB_DATABASE=oneclickhub
+### Rule: [Rule Name]
+Severity: [🔴/🟡/🔵]
 
-# Payment Gateways
-BAYARCASH_MERCHANT_CODE=
-BAYARCASH_VERIFICATION_KEY=
-SENANGPAY_MERCHANT_ID=
-SENANGPAY_SECRET_KEY=
-```
+Clear, direct instruction.
 
-### Initial Setup
-```bash
-composer install
-npm install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-npm run build
-```
+Example:
 
-## Testing Considerations
+### Rule: Database Engine
+Severity: 🔴 CRITICAL
 
-- Tests use SQLite in-memory database (see `phpunit.xml`)
-- Feature tests should cover payment gateway callbacks with signature validation
-- Mock external payment gateway API calls in tests
-- Test role-based access control for admin routes
-- Test subscription status transitions
+We use PostgreSQL.
+Never default to MySQL.
+
+---
+
+## 7.2 Preference Format
+
+### Preference: [Preference Name]
+Severity: 🔵 PREFERENCE
+
+Clear stylistic or structural direction.
+
+Example:
+
+### Preference: Controller Pattern
+Severity: 🔵 PREFERENCE
+
+Use service layer instead of fat controllers.
+
+---
+
+## 7.3 Architecture Format
+
+### Architecture: [Component Name]
+Severity: 🔴 CRITICAL
+
+Define structural or system-wide decisions.
+
+Example:
+
+### Architecture: UUID Strategy
+Severity: 🔴 CRITICAL
+
+All models use UUID as primary key.
+UUID generation handled at application layer.
+
+---
+
+## 7.4 Gotcha Format
+
+Use blockquote format:
+
+> **Gotcha:** [Short description]
+> Impact: [Why this matters]
+> Prevention: [How to avoid]
+> Severity: [Level]
+
+Example:
+
+> **Gotcha:** PostgreSQL `uuid-ossp` extension must be enabled before using `uuid_generate_v4()`.
+> Impact: Migration failure.
+> Prevention: Prefer application-level UUID generation.
+> Severity: 🟡 STRUCTURAL
+
+Gotchas must be precise and prevention-oriented.
+
+---
+
+# 8. DO / DON'T
+
+## DO
+
+- Record durable knowledge
+- Record architectural decisions
+- Record recurring mistakes
+- Record security constraints
+- Record edge cases with future impact
+- Record environment-specific behavior
+
+## DON'T
+
+- Record one-off task decisions
+- Record temporary experiments
+- Record debugging logs
+- Record emotional reactions
+- Record obvious framework defaults
+- Record ephemeral user moods
+
+Rule:
+When in doubt — record it.
+Slight redundancy is cheaper than repeated failure.
+
+---
+
+# 9. WHAT NOT TO RECORD
+
+Claude must NOT record:
+
+- Task-specific hacks
+- Temporary workarounds
+- Framework documentation facts
+- Non-repeatable conversation details
+- Experimental branches not adopted
+
+This document is for durable operational knowledge only.
+
+---
+
+# 10. GOVERNANCE HIERARCHY
+
+If conflict occurs:
+
+1. Explicit user instruction overrides this file
+2. After override → this file MUST be updated
+3. This file overrides conversational memory
+4. This file is source of truth for repeat behavior
+
+---
+
+# 11. FAILURE MODES
+
+Failure to update leads to:
+
+- Pattern fragmentation
+- Architectural inconsistency
+- Preference violations
+- Trust degradation
+- Accumulated technical debt
+
+Claude must self-correct immediately.
+
+---
+
+# 12. VERSIONING
+
+Format: MAJOR.MINOR.PATCH
+
+MAJOR → Structural doctrine change
+MINOR → New rule added
+PATCH → Clarification or wording fix
+
+Example:
+
+v1.0.0 – Initial doctrine
+v1.1.0 – Added severity system
+v1.2.0 – Added implicit triggers
+
+Every durable change requires version bump.
+
+---
+
+# 13. CHANGELOG
+
+## v1.0.0
+- Initial Enterprise Doctrine established
+
+---
+
+# 14. CURRENT VERSION
+
+Version: v1.0.0
+Status: ACTIVE
+Last Updated: [Initial Creation]
+
+---
+
+END OF FILE
