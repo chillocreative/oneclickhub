@@ -317,8 +317,20 @@ function SubscriptionModal({ show, onClose, user, plans }) {
 
     if (!show || !user) return null;
 
+    const isCurrentPlanSelected = user.subscription?.plan?.id == selectedPlanId;
+    const hasExistingSubscription = !!user.subscription;
+    const isChangingPlan = hasExistingSubscription && selectedPlanId && !isCurrentPlanSelected;
+
     const handleAssign = () => {
-        if (!selectedPlanId) return;
+        if (!selectedPlanId || isCurrentPlanSelected) return;
+
+        const selectedPlan = plans.find(p => p.id == selectedPlanId);
+        const confirmMsg = isChangingPlan
+            ? `Change ${user.name}'s subscription from "${user.subscription.plan?.name}" to "${selectedPlan?.name}"? This will take effect immediately.`
+            : `Assign "${selectedPlan?.name}" plan to ${user.name}? This will be activated immediately.`;
+
+        if (!confirm(confirmMsg)) return;
+
         setProcessing(true);
         router.post(route('users.subscription.assign', user.id), {
             plan_id: selectedPlanId
@@ -332,7 +344,7 @@ function SubscriptionModal({ show, onClose, user, plans }) {
     };
 
     const handleCancel = () => {
-        if (!confirm('Are you sure you want to cancel this subscription?')) return;
+        if (!confirm('Are you sure you want to cancel this subscription? The freelancer will retain access until the expiry date.')) return;
         setProcessing(true);
         router.delete(route('users.subscription.cancel', user.id), {
             onSuccess: onClose,
@@ -343,6 +355,12 @@ function SubscriptionModal({ show, onClose, user, plans }) {
     const getPlanIcon = (index) => {
         const icons = [Zap, Crown, Shield];
         return icons[index % icons.length];
+    };
+
+    const getButtonLabel = () => {
+        if (processing) return 'Processing...';
+        if (isChangingPlan) return 'Change & Approve Now';
+        return 'Assign & Approve Now';
     };
 
     return (
@@ -360,16 +378,16 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative bg-white dark:bg-[#111] rounded-[2.5rem] shadow-2xl max-w-lg w-full overflow-hidden"
+                    className="relative bg-white dark:bg-[#111] rounded-[2.5rem] shadow-2xl max-w-lg w-full overflow-hidden max-h-[90vh] flex flex-col"
                 >
-                    <div className="p-8 border-b border-gray-100 dark:border-white/5">
+                    <div className="p-8 border-b border-gray-100 dark:border-white/5 shrink-0">
                         <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">
                             {t('users.manageSubscription')} <span className="text-[#FF6600]">{t('users.subscription')}</span>
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">for {user.name}</p>
                     </div>
 
-                    <div className="p-8 space-y-6">
+                    <div className="p-8 space-y-6 overflow-y-auto">
                         {/* Current Subscription */}
                         {user.subscription ? (
                             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-500/10 dark:to-emerald-500/5 rounded-2xl p-6">
@@ -402,10 +420,10 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                             </div>
                         )}
 
-                        {/* Assign New Plan */}
+                        {/* Assign / Change Plan */}
                         <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                                {user.subscription ? t('users.changeAssignPlan') : t('users.assignPlan')}
+                                {hasExistingSubscription ? t('users.changeAssignPlan') : t('users.assignPlan')}
                             </p>
                             <div className="space-y-3">
                                 {plans.map((plan, i) => {
@@ -429,7 +447,6 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                                                 checked={selectedPlanId == plan.id}
                                                 onChange={(e) => setSelectedPlanId(e.target.value)}
                                                 className="hidden"
-                                                disabled={isCurrentPlan}
                                             />
                                             <div className="size-10 rounded-xl bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-[#FF6600]">
                                                 <Icon size={20} />
@@ -447,6 +464,16 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                                     );
                                 })}
                             </div>
+
+                            {/* Change plan notice */}
+                            {isChangingPlan && (
+                                <div className="mt-4 flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 rounded-xl">
+                                    <Zap size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                                        This will immediately replace the current plan. A new 1-year subscription period starts from today.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex gap-4 pt-4">
@@ -458,10 +485,10 @@ function SubscriptionModal({ show, onClose, user, plans }) {
                             </button>
                             <button
                                 onClick={handleAssign}
-                                disabled={processing || !selectedPlanId}
+                                disabled={processing || !selectedPlanId || isCurrentPlanSelected}
                                 className="flex-1 px-6 py-4 bg-[#FF6600] text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#FF6600]/30 hover:bg-[#e65c00] transition-all disabled:opacity-50"
                             >
-                                {processing ? 'Processing...' : t('users.assignPlan')}
+                                {getButtonLabel()}
                             </button>
                         </div>
                     </div>

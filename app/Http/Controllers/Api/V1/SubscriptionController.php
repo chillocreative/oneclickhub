@@ -98,9 +98,16 @@ class SubscriptionController extends Controller
             ], 'Payment initiated');
         }
 
-        Log::error('Bayarcash payment initiation failed', $result);
+        Log::error('Bayarcash payment initiation failed (mobile)', $result);
 
-        return $this->error('Unable to connect to payment gateway. Please try again.', 502);
+        $errorMessage = 'Unable to connect to payment gateway. Please try again.';
+        if (!empty($result['details']['message'])) {
+            $errorMessage .= ' Error: ' . $result['details']['message'];
+        } elseif (!empty($result['error'])) {
+            $errorMessage .= ' (' . $result['error'] . ')';
+        }
+
+        return $this->error($errorMessage, 502);
     }
 
     protected function payWithSenangpay($user, SubscriptionPlan $plan, string $orderNumber): JsonResponse

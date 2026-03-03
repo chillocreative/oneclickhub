@@ -9,6 +9,7 @@ use App\Services\BayarcashService;
 use App\Services\SenangpayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -202,32 +203,70 @@ class PaymentController extends Controller
         $userId = $parts[1] ?? null;
         $planId = $parts[2] ?? null;
 
-        if ($userId) {
-            \App\Models\Transaction::updateOrCreate(
-                ['order_number' => $orderNumber],
-                [
-                    'user_id' => $userId,
-                    'subscription_plan_id' => $planId,
-                    'transaction_id' => $transactionId,
-                    'amount' => $callbackData['amount'] ?? 0, // Bayarcash v3 returns amount in MYR
-                    'currency' => 'MYR',
-                    'gateway' => 'bayarcash',
-                    'status' => $transactionStatus,
-                    'payload' => $callbackData,
-                ]
-            );
+        if (!$userId || !$planId) {
+            Log::error('Bayarcash callback: Could not parse user/plan from order number', [
+                'order_number' => $orderNumber,
+            ]);
+            return response()->json(['status' => 'received'], 200);
+        }
 
-            if ($transactionStatus === 'success') {
-                $user = \App\Models\User::find($userId);
-                $plan = \App\Models\SubscriptionPlan::find($planId);
-                if ($user && $plan) {
-                    $user->subscribeToPlan($plan, [
-                        'payment_gateway' => 'bayarcash',
+        try {
+            DB::transaction(function () use ($orderNumber, $userId, $planId, $transactionId, $transactionStatus, $callbackData) {
+                $transaction = \App\Models\Transaction::updateOrCreate(
+                    ['order_number' => $orderNumber],
+                    [
+                        'user_id' => $userId,
+                        'subscription_plan_id' => $planId,
                         'transaction_id' => $transactionId,
-                        'amount_paid' => $callbackData['amount'] ?? 0,
-                    ]);
+                        'amount' => $callbackData['amount'] ?? 0,
+                        'currency' => 'MYR',
+                        'gateway' => 'bayarcash',
+                        'status' => $transactionStatus,
+                        'payload' => $callbackData,
+                    ]
+                );
+
+                if ($transactionStatus === 'success') {
+                    $user = \App\Models\User::find($userId);
+                    $plan = \App\Models\SubscriptionPlan::find($planId);
+
+                    if (!$user || !$plan) {
+                        Log::error('Bayarcash callback: User or plan not found for successful payment', [
+                            'user_id' => $userId,
+                            'plan_id' => $planId,
+                            'order_number' => $orderNumber,
+                        ]);
+                        return;
+                    }
+
+                    // Prevent duplicate subscription creation
+                    $existingSubscription = $user->subscriptions()
+                        ->where('transaction_id', $transactionId)
+                        ->first();
+
+                    if (!$existingSubscription) {
+                        $user->subscribeToPlan($plan, [
+                            'payment_gateway' => 'bayarcash',
+                            'transaction_id' => $transactionId,
+                            'amount_paid' => $callbackData['amount'] ?? 0,
+                        ]);
+                        Log::info('Bayarcash: Subscription created', [
+                            'user_id' => $userId,
+                            'plan_id' => $planId,
+                            'transaction_id' => $transactionId,
+                        ]);
+                    } else {
+                        Log::info('Bayarcash: Subscription already exists for transaction', [
+                            'transaction_id' => $transactionId,
+                        ]);
+                    }
                 }
-            }
+            });
+        } catch (\Exception $e) {
+            Log::error('Bayarcash callback: Processing failed', [
+                'order_number' => $orderNumber,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         // Return 200 OK to acknowledge receipt
@@ -306,37 +345,59 @@ class PaymentController extends Controller
         $userId = $parts[1] ?? null;
         $planId = $parts[2] ?? null;
 
-        if ($userId) {
-            \App\Models\Transaction::updateOrCreate(
-                ['order_number' => $orderId],
-                [
-                    'user_id' => $userId,
-                    'subscription_plan_id' => $planId,
-                    'transaction_id' => $transactionId,
-                    'amount' => $callbackData['amount'] ?? 0,
-                    'currency' => 'MYR',
-                    'gateway' => 'senangpay',
-                    'status' => $transactionStatus,
-                    'payload' => $callbackData,
-                ]
-            );
+        if (!$userId || !$planId) {
+            Log::error('SenangPay callback: Could not parse user/plan from order number', [
+                'order_id' => $orderId,
+            ]);
+            return redirect()->route('payment.failed')
+                ->with('error', 'Invalid payment data.');
+        }
 
-            if ($transactionStatus === 'success') {
-                $user = \App\Models\User::find($userId);
-                $plan = \App\Models\SubscriptionPlan::find($planId);
-                if ($user && $plan) {
-                    $user->subscribeToPlan($plan, [
-                        'payment_gateway' => 'senangpay',
+        try {
+            DB::transaction(function () use ($orderId, $userId, $planId, $transactionId, $transactionStatus, $callbackData) {
+                \App\Models\Transaction::updateOrCreate(
+                    ['order_number' => $orderId],
+                    [
+                        'user_id' => $userId,
+                        'subscription_plan_id' => $planId,
                         'transaction_id' => $transactionId,
-                        'amount_paid' => $callbackData['amount'] ?? 0,
-                    ]);
-                }
+                        'amount' => $callbackData['amount'] ?? 0,
+                        'currency' => 'MYR',
+                        'gateway' => 'senangpay',
+                        'status' => $transactionStatus,
+                        'payload' => $callbackData,
+                    ]
+                );
 
-                return redirect()->route('payment.success')
-                    ->with('message', 'Payment successful!')
-                    ->with('order_number', $orderId)
-                    ->with('transaction_id', $transactionId);
-            }
+                if ($transactionStatus === 'success') {
+                    $user = \App\Models\User::find($userId);
+                    $plan = \App\Models\SubscriptionPlan::find($planId);
+                    if ($user && $plan) {
+                        $existingSubscription = $user->subscriptions()
+                            ->where('transaction_id', $transactionId)
+                            ->first();
+                        if (!$existingSubscription) {
+                            $user->subscribeToPlan($plan, [
+                                'payment_gateway' => 'senangpay',
+                                'transaction_id' => $transactionId,
+                                'amount_paid' => $callbackData['amount'] ?? 0,
+                            ]);
+                        }
+                    }
+                }
+            });
+        } catch (\Exception $e) {
+            Log::error('SenangPay callback: Processing failed', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($transactionStatus === 'success') {
+            return redirect()->route('payment.success')
+                ->with('message', 'Payment successful!')
+                ->with('order_number', $orderId)
+                ->with('transaction_id', $transactionId);
         }
 
         return redirect()->route('payment.failed')

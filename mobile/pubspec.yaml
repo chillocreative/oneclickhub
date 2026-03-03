@@ -1,0 +1,79 @@
+name: oneclickhub_mobile
+description: OneClickHub - Freelance Services Marketplace
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Networking
+  dio: ^5.7.0
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  hive_flutter: ^1.1.0
+
+  # UI
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  flutter_svg: ^2.0.17
+  google_fonts: ^6.2.1
+  fl_chart: ^0.69.0
+
+  # Forms & Validation
+  flutter_form_builder: ^10.3.0
+  form_builder_validators: ^11.0.0
+
+  # Image handling
+  image_picker: ^1.1.2
+
+  # WebView (for payments)
+  webview_flutter: ^4.10.0
+
+  # Calendar
+  table_calendar: ^3.1.3
+
+  # JSON serialization
+  json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.4
+
+  # Utilities
+  intl: any
+  url_launcher: ^6.3.1
+  pull_to_refresh_flutter3: ^2.0.2
+
+  # File picker
+  file_picker: ^8.1.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.0
+  freezed: ^2.5.8
+  riverpod_generator: ^2.6.3
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

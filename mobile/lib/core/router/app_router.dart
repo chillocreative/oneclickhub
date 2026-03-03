@@ -1,0 +1,162 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/register_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/splash/screens/splash_screen.dart';
+import '../../features/dashboard/screens/dashboard_screen.dart';
+import '../../features/services/screens/browse_services_screen.dart';
+import '../../features/services/screens/service_detail_screen.dart';
+import '../../features/services/screens/my_services_screen.dart';
+import '../../features/services/screens/create_service_screen.dart';
+import '../../features/orders/screens/order_detail_screen.dart';
+import '../../features/orders/screens/my_orders_screen.dart';
+import '../../features/orders/screens/my_bookings_screen.dart';
+import '../../features/chat/screens/conversations_screen.dart';
+import '../../features/chat/screens/chat_screen.dart';
+import '../../features/subscriptions/screens/plans_screen.dart';
+import '../../features/calendar/screens/calendar_screen.dart';
+import '../../features/settings/screens/profile_screen.dart';
+import '../../features/settings/screens/banking_screen.dart';
+import '../../features/settings/screens/ssm_screen.dart';
+import '../widgets/shell_scaffold.dart';
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+
+  return GoRouter(
+    initialLocation: '/splash',
+    redirect: (context, state) {
+      final isAuth = authState.isAuthenticated;
+      final isSplash = state.matchedLocation == '/splash';
+      final isAuthRoute = state.matchedLocation.startsWith('/auth');
+
+      // Let splash screen handle its own navigation
+      if (isSplash) return null;
+
+      if (!isAuth && !isAuthRoute) {
+        return '/auth/login';
+      }
+      if (isAuth && isAuthRoute) {
+        return '/dashboard';
+      }
+      return null;
+    },
+    routes: [
+      // Splash screen
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
+      // Auth routes (no shell)
+      GoRoute(
+        path: '/auth/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/auth/register',
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/auth/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      // App routes with bottom navigation
+      ShellRoute(
+        builder: (context, state, child) => ShellScaffold(child: child),
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            name: 'dashboard',
+            builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: '/services',
+            name: 'browse-services',
+            builder: (context, state) => const BrowseServicesScreen(),
+          ),
+          GoRoute(
+            path: '/orders',
+            name: 'my-orders',
+            builder: (context, state) => const MyOrdersScreen(),
+          ),
+          GoRoute(
+            path: '/bookings',
+            name: 'my-bookings',
+            builder: (context, state) => const MyBookingsScreen(),
+          ),
+          GoRoute(
+            path: '/chat',
+            name: 'chat-list',
+            builder: (context, state) => const ConversationsScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
+      ),
+
+      // Detail routes (no shell)
+      GoRoute(
+        path: '/services/:slug',
+        name: 'service-detail',
+        builder: (context, state) => ServiceDetailScreen(
+          slug: state.pathParameters['slug']!,
+        ),
+      ),
+      GoRoute(
+        path: '/my-services',
+        name: 'my-services',
+        builder: (context, state) => const MyServicesScreen(),
+      ),
+      GoRoute(
+        path: '/my-services/create',
+        name: 'create-service',
+        builder: (context, state) => const CreateServiceScreen(),
+      ),
+      GoRoute(
+        path: '/orders/:id',
+        name: 'order-detail',
+        builder: (context, state) => OrderDetailScreen(
+          orderId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        name: 'chat-detail',
+        builder: (context, state) => ChatScreen(
+          conversationId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/plans',
+        name: 'plans',
+        builder: (context, state) => const PlansScreen(),
+      ),
+      GoRoute(
+        path: '/calendar',
+        name: 'calendar',
+        builder: (context, state) => const CalendarScreen(),
+      ),
+      GoRoute(
+        path: '/settings/banking',
+        name: 'banking',
+        builder: (context, state) => const BankingScreen(),
+      ),
+      GoRoute(
+        path: '/settings/ssm',
+        name: 'ssm',
+        builder: (context, state) => const SsmScreen(),
+      ),
+    ],
+  );
+});
