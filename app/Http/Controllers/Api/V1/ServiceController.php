@@ -61,7 +61,7 @@ class ServiceController extends Controller
 
         $services = $query->latest()->paginate($request->input('per_page', 12));
 
-        return $this->paginated($services);
+        return $this->paginatedResource($services, ServiceResource::class);
     }
 
     public function show(Service $service): JsonResponse
@@ -119,7 +119,7 @@ class ServiceController extends Controller
             ->latest()
             ->paginate($request->input('per_page', 12));
 
-        return $this->paginated($services);
+        return $this->paginatedResource($services, ServiceResource::class);
     }
 
     public function store(Request $request): JsonResponse

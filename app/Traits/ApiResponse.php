@@ -30,6 +30,21 @@ trait ApiResponse
         ]);
     }
 
+    protected function paginatedResource($paginator, string $resourceClass, string $message = 'Success'): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $resourceClass::collection($paginator->items()),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
+    }
+
     protected function error(string $message = 'Error', int $code = 400, $errors = null): JsonResponse
     {
         $response = [
