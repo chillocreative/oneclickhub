@@ -88,7 +88,7 @@ class ServicesNotifier extends StateNotifier<ServicesState> {
         'per_page': 12,
       };
       if (state.selectedCategoryId != null) {
-        params['category_id'] = state.selectedCategoryId;
+        params['category'] = state.selectedCategoryId;
       }
       if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
         params['search'] = state.searchQuery;
@@ -126,7 +126,7 @@ class ServicesNotifier extends StateNotifier<ServicesState> {
         'per_page': 12,
       };
       if (state.selectedCategoryId != null) {
-        params['category_id'] = state.selectedCategoryId;
+        params['category'] = state.selectedCategoryId;
       }
       if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
         params['search'] = state.searchQuery;
