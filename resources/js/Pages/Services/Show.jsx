@@ -65,17 +65,17 @@ export default function ShowService({ service, relatedServices, availableDates =
                         {/* Images */}
                         <div className="bg-white dark:bg-[#0c0c0c] rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
                             <div className="h-80 md:h-[400px] bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
-                                {service.images?.[0] ? (
-                                    <img src={`/storage/${service.images[0]}`} alt={service.title} className="w-full h-full object-cover" />
+                                {service.image_urls?.[0] ? (
+                                    <img src={service.image_urls[0]} alt={service.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <Briefcase size={80} className="text-[#FF6600]/20" />
                                 )}
                             </div>
-                            {service.images?.length > 1 && (
+                            {service.image_urls?.length > 1 && (
                                 <div className="flex gap-2 p-4 overflow-x-auto">
-                                    {service.images.map((img, idx) => (
+                                    {service.image_urls.map((url, idx) => (
                                         <div key={idx} className="flex-none size-20 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
-                                            <img src={`/storage/${img}`} alt="" className="w-full h-full object-cover" />
+                                            <img src={url} alt="" className="w-full h-full object-cover" />
                                         </div>
                                     ))}
                                 </div>
@@ -257,8 +257,8 @@ export default function ShowService({ service, relatedServices, availableDates =
                                         className="block bg-white dark:bg-[#0c0c0c] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-lg transition-shadow"
                                     >
                                         <div className="h-36 bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
-                                            {s.images?.[0] ? (
-                                                <img src={`/storage/${s.images[0]}`} alt={s.title} className="w-full h-full object-cover" />
+                                            {s.image_urls?.[0] ? (
+                                                <img src={s.image_urls[0]} alt={s.title} className="w-full h-full object-cover" />
                                             ) : (
                                                 <Briefcase size={32} className="text-[#FF6600]/30" />
                                             )}

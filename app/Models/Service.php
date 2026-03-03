@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Service extends Model
 {
     use HasFactory;
+
+    protected $appends = ['image_urls'];
 
     protected $fillable = [
         'user_id',
@@ -44,6 +47,11 @@ class Service extends Model
                 $service->slug = Str::slug($service->title) . '-' . Str::random(6);
             }
         });
+    }
+
+    public function getImageUrlsAttribute(): array
+    {
+        return collect($this->images)->map(fn ($path) => $path ? Storage::disk('public')->url($path) : null)->filter()->values()->toArray();
     }
 
     public function user(): BelongsTo

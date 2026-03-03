@@ -20,7 +20,7 @@ export default function CreateService({ categories, service }) {
     });
 
     const [previews, setPreviews] = useState(
-        service?.images?.map((img) => `/storage/${img}`) || []
+        service?.image_urls || []
     );
 
     const handleImageChange = (e) => {

@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceResource extends JsonResource
 {
@@ -19,7 +20,7 @@ class ServiceResource extends JsonResource
             'price_to' => $this->price_to,
             'delivery_days' => $this->delivery_days,
             'tags' => $this->tags,
-            'images' => $this->images,
+            'images' => collect($this->images)->map(fn ($path) => $path ? Storage::disk('public')->url($path) : null)->filter()->values(),
             'is_active' => $this->is_active,
             'category' => $this->whenLoaded('category', fn () => new ServiceCategoryResource($this->category)),
             'user' => $this->whenLoaded('user', fn () => [

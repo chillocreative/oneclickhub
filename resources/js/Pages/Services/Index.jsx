@@ -61,8 +61,8 @@ export default function ServicesIndex({ services, hasSubscription }) {
                             className="bg-white dark:bg-[#0c0c0c] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden"
                         >
                             <div className="h-40 bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
-                                {service.images?.[0] ? (
-                                    <img src={`/storage/${service.images[0]}`} alt={service.title} className="w-full h-full object-cover" />
+                                {service.image_urls?.[0] ? (
+                                    <img src={service.image_urls[0]} alt={service.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <Briefcase size={48} className="text-[#FF6600]/30" />
                                 )}
