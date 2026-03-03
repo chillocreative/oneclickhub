@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ServiceCategoryResource;
 use App\Http\Resources\V1\ServiceResource;
 use App\Http\Resources\V1\ReviewResource;
+use App\Models\Advertisement;
 use App\Models\FreelancerAvailability;
 use App\Models\Order;
 use App\Models\Review;
@@ -21,6 +22,15 @@ use Illuminate\Support\Str;
 class ServiceController extends Controller
 {
     use ApiResponse;
+
+    public function advertisements(): JsonResponse
+    {
+        $advertisements = Advertisement::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        return $this->success($advertisements);
+    }
 
     public function categories(): JsonResponse
     {

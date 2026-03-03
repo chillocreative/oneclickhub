@@ -27,6 +27,7 @@ import {
     Calendar,
     Landmark,
     FileCheck,
+    Megaphone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessNotification from '@/Components/SuccessNotification';
@@ -168,6 +169,13 @@ function AdminSidebar({ collapsed, t }) {
                     icon={Layers}
                     label={t('sidebar.categories')}
                     active={route().current('admin.categories.*')}
+                    collapsed={collapsed}
+                />
+                <SidebarItem
+                    href={route('admin.advertisements.index')}
+                    icon={Megaphone}
+                    label="Advertisements"
+                    active={route().current('admin.advertisements.*')}
                     collapsed={collapsed}
                 />
             </div>

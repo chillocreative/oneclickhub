@@ -203,13 +203,20 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:service_categories,name',
             'description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        $category = ServiceCategory::create([
+        $data = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        $category = ServiceCategory::create($data);
 
         return $this->success(new ServiceCategoryResource($category), 'Category created.', 201);
     }
@@ -219,13 +226,23 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:service_categories,name,' . $category->id,
             'description' => 'nullable|string|max:1000',
+            'image' => 'nullable|image|max:2048',
         ]);
 
-        $category->update([
+        $data = [
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-        ]);
+        ];
+
+        if ($request->hasFile('image')) {
+            if ($category->image) {
+                Storage::disk('public')->delete($category->image);
+            }
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
+
+        $category->update($data);
 
         return $this->success(new ServiceCategoryResource($category), 'Category updated.');
     }
@@ -234,6 +251,10 @@ class AdminController extends Controller
     {
         if ($category->services()->count() > 0) {
             return $this->error('Cannot delete a category that has services.', 422);
+        }
+
+        if ($category->image) {
+            Storage::disk('public')->delete($category->image);
         }
 
         $category->delete();

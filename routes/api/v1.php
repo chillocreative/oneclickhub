@@ -36,6 +36,9 @@ Route::get('/services', [ServiceController::class, 'browse']);
 Route::get('/services/{service:slug}', [ServiceController::class, 'show']);
 Route::get('/categories', [ServiceController::class, 'categories']);
 
+// Public: Advertisements
+Route::get('/advertisements', [ServiceController::class, 'advertisements']);
+
 // Public: Subscription Plans
 Route::get('/plans', [SubscriptionController::class, 'plans']);
 

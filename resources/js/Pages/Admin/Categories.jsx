@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, router } from '@inertiajs/react';
-import { Layers, Plus, Pencil, Trash2, Briefcase } from 'lucide-react';
-import { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { Layers, Plus, Pencil, Trash2, Briefcase, Image } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function Categories({ categories }) {
@@ -9,27 +9,57 @@ export default function Categories({ categories }) {
     const [editing, setEditing] = useState(null);
     const [creating, setCreating] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [processing, setProcessing] = useState(false);
 
-    const createForm = useForm({ name: '', description: '' });
-    const editForm = useForm({ name: '', description: '' });
+    const [createData, setCreateData] = useState({ name: '', description: '', image: null });
+    const [editData, setEditData] = useState({ name: '', description: '', image: null });
+    const [createErrors, setCreateErrors] = useState({});
+    const [editErrors, setEditErrors] = useState({});
+    const [createPreview, setCreatePreview] = useState(null);
+    const [editPreview, setEditPreview] = useState(null);
+
+    const createFileRef = useRef(null);
+    const editFileRef = useRef(null);
 
     const handleCreate = (e) => {
         e.preventDefault();
-        createForm.post(route('admin.categories.store'), {
+        const formData = new FormData();
+        formData.append('name', createData.name);
+        formData.append('description', createData.description || '');
+        if (createData.image) formData.append('image', createData.image);
+
+        setProcessing(true);
+        router.post(route('admin.categories.store'), formData, {
+            forceFormData: true,
             onSuccess: () => {
                 setCreating(false);
-                createForm.reset();
+                setCreateData({ name: '', description: '', image: null });
+                setCreatePreview(null);
+                setCreateErrors({});
             },
+            onError: (errors) => setCreateErrors(errors),
+            onFinish: () => setProcessing(false),
         });
     };
 
     const handleEdit = (e) => {
         e.preventDefault();
-        editForm.patch(route('admin.categories.update', editing.id), {
+        const formData = new FormData();
+        formData.append('name', editData.name);
+        formData.append('description', editData.description || '');
+        if (editData.image) formData.append('image', editData.image);
+
+        setProcessing(true);
+        router.post(route('admin.categories.update', editing.id), formData, {
+            forceFormData: true,
             onSuccess: () => {
                 setEditing(null);
-                editForm.reset();
+                setEditData({ name: '', description: '', image: null });
+                setEditPreview(null);
+                setEditErrors({});
             },
+            onError: (errors) => setEditErrors(errors),
+            onFinish: () => setProcessing(false),
         });
     };
 
@@ -41,7 +71,21 @@ export default function Categories({ categories }) {
 
     const openEdit = (category) => {
         setEditing(category);
-        editForm.setData({ name: category.name, description: category.description || '' });
+        setEditData({ name: category.name, description: category.description || '', image: null });
+        setEditPreview(category.image_url);
+        setEditErrors({});
+    };
+
+    const handleFileChange = (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (type === 'create') {
+            setCreateData({ ...createData, image: file });
+            setCreatePreview(URL.createObjectURL(file));
+        } else {
+            setEditData({ ...editData, image: file });
+            setEditPreview(URL.createObjectURL(file));
+        }
     };
 
     const withServices = categories.filter(c => c.services_count > 0).length;
@@ -57,7 +101,7 @@ export default function Categories({ categories }) {
                         <p className="text-gray-400 text-sm font-semibold">Manage service categories for freelancers.</p>
                     </div>
                     <button
-                        onClick={() => setCreating(true)}
+                        onClick={() => { setCreating(true); setCreateErrors({}); setCreatePreview(null); setCreateData({ name: '', description: '', image: null }); }}
                         className="btn-gradient px-6 py-3 text-xs font-black rounded-xl flex items-center gap-2"
                     >
                         <Plus size={16} /> {t('admin.addCategory')}
@@ -86,6 +130,7 @@ export default function Categories({ categories }) {
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="border-b border-gray-100 dark:border-white/5">
+                            <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Image</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.name')}</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">{t('admin.slug')}</th>
                             <th className="text-left p-4 text-xs font-black text-gray-400 uppercase tracking-wider">Description</th>
@@ -96,6 +141,15 @@ export default function Categories({ categories }) {
                     <tbody className="divide-y divide-gray-50 dark:divide-white/5">
                         {categories.map(category => (
                             <tr key={category.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">
+                                <td className="p-4">
+                                    {category.image_url ? (
+                                        <img src={category.image_url} alt={category.name} className="w-12 h-12 object-cover rounded-xl" />
+                                    ) : (
+                                        <div className="w-12 h-12 bg-gray-100 dark:bg-white/5 rounded-xl flex items-center justify-center">
+                                            <Layers size={16} className="text-gray-300" />
+                                        </div>
+                                    )}
+                                </td>
                                 <td className="p-4 font-bold text-gray-900 dark:text-white">{category.name}</td>
                                 <td className="p-4 text-gray-400 text-xs">{category.slug}</td>
                                 <td className="p-4 text-gray-500 text-xs max-w-[200px] truncate">{category.description || '-'}</td>
@@ -123,7 +177,7 @@ export default function Categories({ categories }) {
                         ))}
                         {categories.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="p-8 text-center text-gray-400 text-sm">{t('admin.noCategories')}</td>
+                                <td colSpan={6} className="p-8 text-center text-gray-400 text-sm">{t('admin.noCategories')}</td>
                             </tr>
                         )}
                     </tbody>
@@ -137,30 +191,46 @@ export default function Categories({ categories }) {
                         <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">{t('admin.newCategory')}</h3>
                         <form onSubmit={handleCreate} className="space-y-4">
                             <div>
+                                <label className="text-xs font-bold text-gray-500 mb-2 block">Image</label>
+                                <input type="file" ref={createFileRef} accept="image/*" onChange={e => handleFileChange(e, 'create')} className="hidden" />
+                                <button type="button" onClick={() => createFileRef.current.click()}
+                                    className="w-full h-24 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center hover:border-[#FF6600] transition-colors overflow-hidden">
+                                    {createPreview ? (
+                                        <img src={createPreview} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-gray-400">
+                                            <Image size={20} className="mx-auto mb-1" />
+                                            <span className="text-xs">Click to upload</span>
+                                        </div>
+                                    )}
+                                </button>
+                                {createErrors.image && <p className="text-xs text-red-500 mt-1">{createErrors.image}</p>}
+                            </div>
+                            <div>
                                 <label className="text-xs font-bold text-gray-500 mb-2 block">{t('admin.name')}</label>
                                 <input
                                     type="text"
-                                    value={createForm.data.name}
-                                    onChange={e => createForm.setData('name', e.target.value)}
+                                    value={createData.name}
+                                    onChange={e => setCreateData({ ...createData, name: e.target.value })}
                                     className="w-full rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm px-4 py-3"
                                     placeholder={t('admin.namePlaceholder')}
                                 />
-                                {createForm.errors.name && <p className="text-xs text-red-500 mt-1">{createForm.errors.name}</p>}
+                                {createErrors.name && <p className="text-xs text-red-500 mt-1">{createErrors.name}</p>}
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 mb-2 block">Description</label>
                                 <textarea
-                                    value={createForm.data.description}
-                                    onChange={e => createForm.setData('description', e.target.value)}
+                                    value={createData.description}
+                                    onChange={e => setCreateData({ ...createData, description: e.target.value })}
                                     className="w-full rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm p-3"
                                     rows={3}
                                     placeholder="Optional description"
                                 />
-                                {createForm.errors.description && <p className="text-xs text-red-500 mt-1">{createForm.errors.description}</p>}
+                                {createErrors.description && <p className="text-xs text-red-500 mt-1">{createErrors.description}</p>}
                             </div>
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setCreating(false)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">{t('common.cancel')}</button>
-                                <button type="submit" disabled={createForm.processing} className="flex-1 btn-gradient py-3 text-xs font-black">{t('common.save')}</button>
+                                <button type="submit" disabled={processing} className="flex-1 btn-gradient py-3 text-xs font-black">{t('common.save')}</button>
                             </div>
                         </form>
                     </div>
@@ -174,28 +244,44 @@ export default function Categories({ categories }) {
                         <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">{t('admin.editCategory')}</h3>
                         <form onSubmit={handleEdit} className="space-y-4">
                             <div>
+                                <label className="text-xs font-bold text-gray-500 mb-2 block">Image</label>
+                                <input type="file" ref={editFileRef} accept="image/*" onChange={e => handleFileChange(e, 'edit')} className="hidden" />
+                                <button type="button" onClick={() => editFileRef.current.click()}
+                                    className="w-full h-24 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center hover:border-[#FF6600] transition-colors overflow-hidden">
+                                    {editPreview ? (
+                                        <img src={editPreview} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="text-center text-gray-400">
+                                            <Image size={20} className="mx-auto mb-1" />
+                                            <span className="text-xs">Click to upload</span>
+                                        </div>
+                                    )}
+                                </button>
+                                {editErrors.image && <p className="text-xs text-red-500 mt-1">{editErrors.image}</p>}
+                            </div>
+                            <div>
                                 <label className="text-xs font-bold text-gray-500 mb-2 block">{t('admin.name')}</label>
                                 <input
                                     type="text"
-                                    value={editForm.data.name}
-                                    onChange={e => editForm.setData('name', e.target.value)}
+                                    value={editData.name}
+                                    onChange={e => setEditData({ ...editData, name: e.target.value })}
                                     className="w-full rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm px-4 py-3"
                                 />
-                                {editForm.errors.name && <p className="text-xs text-red-500 mt-1">{editForm.errors.name}</p>}
+                                {editErrors.name && <p className="text-xs text-red-500 mt-1">{editErrors.name}</p>}
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-gray-500 mb-2 block">Description</label>
                                 <textarea
-                                    value={editForm.data.description}
-                                    onChange={e => editForm.setData('description', e.target.value)}
+                                    value={editData.description}
+                                    onChange={e => setEditData({ ...editData, description: e.target.value })}
                                     className="w-full rounded-xl border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm p-3"
                                     rows={3}
                                 />
-                                {editForm.errors.description && <p className="text-xs text-red-500 mt-1">{editForm.errors.description}</p>}
+                                {editErrors.description && <p className="text-xs text-red-500 mt-1">{editErrors.description}</p>}
                             </div>
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setEditing(null)} className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl">{t('common.cancel')}</button>
-                                <button type="submit" disabled={editForm.processing} className="flex-1 btn-gradient py-3 text-xs font-black">{t('common.save')}</button>
+                                <button type="submit" disabled={processing} className="flex-1 btn-gradient py-3 text-xs font-black">{t('common.save')}</button>
                             </div>
                         </form>
                     </div>

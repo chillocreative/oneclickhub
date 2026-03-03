@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\CalendarController;
@@ -144,8 +145,14 @@ Route::middleware('auth')->group(function () {
         // Admin categories
         Route::get('/admin/categories', [ServiceCategoryController::class, 'index'])->name('admin.categories.index');
         Route::post('/admin/categories', [ServiceCategoryController::class, 'store'])->name('admin.categories.store');
-        Route::patch('/admin/categories/{category}', [ServiceCategoryController::class, 'update'])->name('admin.categories.update');
+        Route::post('/admin/categories/{category}', [ServiceCategoryController::class, 'update'])->name('admin.categories.update');
         Route::delete('/admin/categories/{category}', [ServiceCategoryController::class, 'destroy'])->name('admin.categories.destroy');
+
+        // Admin advertisements
+        Route::get('/admin/advertisements', [AdvertisementController::class, 'index'])->name('admin.advertisements.index');
+        Route::post('/admin/advertisements', [AdvertisementController::class, 'store'])->name('admin.advertisements.store');
+        Route::post('/admin/advertisements/{advertisement}', [AdvertisementController::class, 'update'])->name('admin.advertisements.update');
+        Route::delete('/admin/advertisements/{advertisement}', [AdvertisementController::class, 'destroy'])->name('admin.advertisements.destroy');
 
         // Admin SSM verifications
         Route::get('/admin/ssm-verifications', [SsmVerificationController::class, 'index'])->name('admin.ssm.index');

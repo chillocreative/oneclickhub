@@ -14,6 +14,7 @@ class ServiceCategoryResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'image_url' => $this->image_url,
             'services_count' => $this->whenCounted('services'),
         ];
     }
