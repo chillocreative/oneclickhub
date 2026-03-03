@@ -80,6 +80,10 @@ class DashboardController extends Controller
             ->where('status', Order::STATUS_COMPLETED)
             ->sum('agreed_price');
 
+        $totalClients = Order::where('freelancer_id', $user->id)
+            ->distinct('customer_id')
+            ->count('customer_id');
+
         return $this->success([
             'role' => 'Freelancer',
             'services' => ServiceResource::collection($services),
@@ -89,6 +93,7 @@ class DashboardController extends Controller
             'pending_orders' => $pendingOrders,
             'active_orders' => $activeOrders,
             'total_earnings' => (float) $totalEarnings,
+            'total_clients' => $totalClients,
         ]);
     }
 

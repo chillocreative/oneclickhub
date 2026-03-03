@@ -50,19 +50,31 @@ class PlansNotifier extends StateNotifier<PlansState> {
       final response = await _dio.get(ApiConstants.plans);
       if (response.data['success'] == true) {
         final data = response.data['data'];
+        final plansList = data['plans'];
+        final gatewaysList = data['gateways'];
         state = PlansState(
-          plans: (data['plans'] as List? ?? [])
-              .map((p) => Map<String, dynamic>.from(p))
+          plans: (plansList is List ? plansList : [])
+              .map((p) => Map<String, dynamic>.from(p as Map))
               .toList(),
-          gateways: (data['gateways'] as List? ?? [])
-              .map((g) => Map<String, dynamic>.from(g))
+          gateways: (gatewaysList is List ? gatewaysList : [])
+              .map((g) => Map<String, dynamic>.from(g as Map))
               .toList(),
+        );
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          error: response.data['message']?.toString() ?? 'Failed to load plans',
         );
       }
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to load plans',
+        error: e.response?.data?['message']?.toString() ?? 'Failed to load plans',
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Something went wrong: $e',
       );
     }
   }
@@ -79,13 +91,19 @@ class PlansNotifier extends StateNotifier<PlansState> {
         return response.data['data']?['payment_url']?.toString();
       }
       state = state.copyWith(
-        error: response.data['message'] ?? 'Payment initiation failed',
+        error: response.data['message']?.toString() ?? 'Payment initiation failed',
       );
       return null;
     } on DioException catch (e) {
       state = state.copyWith(
         isProcessing: false,
-        error: e.response?.data?['message'] ?? 'Connection error',
+        error: e.response?.data?['message']?.toString() ?? 'Connection error',
+      );
+      return null;
+    } catch (e) {
+      state = state.copyWith(
+        isProcessing: false,
+        error: 'Something went wrong: $e',
       );
       return null;
     }
@@ -104,13 +122,19 @@ class PlansNotifier extends StateNotifier<PlansState> {
       }
       state = state.copyWith(
         isProcessing: false,
-        error: response.data['message'] ?? 'Failed to cancel',
+        error: response.data['message']?.toString() ?? 'Failed to cancel',
       );
       return false;
     } on DioException catch (e) {
       state = state.copyWith(
         isProcessing: false,
-        error: e.response?.data?['message'] ?? 'Connection error',
+        error: e.response?.data?['message']?.toString() ?? 'Connection error',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        isProcessing: false,
+        error: 'Something went wrong: $e',
       );
       return false;
     }

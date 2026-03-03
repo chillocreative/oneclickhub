@@ -24,7 +24,6 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   final _priceFromCtrl = TextEditingController();
   final _priceToCtrl = TextEditingController();
   final _deliveryCtrl = TextEditingController();
-  final _tagsCtrl = TextEditingController();
   int? _selectedCategoryId;
   List<File> _imageFiles = [];
   List<String> _existingImageUrls = [];
@@ -47,8 +46,6 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
       if (priceTo != null) _priceToCtrl.text = priceTo.toString();
       final delivery = s['delivery_days'];
       if (delivery != null) _deliveryCtrl.text = delivery.toString();
-      final tags = s['tags'];
-      if (tags is List) _tagsCtrl.text = tags.join(', ');
       _selectedCategoryId = s['category']?['id'];
       final images = s['images'];
       if (images is List) {
@@ -64,7 +61,6 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     _priceFromCtrl.dispose();
     _priceToCtrl.dispose();
     _deliveryCtrl.dispose();
-    _tagsCtrl.dispose();
     super.dispose();
   }
 
@@ -105,7 +101,6 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
         'price_to': _priceToCtrl.text.trim(),
       if (_deliveryCtrl.text.trim().isNotEmpty)
         'delivery_days': _deliveryCtrl.text.trim(),
-      if (_tagsCtrl.text.trim().isNotEmpty) 'tags': _tagsCtrl.text.trim(),
     });
 
     for (int i = 0; i < _imageFiles.length; i++) {
@@ -256,10 +251,6 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                   keyboardType: TextInputType.number),
               const SizedBox(height: 16),
 
-              // Tags
-              _buildLabel('Tags (comma separated)'),
-              const SizedBox(height: 8),
-              _buildTextField(_tagsCtrl, 'e.g. design, logo, branding'),
               const SizedBox(height: 32),
 
               // Submit

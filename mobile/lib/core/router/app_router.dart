@@ -23,12 +23,12 @@ import '../../features/settings/screens/ssm_screen.dart';
 import '../widgets/shell_scaffold.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
 
   return GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) {
-      final isAuth = authState.isAuthenticated;
+      final isAuth = isAuthenticated;
       final isSplash = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
 
@@ -102,6 +102,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             name: 'settings',
             builder: (context, state) => const ProfileScreen(),
           ),
+          GoRoute(
+            path: '/my-services',
+            name: 'my-services',
+            builder: (context, state) => const MyServicesScreen(),
+          ),
         ],
       ),
 
@@ -112,11 +117,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ServiceDetailScreen(
           slug: state.pathParameters['slug']!,
         ),
-      ),
-      GoRoute(
-        path: '/my-services',
-        name: 'my-services',
-        builder: (context, state) => const MyServicesScreen(),
       ),
       GoRoute(
         path: '/my-services/create',

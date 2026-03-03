@@ -15,7 +15,6 @@ export default function CreateService({ categories, service }) {
         price_from: service?.price_from || '',
         price_to: service?.price_to || '',
         delivery_days: service?.delivery_days || '',
-        tags: service?.tags?.join(', ') || '',
         images: [],
     });
 
@@ -129,28 +128,16 @@ export default function CreateService({ categories, service }) {
                         </div>
                     </div>
 
-                    {/* Delivery & Tags */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.deliveryDays')}</label>
-                            <input
-                                type="number"
-                                value={data.delivery_days}
-                                onChange={(e) => setData('delivery_days', e.target.value)}
-                                className={inputClass}
-                                placeholder="7"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.tags')}</label>
-                            <input
-                                type="text"
-                                value={data.tags}
-                                onChange={(e) => setData('tags', e.target.value)}
-                                className={inputClass}
-                                placeholder={t('services.tagsPlaceholder')}
-                            />
-                        </div>
+                    {/* Delivery Days */}
+                    <div>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">{t('services.deliveryDays')}</label>
+                        <input
+                            type="number"
+                            value={data.delivery_days}
+                            onChange={(e) => setData('delivery_days', e.target.value)}
+                            className={inputClass}
+                            placeholder="7"
+                        />
                     </div>
 
                     {/* Images */}

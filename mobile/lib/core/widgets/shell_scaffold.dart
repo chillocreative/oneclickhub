@@ -69,7 +69,7 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
           onDestinationSelected: (index) =>
               _onItemTapped(context, index, isFreelancer, isAdmin),
           destinations: _buildDestinations(isFreelancer, isAdmin),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         ),
       ),
     );
@@ -78,10 +78,9 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
   int _calculateSelectedIndex(BuildContext context, bool isFreelancer) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location == '/dashboard') return 0;
-    if (location == '/services') return 1;
+    if (location == '/chat') return 1;
     if (location == '/orders' || location == '/bookings') return 2;
-    if (location == '/chat') return 3;
-    if (location == '/settings') return 4;
+    if (location == '/settings') return 3;
     return 0;
   }
 
@@ -92,15 +91,12 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
         context.go('/dashboard');
         break;
       case 1:
-        context.go('/services');
+        context.go('/chat');
         break;
       case 2:
         context.go(isFreelancer ? '/orders' : '/bookings');
         break;
       case 3:
-        context.go('/chat');
-        break;
-      case 4:
         context.go('/settings');
         break;
     }
@@ -112,27 +108,22 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
       const NavigationDestination(
         icon: Icon(Icons.dashboard_outlined),
         selectedIcon: Icon(Icons.dashboard),
-        label: 'Dashboard',
+        label: '',
       ),
       const NavigationDestination(
-        icon: Icon(Icons.work_outline),
-        selectedIcon: Icon(Icons.work),
-        label: 'Services',
-      ),
-      NavigationDestination(
-        icon: const Icon(Icons.receipt_long_outlined),
-        selectedIcon: const Icon(Icons.receipt_long),
-        label: isFreelancer ? 'Orders' : 'Bookings',
+        icon: Icon(Icons.chat_bubble_outline),
+        selectedIcon: Icon(Icons.chat_bubble),
+        label: '',
       ),
       const NavigationDestination(
-        icon: Icon(Icons.chat_outlined),
-        selectedIcon: Icon(Icons.chat),
-        label: 'Chat',
+        icon: Icon(Icons.receipt_long_outlined),
+        selectedIcon: Icon(Icons.receipt_long),
+        label: '',
       ),
       const NavigationDestination(
         icon: Icon(Icons.person_outlined),
         selectedIcon: Icon(Icons.person),
-        label: 'Profile',
+        label: '',
       ),
     ];
   }

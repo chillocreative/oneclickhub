@@ -31,6 +31,115 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     _loadDashboard();
   }
 
+  Widget _buildEndDrawer(BuildContext context, dynamic user) {
+    final isFreelancer = user?.isFreelancer == true;
+    final isCustomer = user?.isCustomer == true;
+
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'ONECLICK',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'HUB',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            if (isFreelancer) ...[
+              _drawerItem(Icons.work_outline, 'My Services', () {
+                Navigator.pop(context);
+                context.push('/my-services');
+              }),
+              _drawerItem(Icons.calendar_month, 'Calendar', () {
+                Navigator.pop(context);
+                context.push('/calendar');
+              }),
+              _drawerItem(Icons.card_membership, 'Subscription Plans', () {
+                Navigator.pop(context);
+                context.push('/plans');
+              }),
+              _drawerItem(Icons.verified_outlined, 'SSM Verification', () {
+                Navigator.pop(context);
+                context.push('/settings/ssm');
+              }),
+              _drawerItem(Icons.account_balance_outlined, 'Banking Details', () {
+                Navigator.pop(context);
+                context.push('/settings/banking');
+              }),
+            ],
+            if (isCustomer) ...[
+              _drawerItem(Icons.search, 'Browse Services', () {
+                Navigator.pop(context);
+                context.push('/services');
+              }),
+              _drawerItem(Icons.receipt_long_outlined, 'My Bookings', () {
+                Navigator.pop(context);
+                context.go('/bookings');
+              }),
+            ],
+            const Spacer(),
+            const Divider(height: 1),
+            _drawerItem(Icons.logout_rounded, 'Logout', () async {
+              Navigator.pop(context);
+              await ref.read(authProvider.notifier).logout();
+              if (!mounted) return;
+              context.go('/auth/login');
+            }, color: Colors.red),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String label, VoidCallback onTap, {Color? color}) {
+    return ListTile(
+      leading: Icon(icon, color: color ?? AppColors.textGrey),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: color ?? AppColors.textDark,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+
   Future<void> _loadDashboard() async {
     try {
       final dio = ref.read(dioProvider);
@@ -56,7 +165,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ClipOval(
               child: Image.asset(
@@ -92,16 +203,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.textGrey),
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (!mounted) return;
-              context.go('/auth/login');
-            },
+          Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu, color: AppColors.textGrey),
+              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+            ),
           ),
         ],
       ),
+      endDrawer: _buildEndDrawer(context, user),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: _loadDashboard,
@@ -267,7 +377,7 @@ class _FreelancerDashboard extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        // Stats grid (3 cols)
+        // Stats grid (2x2)
         Row(
           children: [
             Expanded(
@@ -282,21 +392,35 @@ class _FreelancerDashboard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
-                icon: Icons.check_circle_outline,
+                icon: Icons.flash_on,
                 iconColor: AppColors.statusActive,
                 iconBgColor: AppColors.statusActiveBg,
-                value: '${data!['active_services'] ?? data!['total_services'] ?? 0}',
-                label: 'Active',
+                value: '${data!['active_orders'] ?? 0}',
+                label: 'Active Order',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                icon: Icons.attach_money,
+                iconColor: AppColors.statusCompleted,
+                iconBgColor: AppColors.statusCompletedBg,
+                value: 'RM ${data!['total_earnings'] ?? 0}',
+                label: 'Total Earnings',
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
-                icon: Icons.visibility_outlined,
+                icon: Icons.people_outline,
                 iconColor: AppColors.statusPendingApproval,
                 iconBgColor: AppColors.statusPendingApprovalBg,
-                value: '${data!['total_views'] ?? 0}',
-                label: 'Views',
+                value: '${data!['total_clients'] ?? 0}',
+                label: 'Total Clients',
               ),
             ),
           ],

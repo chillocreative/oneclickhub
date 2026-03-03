@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\UserResource;
+use App\Models\SsmVerification;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Auth\Events\Registered;
@@ -29,13 +30,20 @@ class AuthController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'nullable|string|in:Freelancer,Customer',
+            'identity_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
+
+        $identityDocumentPath = null;
+        if ($request->hasFile('identity_document')) {
+            $identityDocumentPath = $request->file('identity_document')->store('ssm-documents', 'public');
+        }
 
         $user = User::create([
             'name' => strtoupper($validated['name']),
             'phone_number' => $validated['phone_number'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'identity_document' => $identityDocumentPath,
         ]);
 
         $role = $validated['role'] ?? 'Customer';
@@ -43,6 +51,15 @@ class AuthController extends Controller
             $user->assignRole($role);
         } else {
             $user->assignRole('General User');
+        }
+
+        // Auto-create SSM verification record for freelancers who upload a document
+        if ($role === 'Freelancer' && $identityDocumentPath) {
+            SsmVerification::create([
+                'user_id' => $user->id,
+                'document_path' => $identityDocumentPath,
+                'status' => 'pending',
+            ]);
         }
 
         event(new Registered($user));

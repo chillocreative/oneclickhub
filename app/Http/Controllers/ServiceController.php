@@ -52,7 +52,6 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
-            'tags' => 'nullable|string',
             'images.*' => 'nullable|image|max:2048',
         ]);
 
@@ -63,10 +62,6 @@ class ServiceController extends Controller
             }
         }
 
-        $tags = !empty($validated['tags'])
-            ? array_map('trim', explode(',', $validated['tags']))
-            : null;
-
         auth()->user()->services()->create([
             'service_category_id' => $validated['service_category_id'],
             'title' => $validated['title'],
@@ -74,7 +69,6 @@ class ServiceController extends Controller
             'price_from' => $validated['price_from'],
             'price_to' => $validated['price_to'] ?? null,
             'delivery_days' => $validated['delivery_days'] ?? null,
-            'tags' => $tags,
             'images' => $imagePaths ?: null,
         ]);
 
@@ -107,7 +101,6 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
-            'tags' => 'nullable|string',
             'images.*' => 'nullable|image|max:2048',
         ]);
 
@@ -123,10 +116,6 @@ class ServiceController extends Controller
             }
         }
 
-        $tags = !empty($validated['tags'])
-            ? array_map('trim', explode(',', $validated['tags']))
-            : null;
-
         $service->update([
             'service_category_id' => $validated['service_category_id'],
             'title' => $validated['title'],
@@ -135,7 +124,6 @@ class ServiceController extends Controller
             'price_from' => $validated['price_from'],
             'price_to' => $validated['price_to'] ?? null,
             'delivery_days' => $validated['delivery_days'] ?? null,
-            'tags' => $tags,
             'images' => $imagePaths ?: null,
         ]);
 

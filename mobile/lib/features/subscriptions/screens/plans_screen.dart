@@ -247,6 +247,31 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                     ],
 
                     // Plan cards
+                    if (state.plans.isEmpty && state.error == null) ...[
+                      const SizedBox(height: 40),
+                      const Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.card_membership, size: 48, color: AppColors.textLight),
+                            SizedBox(height: 12),
+                            Text(
+                              'No plans available',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Pull down to refresh',
+                              style: TextStyle(fontSize: 13, color: AppColors.textLight),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
                     ...state.plans.map((plan) {
                       final isCurrentPlan = subscription != null &&
                           subscription['plan']?['slug'] == plan['slug'] &&
@@ -263,14 +288,36 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                     }),
 
                     if (state.error != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        state.error!,
-                        style: const TextStyle(
-                          color: AppColors.statusRejected,
-                          fontSize: 13,
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.statusRejectedBg,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        textAlign: TextAlign.center,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: AppColors.statusRejected, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                state.error!,
+                                style: const TextStyle(
+                                  color: AppColors.statusRejected,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      GradientButton(
+                        text: 'Retry',
+                        icon: Icons.refresh,
+                        onPressed: () {
+                          ref.read(plansProvider.notifier).loadPlans();
+                        },
                       ),
                     ],
 

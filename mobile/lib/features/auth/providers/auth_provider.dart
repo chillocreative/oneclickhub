@@ -95,18 +95,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String password,
     required String passwordConfirmation,
     String role = 'Customer',
+    String? identityDocumentPath,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await _dio.post(ApiConstants.register, data: {
-        'name': name,
-        'phone_number': phoneNumber,
-        'email': email,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
-        'role': role,
-      });
+      final Response response;
+
+      if (identityDocumentPath != null) {
+        final formData = FormData.fromMap({
+          'name': name,
+          'phone_number': phoneNumber,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'role': role,
+          'identity_document': await MultipartFile.fromFile(
+            identityDocumentPath,
+            filename: identityDocumentPath.split('/').last,
+          ),
+        });
+        response = await _dio.post(ApiConstants.register, data: formData);
+      } else {
+        response = await _dio.post(ApiConstants.register, data: {
+          'name': name,
+          'phone_number': phoneNumber,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'role': role,
+        });
+      }
 
       final data = response.data;
       if (data['success'] == true) {
