@@ -84,6 +84,7 @@ export default function Welcome({ auth, plans }) {
                         <a href="/" className="hover:text-[#FF6600] transition-colors">{t('nav.home')}</a>
                         <a href="#pricing" className="hover:text-[#FF6600] transition-colors">{t('nav.pricing')}</a>
                         <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">{t('nav.services')}</Link>
+                        <Link href={route('contact')} className="hover:text-[#FF6600] transition-colors">{t('nav.contact')}</Link>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -155,7 +156,8 @@ export default function Welcome({ auth, plans }) {
                                 {[
                                     { name: t('nav.home'), href: '/' },
                                     { name: t('nav.pricing'), href: '#pricing' },
-                                    { name: t('nav.services'), href: route('services.browse') }
+                                    { name: t('nav.services'), href: route('services.browse') },
+                                    { name: t('nav.contact'), href: route('contact') }
                                 ].map((item, idx) => (
                                     <motion.a
                                         key={idx}
@@ -480,6 +482,7 @@ export default function Welcome({ auth, plans }) {
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
                         <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
                         <Link href={route('terms')} className="hover:text-white transition-colors">{t('footer.terms')}</Link>
+                        <Link href={route('account-deletion')} className="hover:text-white transition-colors">{t('footer.accountDeletion')}</Link>
                     </div>
                     <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                 </div>

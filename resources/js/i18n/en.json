@@ -5,6 +5,7 @@
     "nav.signIn": "Sign In",
     "nav.getStarted": "Get Started",
     "nav.dashboard": "Dashboard",
+    "nav.contact": "Contact",
     "nav.goToDashboard": "Go to Dashboard",
 
     "hero.title1": "Marketing",
@@ -67,6 +68,7 @@
     "footer.terms": "Terms",
     "footer.offices": "Local Offices",
     "footer.support": "Malaysia Support",
+    "footer.accountDeletion": "Request Account Deletion",
     "footer.copyright": "© 2026 OneClickHub Enterprise. Designed for the Future.",
     "footer.trusted": "© 2026 OneClickHub Enterprise \u2022 Malaysia Trusted",
 

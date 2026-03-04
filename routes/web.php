@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\BankingDetailController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChatController;
@@ -36,6 +37,13 @@ Route::get('/privacy', function () {
 Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
+
+Route::get('/contact', [ContactController::class, 'create'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+Route::get('/account-deletion', function () {
+    return Inertia::render('AccountDeletion');
+})->name('account-deletion');
 
 // Public service browsing
 Route::get('/services', [ServiceController::class, 'browse'])->name('services.browse');
