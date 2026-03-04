@@ -479,9 +479,7 @@ export default function Welcome({ auth, plans }) {
                     </div>
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
                         <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
-                        <a href="#" className="hover:text-white transition-colors">{t('footer.terms')}</a>
-                        <a href="#" className="hover:text-white transition-colors">{t('footer.offices')}</a>
-                        <a href="#" className="hover:text-white transition-colors">{t('footer.support')}</a>
+                        <Link href={route('terms')} className="hover:text-white transition-colors">{t('footer.terms')}</Link>
                     </div>
                     <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                 </div>

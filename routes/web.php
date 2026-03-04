@@ -33,6 +33,10 @@ Route::get('/privacy', function () {
     return Inertia::render('Privacy');
 })->name('privacy');
 
+Route::get('/terms', function () {
+    return Inertia::render('Terms');
+})->name('terms');
+
 // Public service browsing
 Route::get('/services', [ServiceController::class, 'browse'])->name('services.browse');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
