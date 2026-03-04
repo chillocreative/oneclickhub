@@ -478,7 +478,7 @@ export default function Welcome({ auth, plans }) {
                         <span className="text-xl font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
                     </div>
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
-                        <a href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</a>
+                        <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
                         <a href="#" className="hover:text-white transition-colors">{t('footer.terms')}</a>
                         <a href="#" className="hover:text-white transition-colors">{t('footer.offices')}</a>
                         <a href="#" className="hover:text-white transition-colors">{t('footer.support')}</a>

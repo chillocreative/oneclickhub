@@ -56,6 +56,9 @@ dependencies:
   # File picker
   file_picker: ^8.1.7
 
+dependency_overrides:
+  path_provider_foundation: 2.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

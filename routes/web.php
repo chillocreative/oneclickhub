@@ -28,6 +28,11 @@ Route::get('/', function () {
     ]);
 });
 
+// Public pages
+Route::get('/privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy');
+
 // Public service browsing
 Route::get('/services', [ServiceController::class, 'browse'])->name('services.browse');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');

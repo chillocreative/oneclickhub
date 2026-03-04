@@ -21,6 +21,9 @@ class ApiConstants {
   static const String categories = '/categories';
   static const String myServices = '/my-services';
 
+  // Advertisements
+  static const String advertisements = '/advertisements';
+
   // Orders
   static const String orders = '/orders';
   static const String myOrders = '/my-orders';

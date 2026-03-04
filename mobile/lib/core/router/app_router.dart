@@ -20,7 +20,9 @@ import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/settings/screens/profile_screen.dart';
 import '../../features/settings/screens/banking_screen.dart';
 import '../../features/settings/screens/ssm_screen.dart';
+import '../../features/home/screens/guest_home_screen.dart';
 import '../widgets/shell_scaffold.dart';
+import '../widgets/guest_shell_scaffold.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
@@ -31,14 +33,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuth = isAuthenticated;
       final isSplash = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isGuestHome = state.matchedLocation == '/home';
 
       // Let splash screen handle its own navigation
       if (isSplash) return null;
 
-      if (!isAuth && !isAuthRoute) {
-        return '/auth/login';
+      // Allow unauthenticated users to access /home and /auth routes
+      if (!isAuth && !isAuthRoute && !isGuestHome) {
+        return '/home';
       }
-      if (isAuth && isAuthRoute) {
+      // Redirect authenticated users away from guest/auth routes
+      if (isAuth && (isAuthRoute || isGuestHome)) {
         return '/dashboard';
       }
       return null;
@@ -66,6 +71,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      // Guest home with guest bottom navigation
+      ShellRoute(
+        builder: (context, state, child) => GuestShellScaffold(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            name: 'guest-home',
+            builder: (context, state) => const GuestHomeScreen(),
+          ),
+        ],
       ),
 
       // App routes with bottom navigation

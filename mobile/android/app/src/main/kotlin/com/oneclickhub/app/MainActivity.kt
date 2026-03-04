@@ -1,4 +1,4 @@
-package com.oneclickhub.oneclickhub_mobile
+package com.oneclickhub.app
 
 import io.flutter.embedding.android.FlutterActivity
 
