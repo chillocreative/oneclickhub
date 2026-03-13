@@ -91,7 +91,7 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isSaving: true, error: null, successMessage: null);
     try {
-      final response = await _dio.put(ApiConstants.profile, data: data);
+      final response = await _dio.patch(ApiConstants.profile, data: data);
       if (response.data['success'] == true) {
         state = state.copyWith(
           isSaving: false,

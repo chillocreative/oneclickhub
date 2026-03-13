@@ -42,12 +42,16 @@ export default function UpdateProfileInformation({
     const submit = (e) => {
         e.preventDefault();
 
-        router.post(route('profile.update'), {
+        const payload = {
             _method: 'PATCH',
             name: data.name,
             email: data.email,
-            profile_picture: data.profile_picture,
-        }, {
+        };
+        if (data.profile_picture) {
+            payload.profile_picture = data.profile_picture;
+        }
+
+        router.post(route('profile.update'), payload, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {

@@ -41,6 +41,7 @@ class SettingsController extends Controller
             $user->profile_picture = $request->file('profile_picture')->store('profile-pictures', 'public');
         }
 
+        unset($validated['profile_picture']);
         $user->fill($validated);
 
         if ($user->isDirty('email')) {

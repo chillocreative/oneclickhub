@@ -39,7 +39,7 @@ class ProfileController extends Controller
             $user->profile_picture = $request->file('profile_picture')->store('profile-pictures', 'public');
         }
 
-        $user->fill($request->validated());
+        $user->fill($request->safe()->except(['profile_picture']));
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
