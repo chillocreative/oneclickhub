@@ -57,6 +57,37 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
     }
   }
 
+  Future<bool> uploadProfilePicture(String filePath) async {
+    state = state.copyWith(isSaving: true, error: null, successMessage: null);
+    try {
+      final formData = FormData.fromMap({
+        'profile_picture': await MultipartFile.fromFile(filePath),
+        'name': state.profileData?['name'] ?? '',
+        'email': state.profileData?['email'] ?? '',
+      });
+      final response = await _dio.post(ApiConstants.profile, data: formData);
+      if (response.data['success'] == true) {
+        state = state.copyWith(
+          isSaving: false,
+          successMessage: 'Profile picture updated',
+          profileData: Map<String, dynamic>.from(response.data['data']),
+        );
+        return true;
+      }
+      state = state.copyWith(
+        isSaving: false,
+        error: response.data['message'] ?? 'Failed to upload',
+      );
+      return false;
+    } on DioException catch (e) {
+      state = state.copyWith(
+        isSaving: false,
+        error: e.response?.data?['message'] ?? 'Connection error',
+      );
+      return false;
+    }
+  }
+
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     state = state.copyWith(isSaving: true, error: null, successMessage: null);
     try {

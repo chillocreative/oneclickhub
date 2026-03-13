@@ -2,8 +2,11 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 import { Transition } from '@headlessui/react';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage, router } from '@inertiajs/react';
+import { useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -11,21 +14,55 @@ export default function UpdateProfileInformation({
     className = '',
 }) {
     const user = usePage().props.auth.user;
+    const fileInput = useRef(null);
+    const [photoPreview, setPhotoPreview] = useState(null);
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
+    const { data, setData, errors, processing, recentlySuccessful } =
         useForm({
             name: user.name,
             email: user.email,
+            profile_picture: null,
         });
+
+    const selectPhoto = () => {
+        fileInput.current.click();
+    };
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setData('profile_picture', file);
+
+        const reader = new FileReader();
+        reader.onload = (ev) => setPhotoPreview(ev.target.result);
+        reader.readAsDataURL(file);
+    };
 
     const submit = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'));
+        router.post(route('profile.update'), {
+            _method: 'PATCH',
+            name: data.name,
+            email: data.email,
+            profile_picture: data.profile_picture,
+        }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setPhotoPreview(null);
+                setData('profile_picture', null);
+            },
+        });
     };
+
+    const avatarSrc = photoPreview || user.profile_picture_url;
 
     return (
         <section className={className}>
+            <UploadingOverlay show={processing} />
+
             <header>
                 <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Profile Information
@@ -37,6 +74,45 @@ export default function UpdateProfileInformation({
             </header>
 
             <form onSubmit={submit} className="mt-6 space-y-6">
+                {/* Profile Picture */}
+                <div className="flex flex-col items-center gap-3">
+                    <input
+                        type="file"
+                        ref={fileInput}
+                        className="hidden"
+                        accept="image/jpg,image/jpeg,image/png,image/webp"
+                        onChange={handlePhotoChange}
+                    />
+                    <button
+                        type="button"
+                        onClick={selectPhoto}
+                        className="relative group"
+                    >
+                        <div className="size-24 rounded-2xl bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[3px] shadow-lg group-hover:scale-105 transition-all">
+                            <div className="size-full bg-white dark:bg-gray-900 rounded-[13px] flex items-center justify-center overflow-hidden">
+                                {avatarSrc ? (
+                                    <img
+                                        src={avatarSrc}
+                                        alt={user.name}
+                                        className="size-full object-cover rounded-[13px]"
+                                    />
+                                ) : (
+                                    <span className="text-2xl font-black text-[#FF6600]">
+                                        {user.name ? user.name.charAt(0) : '?'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="absolute bottom-0 right-0 bg-[#FF6600] text-white rounded-full p-1.5 shadow-lg group-hover:scale-110 transition-all">
+                            <Camera size={14} />
+                        </div>
+                    </button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Click to change photo
+                    </p>
+                    <InputError className="mt-1" message={errors.profile_picture} />
+                </div>
+
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
 

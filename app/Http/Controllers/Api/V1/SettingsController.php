@@ -31,7 +31,15 @@ class SettingsController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
             'position' => 'nullable|string|max:255',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+            $user->profile_picture = $request->file('profile_picture')->store('profile-pictures', 'public');
+        }
 
         $user->fill($validated);
 

@@ -584,6 +584,7 @@
     "calendar.instructions": "Click dates to toggle availability. Red dates are already booked.",
 
     "profile.title": "Profile",
+    "profile.titleHighlight": "Settings",
 
     "settings.bankingTitle": "Banking",
     "settings.bankingHighlight": "Details",

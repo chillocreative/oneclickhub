@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/shimmer_loading.dart';
+import '../../../core/widgets/uploading_overlay.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 
@@ -20,6 +23,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+  final _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -46,11 +50,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _emailController.text = data['email'] ?? '';
   }
 
+  Future<void> _pickAndUploadPhoto() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    final success = await ref
+        .read(profileProvider.notifier)
+        .uploadProfilePicture(picked.path);
+
+    if (success && mounted) {
+      ref.read(authProvider.notifier).fetchUser();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile picture updated'),
+          backgroundColor: AppColors.statusActive,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileProvider);
     final authState = ref.watch(authProvider);
     final user = authState.user;
+    final profilePictureUrl = state.profileData?['profile_picture_url'] as String?;
 
     // Populate fields when profile data loads
     if (state.profileData != null && !_isEditing) {
@@ -104,169 +133,232 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       body: state.isLoading
           ? const ShimmerLoading(type: ShimmerType.profile)
-          : SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Profile avatar card
-                  AppCard(
-                    child: Column(
-                      children: [
-                        // Avatar with gradient border
-                        Container(
-                          width: 84,
-                          height: 84,
-                          decoration: BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          padding: const EdgeInsets.all(3),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(21),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _getInitials(user?.name ?? ''),
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primary,
+          : UploadingOverlay.wrap(
+              show: state.isSaving,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Profile avatar card
+                    AppCard(
+                      child: Column(
+                        children: [
+                          // Avatar with gradient border - tappable
+                          GestureDetector(
+                            onTap: _pickAndUploadPhoto,
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 84,
+                                  height: 84,
+                                  decoration: BoxDecoration(
+                                    gradient: AppColors.primaryGradient,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  padding: const EdgeInsets.all(3),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(21),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: profilePictureUrl != null
+                                        ? CachedNetworkImage(
+                                            imageUrl: profilePictureUrl,
+                                            fit: BoxFit.cover,
+                                            width: 78,
+                                            height: 78,
+                                            placeholder: (context, url) =>
+                                                Center(
+                                              child: Text(
+                                                _getInitials(user?.name ?? ''),
+                                                style: const TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ),
+                                            errorWidget: (context, url, error) =>
+                                                Center(
+                                              child: Text(
+                                                _getInitials(user?.name ?? ''),
+                                                style: const TextStyle(
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        : Center(
+                                            child: Text(
+                                              _getInitials(user?.name ?? ''),
+                                              style: const TextStyle(
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w800,
+                                                color: AppColors.primary,
+                                              ),
+                                            ),
+                                          ),
+                                  ),
                                 ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withAlpha(80),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Name field
+                          _ProfileField(
+                            label: 'Name',
+                            controller: _nameController,
+                            enabled: _isEditing,
+                            icon: Icons.person_outline,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Phone field
+                          _ProfileField(
+                            label: 'Phone Number',
+                            controller: _phoneController,
+                            enabled: _isEditing,
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Email field
+                          _ProfileField(
+                            label: 'Email',
+                            controller: _emailController,
+                            enabled: _isEditing,
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+
+                          // Save button
+                          if (_isEditing) ...[
+                            const SizedBox(height: 20),
+                            GradientButton(
+                              text: 'Save Changes',
+                              isLoading: state.isSaving,
+                              width: double.infinity,
+                              onPressed: () async {
+                                final success = await ref
+                                    .read(profileProvider.notifier)
+                                    .updateProfile({
+                                  'name': _nameController.text,
+                                  'phone_number': _phoneController.text,
+                                  'email': _emailController.text,
+                                });
+                                if (success && mounted) {
+                                  setState(() => _isEditing = false);
+                                  // Refresh auth user
+                                  ref.read(authProvider.notifier).fetchUser();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Profile updated'),
+                                      backgroundColor: AppColors.statusActive,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+
+                          // Error/success messages
+                          if (state.error != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              state.error!,
+                              style: const TextStyle(
+                                color: AppColors.statusRejected,
+                                fontSize: 13,
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Name field
-                        _ProfileField(
-                          label: 'Name',
-                          controller: _nameController,
-                          enabled: _isEditing,
-                          icon: Icons.person_outline,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Phone field
-                        _ProfileField(
-                          label: 'Phone Number',
-                          controller: _phoneController,
-                          enabled: _isEditing,
-                          icon: Icons.phone_outlined,
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Email field
-                        _ProfileField(
-                          label: 'Email',
-                          controller: _emailController,
-                          enabled: _isEditing,
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-
-                        // Save button
-                        if (_isEditing) ...[
-                          const SizedBox(height: 20),
-                          GradientButton(
-                            text: 'Save Changes',
-                            isLoading: state.isSaving,
-                            width: double.infinity,
-                            onPressed: () async {
-                              final success = await ref
-                                  .read(profileProvider.notifier)
-                                  .updateProfile({
-                                'name': _nameController.text,
-                                'phone_number': _phoneController.text,
-                                'email': _emailController.text,
-                              });
-                              if (success && mounted) {
-                                setState(() => _isEditing = false);
-                                // Refresh auth user
-                                ref.read(authProvider.notifier).fetchUser();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Profile updated'),
-                                    backgroundColor: AppColors.statusActive,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
+                          ],
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-                        // Error/success messages
-                        if (state.error != null) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            state.error!,
-                            style: const TextStyle(
-                              color: AppColors.statusRejected,
-                              fontSize: 13,
-                            ),
+                    // Action buttons
+                    if (user?.isFreelancer == true) ...[
+                      _ActionButton(
+                        icon: Icons.account_balance,
+                        label: 'Banking Details',
+                        onTap: () => context.push('/settings/banking'),
+                      ),
+                      _ActionButton(
+                        icon: Icons.assignment,
+                        label: 'SSM Certificate',
+                        onTap: () => context.push('/settings/ssm'),
+                      ),
+                      _ActionButton(
+                        icon: Icons.card_membership,
+                        label: 'Subscription Plans',
+                        onTap: () => context.push('/plans'),
+                      ),
+                      _ActionButton(
+                        icon: Icons.calendar_month,
+                        label: 'Calendar',
+                        onTap: () => context.push('/calendar'),
+                      ),
+                    ],
+
+                    const SizedBox(height: 16),
+
+                    // Logout button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          await ref.read(authProvider.notifier).logout();
+                          if (!mounted) return;
+                          context.go('/auth/login');
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.statusRejected,
+                          side: const BorderSide(color: AppColors.statusRejected),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                        ],
-                      ],
+                        ),
+                        icon: const Icon(Icons.logout),
+                        label: const Text(
+                          'Logout',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Action buttons
-                  if (user?.isFreelancer == true) ...[
-                    _ActionButton(
-                      icon: Icons.account_balance,
-                      label: 'Banking Details',
-                      onTap: () => context.push('/settings/banking'),
-                    ),
-                    _ActionButton(
-                      icon: Icons.assignment,
-                      label: 'SSM Certificate',
-                      onTap: () => context.push('/settings/ssm'),
-                    ),
-                    _ActionButton(
-                      icon: Icons.card_membership,
-                      label: 'Subscription Plans',
-                      onTap: () => context.push('/plans'),
-                    ),
-                    _ActionButton(
-                      icon: Icons.calendar_month,
-                      label: 'Calendar',
-                      onTap: () => context.push('/calendar'),
-                    ),
+                    const SizedBox(height: 32),
                   ],
-
-                  const SizedBox(height: 16),
-
-                  // Logout button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        await ref.read(authProvider.notifier).logout();
-                        if (!mounted) return;
-                        context.go('/auth/login');
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.statusRejected,
-                        side: const BorderSide(color: AppColors.statusRejected),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      icon: const Icon(Icons.logout),
-                      label: const Text(
-                        'Logout',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
             ),
     );

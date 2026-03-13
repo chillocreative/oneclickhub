@@ -48,7 +48,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user ? array_merge(
                     $user->toArray(),
-                    ['roles' => $user->getRoleNames()]
+                    [
+                        'roles' => $user->getRoleNames(),
+                        'profile_picture_url' => $user->profile_picture ? asset('storage/' . $user->profile_picture) : null,
+                    ]
                 ) : null,
             ],
             'flash' => [

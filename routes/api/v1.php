@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/settings/ssm', [SettingsController::class, 'ssmCertificate']);
     Route::post('/settings/ssm-upload', [SettingsController::class, 'uploadSsm']);
     Route::get('/profile', [SettingsController::class, 'profile']);
+    Route::post('/profile', [SettingsController::class, 'updateProfile']);
     Route::patch('/profile', [SettingsController::class, 'updateProfile']);
 
     // Notifications

@@ -5,6 +5,7 @@ class User {
   final String? email;
   final String? position;
   final String? identityDocument;
+  final String? profilePictureUrl;
   final List<String> roles;
   final Map<String, dynamic>? subscription;
   final Map<String, dynamic>? ssmVerification;
@@ -18,6 +19,7 @@ class User {
     this.email,
     this.position,
     this.identityDocument,
+    this.profilePictureUrl,
     this.roles = const [],
     this.subscription,
     this.ssmVerification,
@@ -33,6 +35,7 @@ class User {
       email: json['email'],
       position: json['position'],
       identityDocument: json['identity_document'],
+      profilePictureUrl: json['profile_picture_url'],
       roles: json['roles'] != null
           ? List<String>.from(json['roles'])
           : [],

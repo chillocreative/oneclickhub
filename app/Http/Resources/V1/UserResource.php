@@ -16,6 +16,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'position' => $this->position,
             'identity_document' => $this->identity_document,
+            'profile_picture_url' => $this->profile_picture ? asset('storage/' . $this->profile_picture) : null,
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'subscription' => $this->whenLoaded('activeSubscription', function () {
                 return $this->activeSubscription ? new SubscriptionResource($this->activeSubscription) : null;
