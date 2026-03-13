@@ -489,14 +489,24 @@ export default function AuthenticatedLayout({ header, children }) {
                         <Dropdown>
                             <Dropdown.Trigger>
                                 <button className="flex items-center gap-4 p-1.5 rounded-2xl hover:bg-orange-50 dark:hover:bg-white/5 transition-all group">
-                                    <div className="size-11 rounded-2xl bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[2.5px] shadow-lg group-hover:scale-105 transition-all">
-                                        <div className="size-full bg-white dark:bg-gray-900 rounded-[11px] flex items-center justify-center font-black text-[#FF6600] overflow-hidden">
-                                            {user.profile_picture_url ? (
-                                                <img src={user.profile_picture_url} alt={user.name} className="size-full object-cover rounded-[11px]" />
-                                            ) : (
-                                                user.name ? user.name.charAt(0) : '?'
-                                            )}
+                                    <div className="relative">
+                                        <div className="size-11 rounded-2xl bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[2.5px] shadow-lg group-hover:scale-105 transition-all">
+                                            <div className="size-full bg-white dark:bg-gray-900 rounded-[11px] flex items-center justify-center font-black text-[#FF6600] overflow-hidden">
+                                                {user.profile_picture_url ? (
+                                                    <img src={user.profile_picture_url} alt={user.name} className="size-full object-cover rounded-[11px]" />
+                                                ) : (
+                                                    user.name ? user.name.charAt(0) : '?'
+                                                )}
+                                            </div>
                                         </div>
+                                        {ssm?.status === 'verified' && (
+                                            <div className="absolute -top-1 -right-1 bg-white rounded-full p-[1px] shadow-sm">
+                                                <svg className="size-4" viewBox="0 0 24 24" fill="none">
+                                                    <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+                                                    <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="hidden sm:block text-left">
                                         <div className="text-sm font-black text-gray-900 dark:text-white truncate max-w-[120px]">{user.name}</div>

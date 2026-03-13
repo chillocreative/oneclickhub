@@ -80,6 +80,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final authState = ref.watch(authProvider);
     final user = authState.user;
     final profilePictureUrl = state.profileData?['profile_picture_url'] as String?;
+    final isSsmVerified = authState.ssm?['status'] == 'verified';
 
     // Populate fields when profile data loads
     if (state.profileData != null && !_isEditing) {
@@ -227,6 +228,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ),
                                   ),
                                 ),
+                                if (isSsmVerified)
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(25),
+                                            blurRadius: 4,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.verified,
+                                        color: Color(0xFF1DA1F2),
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),

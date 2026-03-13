@@ -30,8 +30,6 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Refresh user data when app comes back to foreground
-      // This picks up admin-approved subscriptions, SSM verifications, etc.
       final authState = ref.read(authProvider);
       if (authState.isAuthenticated) {
         ref.read(authProvider.notifier).fetchUser();
@@ -39,53 +37,17 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final user = authState.user;
-    final isFreelancer = user?.isFreelancer ?? false;
-    final isAdmin = user?.isAdmin ?? false;
-
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: NavigationBar(
-          height: 65,
-          elevation: 0,
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: AppColors.primary.withAlpha(30),
-          selectedIndex: _calculateSelectedIndex(context, isFreelancer),
-          onDestinationSelected: (index) =>
-              _onItemTapped(context, index, isFreelancer, isAdmin),
-          destinations: _buildDestinations(isFreelancer, isAdmin),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        ),
-      ),
-    );
-  }
-
   int _calculateSelectedIndex(BuildContext context, bool isFreelancer) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location == '/dashboard') return 0;
     if (location == '/chat') return 1;
-    if (location == '/orders' || location == '/bookings') return 2;
-    if (location == '/settings') return 3;
+    // Index 2 is the center FAB (create service) — no tab selection
+    if (location == '/orders' || location == '/bookings') return 3;
+    if (location == '/settings') return 4;
     return 0;
   }
 
-  void _onItemTapped(
-      BuildContext context, int index, bool isFreelancer, bool isAdmin) {
+  void _onItemTapped(BuildContext context, int index, bool isFreelancer) {
     switch (index) {
       case 0:
         context.go('/dashboard');
@@ -94,37 +56,196 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
         context.go('/chat');
         break;
       case 2:
-        context.go(isFreelancer ? '/orders' : '/bookings');
+        // Center button — navigate to create service
+        if (isFreelancer) {
+          context.push('/my-services/create');
+        } else {
+          context.go('/services');
+        }
         break;
       case 3:
+        context.go(isFreelancer ? '/orders' : '/bookings');
+        break;
+      case 4:
         context.go('/settings');
         break;
     }
   }
 
-  List<NavigationDestination> _buildDestinations(
-      bool isFreelancer, bool isAdmin) {
-    return [
-      const NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard),
-        label: '',
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    final isFreelancer = user?.isFreelancer ?? false;
+    final selectedIndex = _calculateSelectedIndex(context, isFreelancer);
+
+    return Scaffold(
+      body: widget.child,
+      bottomNavigationBar: _AnimatedBottomBar(
+        selectedIndex: selectedIndex,
+        isFreelancer: isFreelancer,
+        onTap: (index) => _onItemTapped(context, index, isFreelancer),
       ),
-      const NavigationDestination(
-        icon: Icon(Icons.chat_bubble_outline),
-        selectedIcon: Icon(Icons.chat_bubble),
-        label: '',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.receipt_long_outlined),
-        selectedIcon: Icon(Icons.receipt_long),
-        label: '',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.person_outlined),
-        selectedIcon: Icon(Icons.person),
-        label: '',
-      ),
+    );
+  }
+}
+
+class _AnimatedBottomBar extends StatelessWidget {
+  final int selectedIndex;
+  final bool isFreelancer;
+  final ValueChanged<int> onTap;
+
+  const _AnimatedBottomBar({
+    required this.selectedIndex,
+    required this.isFreelancer,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _NavItem(Icons.dashboard_outlined, Icons.dashboard, 0),
+      _NavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 1),
+      _NavItem(Icons.add, Icons.add, 2), // center FAB placeholder
+      _NavItem(Icons.receipt_long_outlined, Icons.receipt_long, 3),
+      _NavItem(Icons.person_outlined, Icons.person, 4),
     ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(15),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 65,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: items.map((item) {
+              if (item.index == 2) {
+                // Center FAB button
+                return _CenterFab(
+                  onTap: () => onTap(2),
+                  isFreelancer: isFreelancer,
+                );
+              }
+              final isSelected = selectedIndex == item.index;
+              return _NavBarItem(
+                icon: item.icon,
+                activeIcon: item.activeIcon,
+                isSelected: isSelected,
+                onTap: () => onTap(item.index),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final int index;
+
+  _NavItem(this.icon, this.activeIcon, this.index);
+}
+
+class _NavBarItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavBarItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 56,
+        height: 65,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withAlpha(30)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(opacity: animation, child: child),
+                  );
+                },
+                child: Icon(
+                  isSelected ? activeIcon : icon,
+                  key: ValueKey(isSelected),
+                  color: isSelected ? AppColors.primary : AppColors.textGrey,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CenterFab extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool isFreelancer;
+
+  const _CenterFab({required this.onTap, required this.isFreelancer});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withAlpha(80),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Icon(
+          isFreelancer ? Icons.add : Icons.search,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+    );
   }
 }

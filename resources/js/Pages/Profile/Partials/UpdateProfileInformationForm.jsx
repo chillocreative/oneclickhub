@@ -13,7 +13,8 @@ export default function UpdateProfileInformation({
     status,
     className = '',
 }) {
-    const user = usePage().props.auth.user;
+    const { auth, ssm } = usePage().props;
+    const user = auth.user;
     const fileInput = useRef(null);
     const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -110,6 +111,14 @@ export default function UpdateProfileInformation({
                         <div className="absolute bottom-0 right-0 bg-[#FF6600] text-white rounded-full p-1.5 shadow-lg group-hover:scale-110 transition-all">
                             <Camera size={14} />
                         </div>
+                        {ssm?.status === 'verified' && (
+                            <div className="absolute -top-1 -left-1 bg-white rounded-full p-[1px] shadow-sm">
+                                <svg className="size-5" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+                                    <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </div>
+                        )}
                     </button>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                         Click to change photo
