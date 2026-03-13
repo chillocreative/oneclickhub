@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
+import '../../../core/widgets/uploading_overlay.dart';
 import '../providers/my_services_provider.dart';
 
 class CreateServiceScreen extends ConsumerStatefulWidget {
@@ -174,7 +175,9 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+      body: UploadingOverlay.wrap(
+        show: state.isSaving,
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -265,6 +268,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

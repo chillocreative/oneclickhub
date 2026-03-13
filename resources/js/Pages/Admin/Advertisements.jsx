@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
 import { Megaphone, Plus, Pencil, Trash2, ExternalLink, Eye, EyeOff, Image } from 'lucide-react';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 import { useState, useRef } from 'react';
 
 export default function Advertisements({ advertisements }) {
@@ -337,6 +338,8 @@ export default function Advertisements({ advertisements }) {
                     </div>
                 </div>
             )}
+
+            <UploadingOverlay show={processing} />
         </AuthenticatedLayout>
     );
 }

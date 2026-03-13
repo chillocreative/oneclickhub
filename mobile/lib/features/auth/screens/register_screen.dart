@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/uploading_overlay.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -14,6 +15,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _companyNameController = TextEditingController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -31,6 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _companyNameController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -76,6 +79,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await ref.read(authProvider.notifier).register(
+          companyName: _selectedRole == 'Freelancer' ? _companyNameController.text.trim() : null,
           name: _nameController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
           email: _emailController.text.trim(),
@@ -92,10 +96,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundWarm,
       body: SafeArea(
-        child: _currentStep == 0 ? _buildRoleSelection() : _buildRegistrationForm(),
+        child: UploadingOverlay.wrap(
+          show: authState.isLoading && _identityDocument != null,
+          child: _currentStep == 0 ? _buildRoleSelection() : _buildRegistrationForm(),
+        ),
       ),
     );
   }
@@ -339,6 +348,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Text(
                   authState.error!,
                   style: TextStyle(color: Colors.red[700]),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Company Name (Freelancer only)
+            if (_selectedRole == 'Freelancer') ...[
+              TextFormField(
+                controller: _companyNameController,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  labelText: 'Company Name',
+                  hintText: 'e.g. ABC ENTERPRISE',
+                  prefixIcon: const Icon(Icons.business, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
               ),
               const SizedBox(height: 16),

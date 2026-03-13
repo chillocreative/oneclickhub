@@ -107,6 +107,8 @@
     "register.selectedPlan": "Pelan Dipilih",
     "register.registerAs": "DAFTAR SEBAGAI",
     "register.subtitle": "Pendaftaran pantas dan selamat berasaskan telefon",
+    "register.companyName": "Nama Syarikat",
+    "register.companyNamePlaceholder": "cth. ABC ENTERPRISE",
     "register.name": "Nama Penuh Anda",
     "register.namePlaceholder": "cth. AHMAD FAIZ",
     "register.phone": "Nombor Telefon",

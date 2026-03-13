@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Package, Upload, Check, X, Truck, Star, Clock, AlertTriangle, Landmark } from 'lucide-react';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 const statusColors = {
     pending_payment: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10',
@@ -254,6 +255,8 @@ export default function OrderShow({ order, isFreelancer, isCustomer }) {
                     )}
                 </div>
             </div>
+
+            <UploadingOverlay show={slipForm.processing} />
         </AuthenticatedLayout>
     );
 }

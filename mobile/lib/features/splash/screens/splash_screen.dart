@@ -105,13 +105,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 300));
     _logoController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 800));
+    // Wait for logo animation to fully complete before showing text
+    await Future.delayed(const Duration(milliseconds: 1500));
     _textController.forward();
 
     await Future.delayed(const Duration(milliseconds: 600));
     _shimmerController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    // Hold the full splash for ~5 seconds total
+    await Future.delayed(const Duration(milliseconds: 2600));
     if (mounted) {
       _navigateNext();
     }

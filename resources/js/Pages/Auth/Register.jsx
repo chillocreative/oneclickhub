@@ -8,6 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Briefcase, ArrowLeft, ArrowRight, FileUp } from 'lucide-react';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 export default function Register({ planSlug }) {
     const hasPlan = Boolean(planSlug);
@@ -16,6 +17,7 @@ export default function Register({ planSlug }) {
     const { t } = useLanguage();
 
     const { data, setData, post, processing, errors, reset } = useForm({
+        company_name: '',
         name: '',
         phone_number: '',
         email: '',
@@ -136,6 +138,22 @@ export default function Register({ planSlug }) {
                         </div>
 
                         <form onSubmit={submit} className="space-y-4">
+                            {selectedRole === 'Freelancer' && (
+                                <div>
+                                    <InputLabel htmlFor="company_name" value={t('register.companyName')} />
+                                    <TextInput
+                                        id="company_name"
+                                        name="company_name"
+                                        value={data.company_name}
+                                        className="mt-1 block w-full"
+                                        onChange={(e) => setData('company_name', e.target.value.toUpperCase())}
+                                        placeholder={t('register.companyNamePlaceholder')}
+                                        style={{ textTransform: 'uppercase' }}
+                                    />
+                                    <InputError message={errors.company_name} className="mt-2" />
+                                </div>
+                            )}
+
                             <div>
                                 <InputLabel htmlFor="name" value={t('register.name')} />
                                 <TextInput
@@ -249,6 +267,7 @@ export default function Register({ planSlug }) {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <UploadingOverlay show={processing && data.identity_document !== null} />
         </GuestLayout>
     );
 }

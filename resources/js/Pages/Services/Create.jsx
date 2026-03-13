@@ -3,6 +3,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { ImagePlus, X } from 'lucide-react';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 export default function CreateService({ categories, service }) {
     const { t } = useLanguage();
@@ -181,6 +182,8 @@ export default function CreateService({ categories, service }) {
                     </div>
                 </div>
             </form>
+
+            <UploadingOverlay show={processing} />
         </AuthenticatedLayout>
     );
 }

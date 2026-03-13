@@ -107,6 +107,8 @@
     "register.selectedPlan": "Selected Plan",
     "register.registerAs": "REGISTER AS",
     "register.subtitle": "Fast and secure phone-based registration",
+    "register.companyName": "Company Name",
+    "register.companyNamePlaceholder": "e.g. ABC ENTERPRISE",
     "register.name": "Your Full Name",
     "register.namePlaceholder": "e.g. AHMAD FAIZ",
     "register.phone": "Phone Number",

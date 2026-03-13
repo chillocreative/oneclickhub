@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { Layers, Plus, Pencil, Trash2, Briefcase, Image } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 export default function Categories({ categories }) {
     const { t } = useLanguage();
@@ -303,6 +304,8 @@ export default function Categories({ categories }) {
                     </div>
                 </div>
             )}
+
+            <UploadingOverlay show={processing} />
         </AuthenticatedLayout>
     );
 }

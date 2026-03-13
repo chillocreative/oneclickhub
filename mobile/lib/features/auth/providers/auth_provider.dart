@@ -89,6 +89,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> register({
+    String? companyName,
     required String name,
     required String phoneNumber,
     required String email,
@@ -105,6 +106,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (identityDocumentPath != null) {
         final formData = FormData.fromMap({
           'name': name,
+          if (companyName != null && companyName.isNotEmpty)
+            'company_name': companyName,
           'phone_number': phoneNumber,
           'email': email,
           'password': password,
@@ -119,6 +122,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } else {
         response = await _dio.post(ApiConstants.register, data: {
           'name': name,
+          if (companyName != null && companyName.isNotEmpty)
+            'company_name': companyName,
           'phone_number': phoneNumber,
           'email': email,
           'password': password,

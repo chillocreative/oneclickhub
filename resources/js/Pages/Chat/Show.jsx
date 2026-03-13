@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { Send, Paperclip } from 'lucide-react';
 import ChatBubble from '@/Components/ChatBubble';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 export default function ChatShow({ conversation, messages: initialMessages, otherUser }) {
     const { auth } = usePage().props;
@@ -116,6 +117,8 @@ export default function ChatShow({ conversation, messages: initialMessages, othe
                     </form>
                 )}
             </div>
+
+            <UploadingOverlay show={processing && data.attachment !== null} />
         </AuthenticatedLayout>
     );
 }

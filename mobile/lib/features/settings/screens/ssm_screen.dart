@@ -7,6 +7,7 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/status_badge.dart';
+import '../../../core/widgets/uploading_overlay.dart';
 import '../providers/ssm_provider.dart';
 
 class SsmScreen extends ConsumerStatefulWidget {
@@ -78,7 +79,10 @@ class _SsmScreenState extends ConsumerState<SsmScreen> {
           ),
         ),
       ),
-      body: _buildBody(state),
+      body: UploadingOverlay.wrap(
+        show: state.isUploading,
+        child: _buildBody(state),
+      ),
     );
   }
 

@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { FileCheck } from 'lucide-react';
 import { useLanguage } from '@/Contexts/LanguageContext';
+import UploadingOverlay from '@/Components/UploadingOverlay';
 
 const ssmStatusColors = {
     pending: 'bg-yellow-50 text-yellow-600',
@@ -125,6 +126,8 @@ export default function SsmCertificate({ ssmVerification }) {
                     </form>
                 </div>
             </div>
+
+            <UploadingOverlay show={ssmForm.processing} />
         </AuthenticatedLayout>
     );
 }
