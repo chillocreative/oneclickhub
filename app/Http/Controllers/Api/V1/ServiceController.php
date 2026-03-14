@@ -8,6 +8,7 @@ use App\Http\Resources\V1\ServiceResource;
 use App\Http\Resources\V1\ReviewResource;
 use App\Models\Advertisement;
 use App\Models\FreelancerAvailability;
+use App\Models\HalalRestaurant;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\Service;
@@ -30,6 +31,15 @@ class ServiceController extends Controller
             ->get();
 
         return $this->success($advertisements);
+    }
+
+    public function halalRestaurants(): JsonResponse
+    {
+        $restaurants = HalalRestaurant::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'address', 'phone_number']);
+
+        return $this->success($restaurants);
     }
 
     public function categories(): JsonResponse

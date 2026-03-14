@@ -40,6 +40,12 @@ Route::get('/categories', [ServiceController::class, 'categories']);
 // Public: Advertisements
 Route::get('/advertisements', [ServiceController::class, 'advertisements']);
 
+// Public: Halal Restaurants
+Route::get('/halal-restaurants', [ServiceController::class, 'halalRestaurants']);
+
+// Public: Guest Notifications
+Route::get('/notifications/guest', [SettingsController::class, 'guestNotifications']);
+
 // Public: Subscription Plans
 Route::get('/plans', [SubscriptionController::class, 'plans']);
 
@@ -100,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/fcm-token', [FcmTokenController::class, 'destroy']);
 
     // Notifications
+    Route::get('/notifications', [SettingsController::class, 'notifications']);
     Route::post('/notifications/mark-read', [SettingsController::class, 'markNotificationsRead']);
 
     // Admin Routes

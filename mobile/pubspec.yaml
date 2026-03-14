@@ -60,6 +60,7 @@ dependencies:
 
   # File picker
   file_picker: ^8.1.7
+  shared_preferences: ^2.5.4
 
 dependency_overrides:
   path_provider_foundation: 2.4.0

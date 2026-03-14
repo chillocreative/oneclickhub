@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../api/api_client.dart';
 import '../constants/app_colors.dart';
 import '../services/push_notification_service.dart';
+import '../../features/notifications/providers/notifications_provider.dart';
 
 class GuestShellScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -19,6 +20,7 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
   void initState() {
     super.initState();
     _registerGuestFcmToken();
+    ref.read(notificationsProvider.notifier).loadNotifications(isGuest: true);
   }
 
   void _registerGuestFcmToken() {
@@ -33,6 +35,7 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
     int selectedIndex = 0;
     if (location == '/home') selectedIndex = 0;
     if (location == '/auth/register') selectedIndex = 1;
+    if (location == '/halal-restaurants') selectedIndex = 2;
     if (location == '/auth/login') selectedIndex = 3;
 
     return Scaffold(
@@ -64,7 +67,7 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
                 context.go('/auth/register');
                 break;
               case 2:
-                context.go('/auth/login');
+                context.go('/halal-restaurants');
                 break;
               case 3:
                 context.go('/auth/login');
@@ -83,8 +86,8 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
               label: '',
             ),
             NavigationDestination(
-              icon: Icon(Icons.search_outlined),
-              selectedIcon: Icon(Icons.search),
+              icon: Icon(Icons.restaurant_outlined),
+              selectedIcon: Icon(Icons.restaurant),
               label: '',
             ),
             NavigationDestination(

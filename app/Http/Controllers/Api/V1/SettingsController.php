@@ -7,6 +7,7 @@ use App\Http\Resources\V1\BankingDetailResource;
 use App\Http\Resources\V1\SsmVerificationResource;
 use App\Http\Resources\V1\UserResource;
 use App\Models\AdminSetting;
+use App\Models\PushNotification;
 use App\Models\Service;
 use App\Models\SsmVerification;
 use App\Models\User;
@@ -224,9 +225,53 @@ class SettingsController extends Controller
         }
     }
 
+    public function notifications(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $roles = $user->getRoleNames()->toArray();
+
+        $notifications = PushNotification::where(function ($q) use ($roles) {
+            $q->where('target_role', 'all')
+              ->orWhereIn('target_role', $roles);
+        })
+            ->latest()
+            ->take(50)
+            ->get(['id', 'title', 'body', 'target_role', 'created_at']);
+
+        $unreadCount = PushNotification::where(function ($q) use ($roles) {
+            $q->where('target_role', 'all')
+              ->orWhereIn('target_role', $roles);
+        })
+            ->when($user->notification_read_at, function ($q) use ($user) {
+                $q->where('created_at', '>', $user->notification_read_at);
+            })
+            ->count();
+
+        return $this->success([
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    public function guestNotifications(): JsonResponse
+    {
+        $notifications = PushNotification::where('target_role', 'all')
+            ->latest()
+            ->take(50)
+            ->get(['id', 'title', 'body', 'target_role', 'created_at']);
+
+        return $this->success([
+            'notifications' => $notifications,
+        ]);
+    }
+
     public function markNotificationsRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $user = $request->user();
+        $user->notification_read_at = now();
+        $user->save();
+
+        $user->unreadNotifications->markAsRead();
 
         return $this->success(null, 'Notifications marked as read.');
     }

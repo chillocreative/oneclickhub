@@ -23,6 +23,8 @@ import '../../features/settings/screens/ssm_screen.dart';
 import '../../features/settings/screens/about_screen.dart';
 import '../../features/settings/screens/webview_page_screen.dart';
 import '../../features/home/screens/guest_home_screen.dart';
+import '../../features/home/screens/halal_restaurants_screen.dart';
+import '../../features/notifications/screens/notifications_screen.dart';
 import '../widgets/shell_scaffold.dart';
 import '../widgets/guest_shell_scaffold.dart';
 
@@ -40,8 +42,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Let splash screen handle its own navigation
       if (isSplash) return null;
 
-      // Allow unauthenticated users to access /home and /auth routes
-      if (!isAuth && !isAuthRoute && !isGuestHome) {
+      // Allow unauthenticated users to access /home, /auth, and guest routes
+      final isGuestRoute = state.matchedLocation == '/halal-restaurants' ||
+          state.matchedLocation == '/notifications';
+      if (!isAuth && !isAuthRoute && !isGuestHome && !isGuestRoute) {
         return '/home';
       }
       // Redirect authenticated users away from guest/auth routes
@@ -83,6 +87,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/auth/register',
             name: 'register',
             builder: (context, state) => const RegisterScreen(),
+          ),
+          GoRoute(
+            path: '/halal-restaurants',
+            name: 'halal-restaurants',
+            builder: (context, state) => const HalalRestaurantsScreen(),
           ),
         ],
       ),
@@ -127,6 +136,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const MyServicesScreen(),
           ),
         ],
+      ),
+
+      // Notifications (no shell — accessible by both guests and authenticated)
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        builder: (context, state) {
+          final isGuest = state.uri.queryParameters['guest'] == 'true';
+          return NotificationsScreen(isGuest: isGuest);
+        },
       ),
 
       // Detail routes (no shell)

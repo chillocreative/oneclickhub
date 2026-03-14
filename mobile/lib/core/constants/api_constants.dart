@@ -55,7 +55,12 @@ class ApiConstants {
   static const String fcmTokenGuest = '/fcm-token/guest';
 
   // Notifications
+  static const String notifications = '/notifications';
+  static const String notificationsGuest = '/notifications/guest';
   static const String markNotificationsRead = '/notifications/mark-read';
+
+  // Halal Restaurants
+  static const String halalRestaurants = '/halal-restaurants';
 
   // Admin
   static const String adminUsers = '/admin/users';

@@ -28,6 +28,7 @@ import {
     Landmark,
     FileCheck,
     Megaphone,
+    UtensilsCrossed,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessNotification from '@/Components/SuccessNotification';
@@ -176,6 +177,13 @@ function AdminSidebar({ collapsed, t }) {
                     icon={Megaphone}
                     label="Advertisements"
                     active={route().current('admin.advertisements.*')}
+                    collapsed={collapsed}
+                />
+                <SidebarItem
+                    href={route('admin.halal-restaurants.index')}
+                    icon={UtensilsCrossed}
+                    label="Halal Restaurants"
+                    active={route().current('admin.halal-restaurants.*')}
                     collapsed={collapsed}
                 />
                 <SidebarItem

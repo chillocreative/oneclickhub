@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../notifications/providers/notifications_provider.dart';
 import '../../services/models/service_category.dart';
 
 class _AdvertisementModel {
@@ -177,27 +178,69 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'ONECLICKHUB',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textDark,
-                  letterSpacing: 1,
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ONECLICKHUB',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDark,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              Text(
-                'Connecting All',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textGrey,
-                  letterSpacing: 2,
+                Text(
+                  'Connecting All',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textGrey,
+                    letterSpacing: 2,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadCount =
+                  ref.watch(notificationsProvider).unreadCount;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    color: AppColors.textDark,
+                    onPressed: () => context.push('/notifications?guest=true'),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),

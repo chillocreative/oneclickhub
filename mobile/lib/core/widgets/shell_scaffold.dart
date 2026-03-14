@@ -6,6 +6,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../api/api_client.dart';
 import '../constants/app_colors.dart';
 import '../services/push_notification_service.dart';
+import '../../features/notifications/providers/notifications_provider.dart';
 
 class ShellScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -26,6 +27,8 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
     WidgetsBinding.instance.addObserver(this);
     // Register FCM token when shell is ready (user is authenticated)
     _registerFcmToken();
+    // Load notifications
+    ref.read(notificationsProvider.notifier).loadNotifications();
   }
 
   void _registerFcmToken() {
@@ -47,6 +50,7 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
       if (authState.isAuthenticated) {
         ref.read(authProvider.notifier).fetchUser();
         _registerFcmToken();
+        ref.read(notificationsProvider.notifier).loadNotifications();
       }
     }
   }
