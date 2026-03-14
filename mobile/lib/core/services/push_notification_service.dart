@@ -20,7 +20,8 @@ class PushNotificationService {
 
   String? _currentToken;
   Dio? _dio;
-  bool _tokenRegistered = false;
+  bool _authTokenRegistered = false;
+  bool _guestTokenRegistered = false;
 
   /// Callback invoked when a notification is tapped.
   /// Set this after the router is ready to navigate on tap.
@@ -70,7 +71,8 @@ class PushNotificationService {
     // Listen for token refresh
     _messaging.onTokenRefresh.listen((newToken) {
       _currentToken = newToken;
-      _tokenRegistered = false;
+      _authTokenRegistered = false;
+      _guestTokenRegistered = false;
       _sendTokenToServer(newToken);
     });
 
@@ -133,8 +135,8 @@ class PushNotificationService {
       } catch (_) {}
     }
 
-    if (_currentToken == null || _tokenRegistered) {
-      return _tokenRegistered;
+    if (_currentToken == null || _authTokenRegistered) {
+      return _authTokenRegistered;
     }
 
     return await _sendTokenToServer(_currentToken!);
@@ -148,14 +150,14 @@ class PushNotificationService {
       } catch (_) {}
     }
 
-    if (_currentToken == null || _tokenRegistered) {
-      return _tokenRegistered;
+    if (_currentToken == null || _guestTokenRegistered) {
+      return _guestTokenRegistered;
     }
 
     if (_dio == null) return false;
     try {
       await _dio!.post(ApiConstants.fcmTokenGuest, data: {'token': _currentToken});
-      _tokenRegistered = true;
+      _guestTokenRegistered = true;
       debugPrint('FCM guest token registered OK');
       return true;
     } catch (e) {
@@ -168,7 +170,8 @@ class PushNotificationService {
     if (_currentToken != null && _dio != null) {
       try {
         await _dio!.delete(ApiConstants.fcmToken, data: {'token': _currentToken});
-        _tokenRegistered = false;
+        _authTokenRegistered = false;
+        _guestTokenRegistered = false;
       } catch (_) {}
     }
   }
@@ -177,7 +180,8 @@ class PushNotificationService {
     if (_dio == null) return false;
     try {
       await _dio!.post(ApiConstants.fcmToken, data: {'token': token});
-      _tokenRegistered = true;
+      _authTokenRegistered = true;
+      _guestTokenRegistered = true; // auth supersedes guest
       debugPrint('FCM token registered OK');
       return true;
     } catch (e) {
