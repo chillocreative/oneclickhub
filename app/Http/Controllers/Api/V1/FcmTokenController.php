@@ -19,6 +19,7 @@ class FcmTokenController extends Controller
             'device_name' => 'nullable|string|max:255',
         ]);
 
+        // Link any existing guest token (user_id = null) to this user
         FcmToken::updateOrCreate(
             ['token' => $request->token],
             [
@@ -28,6 +29,24 @@ class FcmTokenController extends Controller
         );
 
         return $this->success(null, 'FCM token registered.');
+    }
+
+    public function storeGuest(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        // Only create if token doesn't already exist (don't overwrite a linked user)
+        FcmToken::firstOrCreate(
+            ['token' => $request->token],
+            [
+                'user_id' => null,
+                'device_name' => null,
+            ]
+        );
+
+        return $this->success(null, 'Guest FCM token registered.');
     }
 
     public function destroy(Request $request): JsonResponse

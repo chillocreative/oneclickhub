@@ -32,6 +32,7 @@ class FcmService
             $userIds = User::role($targetRole)->pluck('id');
             $query->whereIn('user_id', $userIds);
         }
+        // When 'all', no filter is applied — includes guest tokens (user_id IS NULL)
 
         $tokens = $query->pluck('token')->toArray();
         Log::info('FCM: Sending to role=' . $targetRole . ', tokens found=' . count($tokens));

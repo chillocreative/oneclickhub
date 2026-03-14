@@ -43,6 +43,9 @@ Route::get('/advertisements', [ServiceController::class, 'advertisements']);
 // Public: Subscription Plans
 Route::get('/plans', [SubscriptionController::class, 'plans']);
 
+// Public: Guest FCM Token
+Route::post('/fcm-token/guest', [FcmTokenController::class, 'storeGuest']);
+
 // Authenticated Routes
 Route::middleware('auth:sanctum')->group(function () {
 

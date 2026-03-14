@@ -15,11 +15,26 @@ void main() async {
   runApp(const ProviderScope(child: OneClickHubApp()));
 }
 
-class OneClickHubApp extends ConsumerWidget {
+class OneClickHubApp extends ConsumerStatefulWidget {
   const OneClickHubApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OneClickHubApp> createState() => _OneClickHubAppState();
+}
+
+class _OneClickHubAppState extends ConsumerState<OneClickHubApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Wire notification tap → navigate to dashboard
+    PushNotificationService.onNotificationTap = () {
+      final router = ref.read(routerProvider);
+      router.go('/dashboard');
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
     final textTheme = GoogleFonts.figtreeTextTheme();
 

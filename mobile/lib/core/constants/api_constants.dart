@@ -52,6 +52,7 @@ class ApiConstants {
 
   // FCM Token
   static const String fcmToken = '/fcm-token';
+  static const String fcmTokenGuest = '/fcm-token/guest';
 
   // Notifications
   static const String markNotificationsRead = '/notifications/mark-read';

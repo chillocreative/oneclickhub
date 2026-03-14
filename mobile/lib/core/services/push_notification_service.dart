@@ -22,6 +22,10 @@ class PushNotificationService {
   Dio? _dio;
   bool _tokenRegistered = false;
 
+  /// Callback invoked when a notification is tapped.
+  /// Set this after the router is ready to navigate on tap.
+  static void Function()? onNotificationTap;
+
   static const _androidChannel = AndroidNotificationChannel(
     'high_importance_channel',
     'High Importance Notifications',
@@ -36,11 +40,12 @@ class PushNotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_androidChannel);
 
-    // Initialize local notifications
+    // Initialize local notifications with tap callback
     await _localNotifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       ),
+      onDidReceiveNotificationResponse: (_) => _handleNotificationTap(),
     );
 
     // Request FCM permission
@@ -72,10 +77,14 @@ class PushNotificationService {
     // Foreground: show notification using local notifications
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
 
-    // Background tap
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      debugPrint('FCM tapped: ${message.notification?.title}');
-    });
+    // Background tap — navigate when user taps notification
+    FirebaseMessaging.onMessageOpenedApp.listen((_) => _handleNotificationTap());
+
+    // Cold start tap — app was killed, user tapped notification to open
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap();
+    }
 
     // iOS foreground presentation (Android uses local notifications above)
     await _messaging.setForegroundNotificationPresentationOptions(
@@ -83,6 +92,11 @@ class PushNotificationService {
       badge: true,
       sound: true,
     );
+  }
+
+  void _handleNotificationTap() {
+    debugPrint('FCM notification tapped');
+    onNotificationTap?.call();
   }
 
   void _showForegroundNotification(RemoteMessage message) {
@@ -110,6 +124,8 @@ class PushNotificationService {
     _dio = dio;
   }
 
+  String? get currentToken => _currentToken;
+
   Future<bool> registerToken() async {
     if (_currentToken == null) {
       try {
@@ -122,6 +138,30 @@ class PushNotificationService {
     }
 
     return await _sendTokenToServer(_currentToken!);
+  }
+
+  /// Register token for guest (no auth required).
+  Future<bool> registerGuestToken() async {
+    if (_currentToken == null) {
+      try {
+        _currentToken = await _messaging.getToken();
+      } catch (_) {}
+    }
+
+    if (_currentToken == null || _tokenRegistered) {
+      return _tokenRegistered;
+    }
+
+    if (_dio == null) return false;
+    try {
+      await _dio!.post(ApiConstants.fcmTokenGuest, data: {'token': _currentToken});
+      _tokenRegistered = true;
+      debugPrint('FCM guest token registered OK');
+      return true;
+    } catch (e) {
+      debugPrint('FCM guest token register failed: $e');
+      return false;
+    }
   }
 
   Future<void> removeToken() async {

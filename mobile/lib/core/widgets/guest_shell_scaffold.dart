@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../api/api_client.dart';
 import '../constants/app_colors.dart';
+import '../services/push_notification_service.dart';
 
-class GuestShellScaffold extends StatelessWidget {
+class GuestShellScaffold extends ConsumerStatefulWidget {
   final Widget child;
 
   const GuestShellScaffold({super.key, required this.child});
+
+  @override
+  ConsumerState<GuestShellScaffold> createState() => _GuestShellScaffoldState();
+}
+
+class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
+  @override
+  void initState() {
+    super.initState();
+    _registerGuestFcmToken();
+  }
+
+  void _registerGuestFcmToken() {
+    final dio = ref.read(dioProvider);
+    PushNotificationService().setDio(dio);
+    PushNotificationService().registerGuestToken();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +36,7 @@ class GuestShellScaffold extends StatelessWidget {
     if (location == '/auth/login') selectedIndex = 3;
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
