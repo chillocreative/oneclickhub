@@ -19,6 +19,7 @@ class FcmService
             $this->credentials = json_decode(file_get_contents($credentialsPath), true);
             $this->projectId = $this->credentials['project_id'] ?? '';
         } else {
+            Log::warning('FCM: firebase-credentials.json not found at ' . $credentialsPath);
             $this->projectId = '';
         }
     }
@@ -33,6 +34,7 @@ class FcmService
         }
 
         $tokens = $query->pluck('token')->toArray();
+        Log::info('FCM: Sending to role=' . $targetRole . ', tokens found=' . count($tokens));
 
         if (empty($tokens)) {
             return 0;
@@ -109,8 +111,8 @@ class FcmService
 
         try {
             $now = time();
-            $header = base64url_encode(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
-            $claim = base64url_encode(json_encode([
+            $header = $this->base64UrlEncode(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+            $claim = $this->base64UrlEncode(json_encode([
                 'iss' => $this->credentials['client_email'],
                 'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
                 'aud' => $this->credentials['token_uri'],
@@ -120,8 +122,12 @@ class FcmService
 
             $signatureInput = "$header.$claim";
             $privateKey = openssl_pkey_get_private($this->credentials['private_key']);
+            if (!$privateKey) {
+                Log::error('FCM: Failed to parse private key');
+                return null;
+            }
             openssl_sign($signatureInput, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-            $jwt = "$signatureInput." . base64url_encode($signature);
+            $jwt = "$signatureInput." . $this->base64UrlEncode($signature);
 
             $response = Http::asForm()->post($this->credentials['token_uri'], [
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
@@ -139,11 +145,8 @@ class FcmService
             return null;
         }
     }
-}
 
-// Helper if not already defined
-if (!function_exists('base64url_encode')) {
-    function base64url_encode(string $data): string
+    private function base64UrlEncode(string $data): string
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }

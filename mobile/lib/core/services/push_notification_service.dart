@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('FCM background message: ${message.notification?.title}');
 }
 
@@ -18,13 +16,11 @@ class PushNotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   String? _currentToken;
   Dio? _dio;
+  bool _tokenRegistered = false;
 
   String? get currentToken => _currentToken;
 
   Future<void> initialize() async {
-    // Set background handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
     // Request permission
     final settings = await _messaging.requestPermission(
       alert: true,
@@ -36,12 +32,18 @@ class PushNotificationService {
     if (settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       // Get token
-      _currentToken = await _messaging.getToken();
-      debugPrint('FCM Token: $_currentToken');
+      try {
+        _currentToken = await _messaging.getToken();
+        debugPrint('FCM Token: $_currentToken');
+      } catch (e) {
+        debugPrint('FCM getToken error: $e');
+      }
 
       // Listen for token refresh
       _messaging.onTokenRefresh.listen((newToken) {
+        debugPrint('FCM Token refreshed: $newToken');
         _currentToken = newToken;
+        _tokenRegistered = false;
         _sendTokenToServer(newToken);
       });
     }
@@ -49,7 +51,6 @@ class PushNotificationService {
     // Foreground message handling
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       debugPrint('FCM foreground: ${message.notification?.title}');
-      // System notification is shown automatically on Android
     });
 
     // When user taps notification (app in background)
@@ -70,7 +71,17 @@ class PushNotificationService {
   }
 
   Future<void> registerToken() async {
-    if (_currentToken != null) {
+    if (_currentToken == null) {
+      // Try to get token again
+      try {
+        _currentToken = await _messaging.getToken();
+        debugPrint('FCM Token (retry): $_currentToken');
+      } catch (e) {
+        debugPrint('FCM getToken retry error: $e');
+      }
+    }
+
+    if (_currentToken != null && !_tokenRegistered) {
       await _sendTokenToServer(_currentToken!);
     }
   }
@@ -79,16 +90,25 @@ class PushNotificationService {
     if (_currentToken != null && _dio != null) {
       try {
         await _dio!.delete(ApiConstants.fcmToken, data: {'token': _currentToken});
-      } catch (_) {}
+        _tokenRegistered = false;
+      } catch (e) {
+        debugPrint('FCM token removal failed: $e');
+      }
     }
   }
 
   Future<void> _sendTokenToServer(String token) async {
-    if (_dio == null) return;
+    if (_dio == null) {
+      debugPrint('FCM: Dio not set, cannot register token');
+      return;
+    }
     try {
       await _dio!.post(ApiConstants.fcmToken, data: {'token': token});
+      _tokenRegistered = true;
+      debugPrint('FCM token registered to server successfully');
     } catch (e) {
       debugPrint('FCM token registration failed: $e');
+      _tokenRegistered = false;
     }
   }
 }

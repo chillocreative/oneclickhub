@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../api/api_client.dart';
 import '../constants/app_colors.dart';
+import '../services/push_notification_service.dart';
 
 class ShellScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -22,6 +24,14 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Register FCM token when shell is ready (user is authenticated)
+    _registerFcmToken();
+  }
+
+  void _registerFcmToken() {
+    final dio = ref.read(dioProvider);
+    PushNotificationService().setDio(dio);
+    PushNotificationService().registerToken();
   }
 
   @override
@@ -36,6 +46,7 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
       final authState = ref.read(authProvider);
       if (authState.isAuthenticated) {
         ref.read(authProvider.notifier).fetchUser();
+        _registerFcmToken();
       }
     }
   }
