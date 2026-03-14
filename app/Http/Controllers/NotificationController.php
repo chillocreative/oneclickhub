@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FcmToken;
 use App\Models\PushNotification;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
@@ -18,8 +19,14 @@ class NotificationController extends Controller
             ->latest()
             ->paginate(20);
 
+        $diagnostics = [
+            'total_tokens' => FcmToken::count(),
+            'credentials_exists' => file_exists(storage_path('app/firebase-credentials.json')),
+        ];
+
         return Inertia::render('Admin/Notifications', [
             'notifications' => $notifications,
+            'diagnostics' => $diagnostics,
         ]);
     }
 

@@ -4,7 +4,7 @@ import { Bell, Send, Users, Briefcase, Globe } from 'lucide-react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 
-export default function Notifications({ notifications }) {
+export default function Notifications({ notifications, diagnostics }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         body: '',
@@ -34,6 +34,17 @@ export default function Notifications({ notifications }) {
             }
         >
             <Head title="Push Notifications" />
+
+            {/* Diagnostics */}
+            {diagnostics && (
+                <div className={`p-4 rounded-2xl mb-6 flex items-center gap-3 ${diagnostics.total_tokens > 0 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+                    <div className={`size-3 rounded-full ${diagnostics.total_tokens > 0 ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    <span className="text-sm font-semibold text-gray-700">
+                        {diagnostics.total_tokens} device(s) registered
+                        {!diagnostics.credentials_exists && ' | Firebase credentials missing on server'}
+                    </span>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Send Form */}
