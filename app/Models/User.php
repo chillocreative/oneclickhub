@@ -134,6 +134,11 @@ class User extends Authenticatable
         return $this->hasOne(SsmVerification::class);
     }
 
+    public function fcmTokens(): HasMany
+    {
+        return $this->hasMany(FcmToken::class);
+    }
+
     public function subscribeToPlan(SubscriptionPlan $plan, array $paymentData = []): Subscription
     {
         // Cancel any existing active subscription

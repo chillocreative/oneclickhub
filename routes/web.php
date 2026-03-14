@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdvertisementController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BankingDetailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ServiceCategoryController;
@@ -175,6 +176,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/ssm-verifications', [SsmVerificationController::class, 'index'])->name('admin.ssm.index');
         Route::post('/admin/ssm-verifications/{verification}/verify', [SsmVerificationController::class, 'manualVerify'])->name('admin.ssm.verify');
         Route::delete('/admin/ssm-verifications/{verification}', [SsmVerificationController::class, 'destroy'])->name('admin.ssm.destroy');
+
+        // Admin notifications
+        Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+        Route::post('/admin/notifications/send', [NotificationController::class, 'send'])->name('admin.notifications.send');
 
         // Admin settings
         Route::get('/admin/settings', [SsmVerificationController::class, 'adminSettings'])->name('admin.settings');

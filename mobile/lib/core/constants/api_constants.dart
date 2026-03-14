@@ -50,6 +50,9 @@ class ApiConstants {
   static const String ssmCertificate = '/settings/ssm';
   static const String ssmUpload = '/settings/ssm-upload';
 
+  // FCM Token
+  static const String fcmToken = '/fcm-token';
+
   // Notifications
   static const String markNotificationsRead = '/notifications/mark-read';
 

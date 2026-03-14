@@ -178,6 +178,13 @@ function AdminSidebar({ collapsed, t }) {
                     active={route().current('admin.advertisements.*')}
                     collapsed={collapsed}
                 />
+                <SidebarItem
+                    href={route('admin.notifications.index')}
+                    icon={Bell}
+                    label="Notifications"
+                    active={route().current('admin.notifications.*')}
+                    collapsed={collapsed}
+                />
             </div>
 
             <div className="space-y-2">

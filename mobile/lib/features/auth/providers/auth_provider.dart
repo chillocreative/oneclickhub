@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/services/push_notification_service.dart';
 import '../../../core/storage/token_storage.dart';
 import '../../../models/user.dart';
 
@@ -73,6 +74,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
+        // Register FCM token
+        PushNotificationService().setDio(_dio);
+        PushNotificationService().registerToken();
         return true;
       } else {
         state = state.copyWith(
@@ -148,6 +152,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: true,
           isLoading: false,
         );
+        // Register FCM token
+        PushNotificationService().setDio(_dio);
+        PushNotificationService().registerToken();
         return true;
       } else {
         state = state.copyWith(
@@ -185,6 +192,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: true,
           ssm: data['data']['ssm'],
         );
+        // Ensure FCM token is registered
+        PushNotificationService().setDio(_dio);
+        PushNotificationService().registerToken();
       } else {
         await logout();
       }
@@ -194,6 +204,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Remove FCM token before logout
+    PushNotificationService().setDio(_dio);
+    await PushNotificationService().removeToken();
     try {
       await _dio.post(ApiConstants.logout);
     } catch (_) {}

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\CalendarController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\AdminController;
+use App\Http\Controllers\Api\V1\FcmTokenController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,6 +91,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [SettingsController::class, 'profile']);
     Route::post('/profile', [SettingsController::class, 'updateProfile']);
     Route::patch('/profile', [SettingsController::class, 'updateProfile']);
+
+    // FCM Tokens
+    Route::post('/fcm-token', [FcmTokenController::class, 'store']);
+    Route::delete('/fcm-token', [FcmTokenController::class, 'destroy']);
 
     // Notifications
     Route::post('/notifications/mark-read', [SettingsController::class, 'markNotificationsRead']);

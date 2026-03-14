@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "216283561548",
+    "project_id": "oneclickhub-ce92f",
+    "storage_bucket": "oneclickhub-ce92f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:216283561548:android:921feed5e52e4e4ab87ee9",
+        "android_client_info": {
+          "package_name": "com.oneclickhub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Ryd578WNjlnZ_Gnzd4Y273uqT3EOAPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
