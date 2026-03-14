@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../constants/api_constants.dart';
 
 @pragma('vm:entry-point')
@@ -14,57 +15,94 @@ class PushNotificationService {
   PushNotificationService._();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
   String? _currentToken;
   Dio? _dio;
   bool _tokenRegistered = false;
 
-  String? get currentToken => _currentToken;
-  bool get isTokenRegistered => _tokenRegistered;
+  static const _androidChannel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'High Importance Notifications',
+    description: 'This channel is used for important notifications.',
+    importance: Importance.high,
+  );
 
   Future<void> initialize() async {
-    // Request permission
+    // Create Android notification channel
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(_androidChannel);
+
+    // Initialize local notifications
+    await _localNotifications.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      ),
+    );
+
+    // Request FCM permission
     try {
-      final settings = await _messaging.requestPermission(
+      await _messaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
-      debugPrint('FCM permission: ${settings.authorizationStatus}');
     } catch (e) {
-      debugPrint('FCM permission request error: $e');
+      debugPrint('FCM permission error: $e');
     }
 
-    // Get token
+    // Get FCM token
     try {
       _currentToken = await _messaging.getToken();
-      debugPrint('FCM Token obtained: ${_currentToken != null ? '${_currentToken!.substring(0, 20)}...' : 'NULL'}');
+      debugPrint('FCM Token: ${_currentToken != null ? 'obtained' : 'null'}');
     } catch (e) {
       debugPrint('FCM getToken error: $e');
     }
 
     // Listen for token refresh
     _messaging.onTokenRefresh.listen((newToken) {
-      debugPrint('FCM Token refreshed');
       _currentToken = newToken;
       _tokenRegistered = false;
       _sendTokenToServer(newToken);
     });
 
-    // Foreground message handling
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('FCM foreground: ${message.notification?.title}');
+    // Foreground: show notification using local notifications
+    FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+
+    // Background tap
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      debugPrint('FCM tapped: ${message.notification?.title}');
     });
 
-    // When user taps notification (app in background)
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('FCM notification tapped: ${message.notification?.title}');
-    });
-
-    // Set foreground notification presentation options
+    // iOS foreground presentation (Android uses local notifications above)
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
+    );
+  }
+
+  void _showForegroundNotification(RemoteMessage message) {
+    final notification = message.notification;
+    if (notification == null) return;
+
+    _localNotifications.show(
+      notification.hashCode,
+      notification.title,
+      notification.body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _androidChannel.id,
+          _androidChannel.name,
+          channelDescription: _androidChannel.description,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
     );
   }
 
@@ -76,19 +114,11 @@ class PushNotificationService {
     if (_currentToken == null) {
       try {
         _currentToken = await _messaging.getToken();
-        debugPrint('FCM Token (retry): ${_currentToken != null ? 'obtained' : 'still null'}');
-      } catch (e) {
-        debugPrint('FCM getToken retry error: $e');
-      }
+      } catch (_) {}
     }
 
-    if (_currentToken == null) {
-      debugPrint('FCM: No token available, cannot register');
-      return false;
-    }
-
-    if (_tokenRegistered) {
-      return true;
+    if (_currentToken == null || _tokenRegistered) {
+      return _tokenRegistered;
     }
 
     return await _sendTokenToServer(_currentToken!);
@@ -99,31 +129,19 @@ class PushNotificationService {
       try {
         await _dio!.delete(ApiConstants.fcmToken, data: {'token': _currentToken});
         _tokenRegistered = false;
-      } catch (e) {
-        debugPrint('FCM token removal failed: $e');
-      }
+      } catch (_) {}
     }
   }
 
   Future<bool> _sendTokenToServer(String token) async {
-    if (_dio == null) {
-      debugPrint('FCM: Dio not set, cannot register token');
-      return false;
-    }
+    if (_dio == null) return false;
     try {
-      final response = await _dio!.post(ApiConstants.fcmToken, data: {'token': token});
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _tokenRegistered = true;
-        debugPrint('FCM token registered to server OK');
-        return true;
-      }
-      debugPrint('FCM token registration unexpected status: ${response.statusCode}');
-      return false;
-    } on DioException catch (e) {
-      debugPrint('FCM token registration failed: ${e.response?.statusCode} - ${e.response?.data}');
-      return false;
+      await _dio!.post(ApiConstants.fcmToken, data: {'token': token});
+      _tokenRegistered = true;
+      debugPrint('FCM token registered OK');
+      return true;
     } catch (e) {
-      debugPrint('FCM token registration error: $e');
+      debugPrint('FCM token register failed: $e');
       return false;
     }
   }

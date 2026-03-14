@@ -131,18 +131,18 @@ export default function Notifications({ notifications, diagnostics }) {
                         </div>
                         <div>
                             <h3 className="text-lg font-black text-gray-900 dark:text-white">Notification History</h3>
-                            <p className="text-xs text-gray-400">{notifications?.total ?? 0} notifications sent</p>
+                            <p className="text-xs text-gray-400">Latest {notifications?.length ?? 0} notifications</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        {(!notifications?.data || notifications.data.length === 0) ? (
+                        {(!notifications || notifications.length === 0) ? (
                             <div className="text-center py-12">
                                 <Bell size={40} className="mx-auto text-gray-200 dark:text-white/10 mb-4" />
                                 <p className="text-gray-400 text-sm font-semibold">No notifications sent yet</p>
                             </div>
                         ) : (
-                            notifications.data.map((notif) => (
+                            notifications.map((notif) => (
                                 <div key={notif.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">

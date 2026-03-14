@@ -17,7 +17,8 @@ class NotificationController extends Controller
     {
         $notifications = PushNotification::with('sender:id,name')
             ->latest()
-            ->paginate(20);
+            ->take(5)
+            ->get();
 
         $diagnostics = [
             'total_tokens' => FcmToken::count(),
