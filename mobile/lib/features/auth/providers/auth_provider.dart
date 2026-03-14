@@ -90,6 +90,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> register({
     String? companyName,
+    String? businessName,
     required String name,
     required String phoneNumber,
     required String email,
@@ -108,6 +109,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'name': name,
           if (companyName != null && companyName.isNotEmpty)
             'company_name': companyName,
+          if (businessName != null && businessName.isNotEmpty)
+            'business_name': businessName,
           'phone_number': phoneNumber,
           'email': email,
           'password': password,
@@ -124,6 +127,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'name': name,
           if (companyName != null && companyName.isNotEmpty)
             'company_name': companyName,
+          if (businessName != null && businessName.isNotEmpty)
+            'business_name': businessName,
           'phone_number': phoneNumber,
           'email': email,
           'password': password,

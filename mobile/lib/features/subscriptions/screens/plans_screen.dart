@@ -344,7 +344,16 @@ class _CurrentSubscriptionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final planName = subscription['plan']?['name']?.toString() ?? 'Current Plan';
-    final endsAt = subscription['ends_at']?.toString();
+    final endsAtRaw = subscription['ends_at']?.toString();
+    String? endsAt;
+    if (endsAtRaw != null) {
+      try {
+        final dt = DateTime.parse(endsAtRaw);
+        endsAt = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } catch (_) {
+        endsAt = endsAtRaw;
+      }
+    }
 
     return Container(
       width: double.infinity,

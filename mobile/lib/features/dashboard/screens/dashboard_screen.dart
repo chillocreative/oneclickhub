@@ -8,7 +8,6 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
-import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/shimmer_loading.dart';
 import '../../../core/widgets/stat_card.dart';
@@ -29,115 +28,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void initState() {
     super.initState();
     _loadDashboard();
-  }
-
-  Widget _buildEndDrawer(BuildContext context, dynamic user) {
-    final isFreelancer = user?.isFreelancer == true;
-    final isCustomer = user?.isCustomer == true;
-
-    return Drawer(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  RichText(
-                    text: const TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'ONECLICK',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'HUB',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            if (isFreelancer) ...[
-              _drawerItem(Icons.work_outline, 'My Services', () {
-                Navigator.pop(context);
-                context.push('/my-services');
-              }),
-              _drawerItem(Icons.calendar_month, 'Calendar', () {
-                Navigator.pop(context);
-                context.push('/calendar');
-              }),
-              _drawerItem(Icons.card_membership, 'Subscription Plans', () {
-                Navigator.pop(context);
-                context.push('/plans');
-              }),
-              _drawerItem(Icons.verified_outlined, 'SSM Verification', () {
-                Navigator.pop(context);
-                context.push('/settings/ssm');
-              }),
-              _drawerItem(Icons.account_balance_outlined, 'Banking Details', () {
-                Navigator.pop(context);
-                context.push('/settings/banking');
-              }),
-            ],
-            if (isCustomer) ...[
-              _drawerItem(Icons.search, 'Browse Services', () {
-                Navigator.pop(context);
-                context.push('/services');
-              }),
-              _drawerItem(Icons.receipt_long_outlined, 'My Bookings', () {
-                Navigator.pop(context);
-                context.go('/bookings');
-              }),
-            ],
-            const Spacer(),
-            const Divider(height: 1),
-            _drawerItem(Icons.logout_rounded, 'Logout', () async {
-              Navigator.pop(context);
-              await ref.read(authProvider.notifier).logout();
-              if (!mounted) return;
-              context.go('/auth/login');
-            }, color: Colors.red),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String label, VoidCallback onTap, {Color? color}) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? AppColors.textGrey),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: color ?? AppColors.textDark,
-        ),
-      ),
-      onTap: onTap,
-    );
   }
 
   Future<void> _loadDashboard() async {
@@ -365,21 +255,21 @@ class _FreelancerDashboard extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                icon: Icons.work_outline,
-                iconColor: AppColors.primary,
-                iconBgColor: const Color(0xFFFFF0E0),
-                value: '${data!['total_services'] ?? 0}',
-                label: 'Total Services',
+                icon: Icons.mail_outline,
+                iconColor: AppColors.statusPendingPayment,
+                iconBgColor: AppColors.statusPendingPaymentBg,
+                value: '${data!['total_inquiry'] ?? 0}',
+                label: 'Total Inquiry',
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: StatCard(
-                icon: Icons.flash_on,
-                iconColor: AppColors.statusActive,
-                iconBgColor: AppColors.statusActiveBg,
-                value: '${data!['active_orders'] ?? 0}',
-                label: 'Active Order',
+                icon: Icons.work_outline,
+                iconColor: AppColors.primary,
+                iconBgColor: const Color(0xFFFFF0E0),
+                value: '${data!['total_services'] ?? 0}',
+                label: 'Total Services',
               ),
             ),
           ],
@@ -389,11 +279,11 @@ class _FreelancerDashboard extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                icon: Icons.attach_money,
-                iconColor: AppColors.statusCompleted,
-                iconBgColor: AppColors.statusCompletedBg,
-                value: 'RM ${data!['total_earnings'] ?? 0}',
-                label: 'Total Earnings',
+                icon: Icons.flash_on,
+                iconColor: AppColors.statusActive,
+                iconBgColor: AppColors.statusActiveBg,
+                value: '${data!['active_orders'] ?? 0}',
+                label: 'Active Orders',
               ),
             ),
             const SizedBox(width: 12),
@@ -422,7 +312,7 @@ class _FreelancerDashboard extends StatelessWidget {
   }
 
   Widget _buildRecentServices(BuildContext context) {
-    final services = data?['recent_services'] as List? ?? [];
+    final services = data?['services'] as List? ?? [];
     if (services.isEmpty) {
       return AppCard(
         child: EmptyState(
@@ -437,6 +327,9 @@ class _FreelancerDashboard extends StatelessWidget {
 
     return Column(
       children: services.take(3).map((s) {
+        final images = s['images'] as List? ?? [];
+        final firstImage = images.isNotEmpty ? images[0] as String? : null;
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: AppCard(
@@ -446,14 +339,33 @@ class _FreelancerDashboard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.work, color: AppColors.primary),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: firstImage != null
+                      ? Image.network(
+                          firstImage,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(15),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.work, color: AppColors.primary),
+                          ),
+                        )
+                      : Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withAlpha(15),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.work, color: AppColors.primary),
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

@@ -16,6 +16,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _companyNameController = TextEditingController();
+  final _businessNameController = TextEditingController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -34,6 +35,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   void dispose() {
     _companyNameController.dispose();
+    _businessNameController.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -80,6 +82,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final success = await ref.read(authProvider.notifier).register(
           companyName: _selectedRole == 'Freelancer' ? _companyNameController.text.trim() : null,
+          businessName: _selectedRole == 'Freelancer' ? _businessNameController.text.trim() : null,
           name: _nameController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
           email: _emailController.text.trim(),
@@ -100,7 +103,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundWarm,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          onPressed: () {
+            if (_currentStep == 1) {
+              setState(() => _currentStep = 0);
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        title: RichText(
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'Create ',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              TextSpan(
+                text: 'Account',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: UploadingOverlay.wrap(
           show: authState.isLoading && _identityDocument != null,
           child: _currentStep == 0 ? _buildRoleSelection() : _buildRegistrationForm(),
@@ -178,26 +218,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(height: 40),
 
           // Role cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildRoleCard(
-                  icon: Icons.people_outline,
-                  title: 'Customer',
-                  subtitle: 'Find and hire freelancers',
-                  onTap: () => _selectRole('Customer'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildRoleCard(
-                  icon: Icons.business_center_outlined,
-                  title: 'Freelancer',
-                  subtitle: 'Offer your services',
-                  onTap: () => _selectRole('Freelancer'),
-                ),
-              ),
-            ],
+          _buildRoleCard(
+            icon: Icons.business_center_outlined,
+            title: 'Freelancer',
+            subtitle: 'Offer your services to Malaysian customers',
+            onTap: () => _selectRole('Freelancer'),
           ),
 
           const SizedBox(height: 40),
@@ -211,7 +236,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 style: TextStyle(color: Colors.grey[600]),
               ),
               TextButton(
-                onPressed: () => context.pop(),
+                onPressed: () => context.go('/auth/login'),
                 child: const Text(
                   'Login',
                   style: TextStyle(fontWeight: FontWeight.w600),
@@ -353,15 +378,130 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 16),
             ],
 
-            // Company Name (Freelancer only)
+            // Freelancer-only: SSM Upload (at top)
             if (_selectedRole == 'Freelancer') ...[
+              Text(
+                'SSM Certificate',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _pickIdentityDocument,
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _identityDocument != null
+                          ? AppColors.primary
+                          : Colors.grey[300]!,
+                      width: _identityDocument != null ? 1.5 : 1,
+                    ),
+                  ),
+                  child: _identityDocument != null
+                      ? Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.description,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _identityDocument!.name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textDark,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${(_identityDocument!.size / 1024).toStringAsFixed(1)} KB',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close, color: Colors.grey[400], size: 20),
+                              onPressed: () => setState(() => _identityDocument = null),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            Icon(Icons.cloud_upload_outlined,
+                                color: Colors.grey[400], size: 36),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap to upload your SSM Certificate',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'PDF, JPG, JPEG, PNG (max 2MB)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Company Name
               TextFormField(
                 controller: _companyNameController,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
-                  labelText: 'Company Name',
+                  labelText: 'Company Name (SSM)',
                   hintText: 'e.g. ABC ENTERPRISE',
                   prefixIcon: const Icon(Icons.business, color: AppColors.primary),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Business Name
+              TextFormField(
+                controller: _businessNameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  labelText: 'Business Name',
+                  hintText: 'e.g. Harun Photography',
+                  prefixIcon: const Icon(Icons.storefront, color: AppColors.primary),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -487,106 +627,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               },
             ),
             const SizedBox(height: 16),
-
-            // Freelancer-only: Identity Document upload
-            if (_selectedRole == 'Freelancer') ...[
-              Text(
-                'Identity Document (SSM Certificate)',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickIdentityDocument,
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _identityDocument != null
-                          ? AppColors.primary
-                          : Colors.grey[300]!,
-                      width: _identityDocument != null ? 1.5 : 1,
-                    ),
-                  ),
-                  child: _identityDocument != null
-                      ? Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.description,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _identityDocument!.name,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textDark,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${(_identityDocument!.size / 1024).toStringAsFixed(1)} KB',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[500],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.close, color: Colors.grey[400], size: 20),
-                              onPressed: () => setState(() => _identityDocument = null),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            Icon(Icons.cloud_upload_outlined,
-                                color: Colors.grey[400], size: 36),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap to upload your SSM Certificate',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'PDF, JPG, JPEG, PNG (max 2MB)',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
 
             const SizedBox(height: 8),
 

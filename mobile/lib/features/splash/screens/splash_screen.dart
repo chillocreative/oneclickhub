@@ -15,108 +15,92 @@ class SplashScreen extends ConsumerStatefulWidget {
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
+  late AnimationController _glowController;
   late AnimationController _textController;
-  late AnimationController _shimmerController;
+  late AnimationController _taglineController;
   late AnimationController _particleController;
 
   late Animation<double> _logoScale;
-  late Animation<double> _logoOpacity;
-  late Animation<double> _logoBounce;
-  late Animation<double> _textSlide;
-  late Animation<double> _textOpacity;
+  late Animation<double> _logoRotation;
+  late Animation<double> _glowPulse;
   late Animation<double> _taglineOpacity;
-  late Animation<double> _shimmerPosition;
+  late Animation<double> _taglineSlide;
+
+  // Each letter animates individually
+  static const _oneclick = 'ONECLICK';
+  static const _hub = 'HUB';
+  static const _totalLetters = 11; // ONECLICK(8) + HUB(3)
 
   @override
   void initState() {
     super.initState();
 
-    // Logo animation - bounce in with scale
+    // Logo — drops in with slight rotation
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
-
     _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _logoController,
-        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+        curve: Curves.elasticOut,
       ),
     );
-
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _logoRotation = Tween<double>(begin: -0.1, end: 0.0).animate(
       CurvedAnimation(
         parent: _logoController,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeIn),
+        curve: const Interval(0.3, 1.0, curve: Curves.easeOutBack),
       ),
     );
 
-    _logoBounce = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeInOut),
-      ),
+    // Glow pulse behind logo
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _glowPulse = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
     );
 
-    // Text animation - slide up and fade in
+    // Letter-by-letter text reveal
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     );
 
-    _textSlide = Tween<double>(begin: 30.0, end: 0.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeOutCubic),
-    );
-
-    _textOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeIn),
-      ),
-    );
-
-    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.4, 1.0, curve: Curves.easeIn),
-      ),
-    );
-
-    // Shimmer effect on text
-    _shimmerController = AnimationController(
+    // Tagline fade in
+    _taglineController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 600),
     );
-
-    _shimmerPosition = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
+    _taglineOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _taglineController, curve: Curves.easeIn),
+    );
+    _taglineSlide = Tween<double>(begin: 15.0, end: 0.0).animate(
+      CurvedAnimation(parent: _taglineController, curve: Curves.easeOutCubic),
     );
 
     // Floating particles
     _particleController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
     )..repeat();
 
-    _startAnimationSequence();
+    _startSequence();
   }
 
-  Future<void> _startAnimationSequence() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+  Future<void> _startSequence() async {
+    await Future.delayed(const Duration(milliseconds: 400));
     _logoController.forward();
 
-    // Wait for logo animation to fully complete before showing text
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1200));
     _textController.forward();
 
-    await Future.delayed(const Duration(milliseconds: 600));
-    _shimmerController.forward();
+    await Future.delayed(const Duration(milliseconds: 800));
+    _taglineController.forward();
 
-    // Hold the full splash for ~5 seconds total
     await Future.delayed(const Duration(milliseconds: 2600));
-    if (mounted) {
-      _navigateNext();
-    }
+    if (mounted) _navigateNext();
   }
 
   void _navigateNext() {
@@ -131,8 +115,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void dispose() {
     _logoController.dispose();
+    _glowController.dispose();
     _textController.dispose();
-    _shimmerController.dispose();
+    _taglineController.dispose();
     _particleController.dispose();
     super.dispose();
   }
@@ -142,12 +127,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Gradient background
+          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: RadialGradient(
-                center: Alignment(-0.5, -0.5),
-                radius: 1.5,
+                center: Alignment(0.0, -0.3),
+                radius: 1.4,
                 colors: [
                   AppColors.splashTopLeft,
                   AppColors.splashCenter,
@@ -172,124 +157,119 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Mascot logo
+                // Logo with glow
                 AnimatedBuilder(
-                  animation: _logoController,
+                  animation: Listenable.merge([_logoController, _glowController]),
                   builder: (context, child) {
-                    final bounce = sin(_logoBounce.value * pi * 2) * 5;
-                    return Opacity(
-                      opacity: _logoOpacity.value,
-                      child: Transform.translate(
-                        offset: Offset(0, -bounce),
-                        child: Transform.scale(
-                          scale: _logoScale.value,
-                          child: child,
+                    return Transform.rotate(
+                      angle: _logoRotation.value,
+                      child: Transform.scale(
+                        scale: _logoScale.value,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glow ring
+                            Container(
+                              width: 160 * _glowPulse.value,
+                              height: 160 * _glowPulse.value,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withAlpha(
+                                      (30 * _glowPulse.value).toInt(),
+                                    ),
+                                    blurRadius: 40,
+                                    spreadRadius: 15,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Logo image
+                            Container(
+                              width: 130,
+                              height: 130,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(15),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/images/logo.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     );
                   },
-                  child: Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withAlpha(40),
-                          blurRadius: 30,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
-                // ONECLICK HUB text
+                // Letter-by-letter text
                 AnimatedBuilder(
-                  animation: Listenable.merge([_textController, _shimmerController]),
+                  animation: _textController,
                   builder: (context, _) {
-                    return Opacity(
-                      opacity: _textOpacity.value,
-                      child: Transform.translate(
-                        offset: Offset(0, _textSlide.value),
-                        child: ShaderMask(
-                          shaderCallback: (bounds) {
-                            return LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: const [
-                                Colors.white,
-                                Colors.white,
-                                Color(0x40FFFFFF),
-                                Colors.white,
-                                Colors.white,
-                              ],
-                              stops: [
-                                0.0,
-                                (_shimmerPosition.value - 0.3).clamp(0.0, 1.0),
-                                _shimmerPosition.value.clamp(0.0, 1.0),
-                                (_shimmerPosition.value + 0.3).clamp(0.0, 1.0),
-                                1.0,
-                              ],
-                            ).createShader(bounds);
-                          },
-                          blendMode: BlendMode.srcATop,
-                          child: RichText(
-                            text: const TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'ONECLICK',
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.textDark,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'HUB',
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.primary,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // ONECLICK
+                        ..._buildLetters(
+                          _oneclick,
+                          0,
+                          const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textDark,
+                            letterSpacing: 1.5,
                           ),
                         ),
-                      ),
+                        // HUB
+                        ..._buildLetters(
+                          _hub,
+                          _oneclick.length,
+                          const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
 
                 // Tagline
                 AnimatedBuilder(
-                  animation: _textController,
+                  animation: _taglineController,
                   builder: (context, child) {
                     return Opacity(
                       opacity: _taglineOpacity.value,
-                      child: child,
+                      child: Transform.translate(
+                        offset: Offset(0, _taglineSlide.value),
+                        child: child,
+                      ),
                     );
                   },
                   child: const Text(
                     'Connecting All',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppColors.textGrey,
-                      letterSpacing: 3,
-                      fontWeight: FontWeight.w400,
+                      letterSpacing: 4,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -299,6 +279,29 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ],
       ),
     );
+  }
+
+  List<Widget> _buildLetters(String text, int startIndex, TextStyle style) {
+    return List.generate(text.length, (i) {
+      final globalIndex = startIndex + i;
+      // Each letter has its own interval within the animation
+      final start = (globalIndex / _totalLetters) * 0.7;
+      final end = (start + 0.3).clamp(0.0, 1.0);
+
+      final letterProgress = Interval(start, end, curve: Curves.easeOutBack);
+      final progress = letterProgress.transform(_textController.value);
+
+      return Transform.translate(
+        offset: Offset(0, 20 * (1 - progress)),
+        child: Opacity(
+          opacity: progress.clamp(0.0, 1.0),
+          child: Transform.scale(
+            scale: 0.5 + (0.5 * progress),
+            child: Text(text[i], style: style),
+          ),
+        ),
+      );
+    });
   }
 }
 
@@ -312,20 +315,23 @@ class _ParticlePainter extends CustomPainter {
     final paint = Paint()..style = PaintingStyle.fill;
 
     final particles = [
-      _Particle(0.1, 0.2, 4, AppColors.primary.withAlpha(25)),
-      _Particle(0.8, 0.15, 6, AppColors.primaryLight.withAlpha(20)),
-      _Particle(0.3, 0.7, 3, AppColors.primary.withAlpha(15)),
-      _Particle(0.9, 0.6, 5, AppColors.gradientEnd.withAlpha(25)),
-      _Particle(0.5, 0.85, 4, AppColors.primary.withAlpha(20)),
-      _Particle(0.15, 0.5, 3, AppColors.primaryLight.withAlpha(15)),
-      _Particle(0.7, 0.4, 5, AppColors.gradientEnd.withAlpha(20)),
-      _Particle(0.4, 0.3, 3, AppColors.primary.withAlpha(18)),
+      _Particle(0.1, 0.2, 4, AppColors.primary.withAlpha(20)),
+      _Particle(0.85, 0.12, 5, AppColors.primaryLight.withAlpha(18)),
+      _Particle(0.25, 0.75, 3, AppColors.primary.withAlpha(12)),
+      _Particle(0.9, 0.55, 4, AppColors.gradientEnd.withAlpha(22)),
+      _Particle(0.5, 0.88, 3, AppColors.primary.withAlpha(16)),
+      _Particle(0.12, 0.48, 3, AppColors.primaryLight.withAlpha(14)),
+      _Particle(0.72, 0.35, 4, AppColors.gradientEnd.withAlpha(18)),
+      _Particle(0.38, 0.28, 3, AppColors.primary.withAlpha(15)),
+      _Particle(0.6, 0.65, 3, AppColors.primaryLight.withAlpha(12)),
+      _Particle(0.78, 0.82, 4, AppColors.primary.withAlpha(16)),
     ];
 
     for (final p in particles) {
-      final dx = p.x * size.width;
+      final dx = p.x * size.width +
+          sin(progress * pi * 2 + p.y * pi * 3) * 8;
       final dy = p.y * size.height +
-          sin(progress * pi * 2 + p.x * pi) * 20;
+          cos(progress * pi * 2 + p.x * pi * 2) * 12;
       paint.color = p.color;
       canvas.drawCircle(Offset(dx, dy), p.radius, paint);
     }

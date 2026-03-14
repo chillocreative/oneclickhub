@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
@@ -15,6 +16,8 @@ class ShellScaffold extends ConsumerStatefulWidget {
 
 class _ShellScaffoldState extends ConsumerState<ShellScaffold>
     with WidgetsBindingObserver {
+  DateTime? _lastBackPress;
+
   @override
   void initState() {
     super.initState();
@@ -79,12 +82,54 @@ class _ShellScaffoldState extends ConsumerState<ShellScaffold>
     final isFreelancer = user?.isFreelancer ?? false;
     final selectedIndex = _calculateSelectedIndex(context, isFreelancer);
 
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: _AnimatedBottomBar(
-        selectedIndex: selectedIndex,
-        isFreelancer: isFreelancer,
-        onTap: (index) => _onItemTapped(context, index, isFreelancer),
+    final location = GoRouterState.of(context).matchedLocation;
+    final isRootTab = location == '/dashboard' || location == '/chat' ||
+        location == '/orders' || location == '/bookings' || location == '/settings';
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+
+        // If not on a root tab, navigate back normally
+        if (!isRootTab) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          } else {
+            context.go('/dashboard');
+          }
+          return;
+        }
+
+        // If on a non-dashboard root tab, go to dashboard first
+        if (location != '/dashboard') {
+          context.go('/dashboard');
+          return;
+        }
+
+        // On dashboard: double-tap to exit
+        final now = DateTime.now();
+        if (_lastBackPress != null &&
+            now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+          SystemNavigator.pop();
+        } else {
+          _lastBackPress = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: widget.child,
+        bottomNavigationBar: _AnimatedBottomBar(
+          selectedIndex: selectedIndex,
+          isFreelancer: isFreelancer,
+          onTap: (index) => _onItemTapped(context, index, isFreelancer),
+        ),
       ),
     );
   }

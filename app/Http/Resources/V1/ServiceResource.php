@@ -26,6 +26,7 @@ class ServiceResource extends JsonResource
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
+                'business_name' => $this->user->business_name,
                 'position' => $this->user->position,
             ]),
             'reviews_count' => $this->whenCounted('reviews'),

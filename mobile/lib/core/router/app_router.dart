@@ -20,6 +20,8 @@ import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/settings/screens/profile_screen.dart';
 import '../../features/settings/screens/banking_screen.dart';
 import '../../features/settings/screens/ssm_screen.dart';
+import '../../features/settings/screens/about_screen.dart';
+import '../../features/settings/screens/webview_page_screen.dart';
 import '../../features/home/screens/guest_home_screen.dart';
 import '../widgets/shell_scaffold.dart';
 import '../widgets/guest_shell_scaffold.dart';
@@ -63,11 +65,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
-        path: '/auth/register',
-        name: 'register',
-        builder: (context, state) => const RegisterScreen(),
-      ),
-      GoRoute(
         path: '/auth/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
@@ -81,6 +78,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/home',
             name: 'guest-home',
             builder: (context, state) => const GuestHomeScreen(),
+          ),
+          GoRoute(
+            path: '/auth/register',
+            name: 'register',
+            builder: (context, state) => const RegisterScreen(),
           ),
         ],
       ),
@@ -173,6 +175,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/ssm',
         name: 'ssm',
         builder: (context, state) => const SsmScreen(),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy-policy',
+        name: 'privacy-policy',
+        builder: (context, state) => const WebViewPageScreen(
+          title: 'Privacy Policy',
+          url: 'https://oneclickhub.verranet.com/privacy',
+        ),
+      ),
+      GoRoute(
+        path: '/settings/terms',
+        name: 'terms',
+        builder: (context, state) => const WebViewPageScreen(
+          title: 'Terms & Conditions',
+          url: 'https://oneclickhub.verranet.com/terms',
+        ),
       ),
     ],
   );

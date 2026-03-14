@@ -12,6 +12,8 @@ class GuestShellScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
     int selectedIndex = 0;
     if (location == '/home') selectedIndex = 0;
+    if (location == '/auth/register') selectedIndex = 1;
+    if (location == '/auth/login') selectedIndex = 3;
 
     return Scaffold(
       body: child,

@@ -27,6 +27,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'company_name' => 'nullable|string|max:255',
+            'business_name' => 'nullable|string|max:255',
             'phone_number' => 'required|digits_between:10,11|unique:users',
             'email' => 'required|string|lowercase|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -42,6 +43,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => strtoupper($validated['name']),
             'company_name' => $validated['company_name'] ?? null,
+            'business_name' => $validated['business_name'] ?? null,
             'phone_number' => $validated['phone_number'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),

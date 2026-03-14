@@ -63,7 +63,6 @@ class ProfileNotifier extends StateNotifier<ProfileState> {
       final formData = FormData.fromMap({
         'profile_picture': await MultipartFile.fromFile(filePath),
         'name': state.profileData?['name'] ?? '',
-        'email': state.profileData?['email'] ?? '',
       });
       final response = await _dio.post(ApiConstants.profile, data: formData);
       if (response.data['success'] == true) {

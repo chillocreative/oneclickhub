@@ -9,6 +9,7 @@ use App\Http\Resources\V1\UserResource;
 use App\Models\AdminSetting;
 use App\Models\Service;
 use App\Models\SsmVerification;
+use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,7 +30,9 @@ class SettingsController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'sometimes|string|lowercase|email|max:255|unique:users,email,' . $user->id,
+            'company_name' => 'nullable|string|max:255',
+            'business_name' => 'nullable|string|max:255',
             'position' => 'nullable|string|max:255',
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
@@ -187,6 +190,10 @@ class SettingsController extends Controller
                         'services_hidden_at' => null,
                     ]);
                     Service::where('user_id', $verification->user_id)->update(['is_active' => true]);
+                    // Sync company name from SSM to user
+                    if (!empty($data['company_name'])) {
+                        User::where('id', $verification->user_id)->update(['company_name' => $data['company_name']]);
+                    }
                     return;
                 }
             }

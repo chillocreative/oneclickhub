@@ -91,6 +91,7 @@ class DashboardController extends Controller
             'active_services' => $activeServices,
             'subscription' => $subscriptionData,
             'pending_orders' => $pendingOrders,
+            'total_inquiry' => $pendingOrders,
             'active_orders' => $activeOrders,
             'total_earnings' => (float) $totalEarnings,
             'total_clients' => $totalClients,

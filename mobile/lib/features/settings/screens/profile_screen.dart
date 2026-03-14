@@ -21,16 +21,14 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isEditing = false;
   late TextEditingController _nameController;
-  late TextEditingController _phoneController;
-  late TextEditingController _emailController;
+  late TextEditingController _businessNameController;
   final _imagePicker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _phoneController = TextEditingController();
-    _emailController = TextEditingController();
+    _businessNameController = TextEditingController();
     Future.microtask(() {
       ref.read(profileProvider.notifier).loadProfile();
     });
@@ -39,15 +37,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
+    _businessNameController.dispose();
     super.dispose();
   }
 
   void _populateFields(Map<String, dynamic> data) {
     _nameController.text = data['name'] ?? '';
-    _phoneController.text = data['phone_number'] ?? '';
-    _emailController.text = data['email'] ?? '';
+    _businessNameController.text = data['business_name'] ?? '';
   }
 
   Future<void> _pickAndUploadPhoto() async {
@@ -265,23 +261,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Phone field
+                          // Business Name field
                           _ProfileField(
-                            label: 'Phone Number',
-                            controller: _phoneController,
+                            label: 'Business Name',
+                            controller: _businessNameController,
                             enabled: _isEditing,
-                            icon: Icons.phone_outlined,
-                            keyboardType: TextInputType.phone,
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Email field
-                          _ProfileField(
-                            label: 'Email',
-                            controller: _emailController,
-                            enabled: _isEditing,
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
+                            icon: Icons.storefront_outlined,
                           ),
 
                           // Save button
@@ -296,8 +281,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     .read(profileProvider.notifier)
                                     .updateProfile({
                                   'name': _nameController.text,
-                                  'phone_number': _phoneController.text,
-                                  'email': _emailController.text,
+                                  'business_name': _businessNameController.text,
+                                  'email': state.profileData?['email'] ?? '',
                                 });
                                 if (success && mounted) {
                                   setState(() => _isEditing = false);
@@ -353,6 +338,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         onTap: () => context.push('/calendar'),
                       ),
                     ],
+
+                    _ActionButton(
+                      icon: Icons.info_outline,
+                      label: 'About Us',
+                      onTap: () => context.push('/settings/about'),
+                    ),
 
                     const SizedBox(height: 16),
 
