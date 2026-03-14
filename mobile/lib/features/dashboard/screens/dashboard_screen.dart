@@ -202,16 +202,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ],
         ),
-        actions: [
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu, color: AppColors.textGrey),
-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-            ),
-          ),
-        ],
       ),
-      endDrawer: _buildEndDrawer(context, user),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: _loadDashboard,
@@ -294,14 +285,6 @@ class _FreelancerDashboard extends StatelessWidget {
           style: TextStyle(color: AppColors.textGrey, fontSize: 14),
         ),
         const SizedBox(height: 16),
-
-        // New Service button
-        GradientButton(
-          text: 'New Service',
-          icon: Icons.add,
-          onPressed: () => context.push('/my-services/create'),
-        ),
-        const SizedBox(height: 24),
 
         // Subscription card
         AppCard(
