@@ -1,6 +1,6 @@
 class ApiConstants {
   // Production
-  static const String baseUrl = 'https://oneclickhub.verranet.com/api/v1';
+  static const String baseUrl = 'https://oneclickhub.com.my/api/v1';
 
   // For Android Emulator → Laragon (dev):
   // static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
