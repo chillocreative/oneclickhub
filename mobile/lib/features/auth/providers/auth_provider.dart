@@ -89,6 +89,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final message = e.response?.data?['message'] ?? 'Connection error';
       state = state.copyWith(isLoading: false, error: message);
       return false;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Unexpected error. Please try again.',
+      );
+      return false;
     }
   }
 
@@ -176,6 +182,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         }
       }
       state = state.copyWith(isLoading: false, error: message);
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Unexpected error. Please try again.',
+      );
       return false;
     }
   }
