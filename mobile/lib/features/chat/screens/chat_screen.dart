@@ -272,10 +272,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Mark job complete?'),
+        title: const Text('Mark booking as Delivered?'),
         content: const Text(
-          'This closes the booking chat. The customer will be asked to leave '
-          'a review. You will not be able to send more messages here.',
+          'This tells the customer the service is done. The chat stays open '
+          'until they confirm completion and leave a review.',
         ),
         actions: [
           TextButton(
@@ -285,7 +285,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Mark complete'),
+            child: const Text('Mark Delivered'),
           ),
         ],
       ),
@@ -297,14 +297,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final dio = ref.read(dioProvider);
       await dio.post('${ApiConstants.orders}/${order.id}/deliver');
       if (!mounted) return;
-      // Reload so the closed-chat banner shows and the input disables.
+      // Reload so the new banner / waiting state renders.
       await _loadMessages();
       // Refresh chat list for the next time user opens it.
       ref.read(chatProvider.notifier).loadConversations();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Job marked complete. Chat closed.'),
+            content: Text('Booking marked as Delivered. Waiting on the customer.'),
             backgroundColor: AppColors.statusActive,
           ),
         );
@@ -314,7 +314,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.response?.data?['message']?.toString()
-                ?? 'Could not mark job complete'),
+                ?? 'Could not mark as delivered'),
             backgroundColor: AppColors.statusRejected,
           ),
         );
@@ -337,10 +337,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   bool get _isOrderChatClosed {
+    // Booking chat stays open through 'delivered' so customer + freelancer can
+    // sort out final details before the customer confirms completion.
     final status = _conversation?.order?.status;
     if (status == null) return false;
     return status == 'completed'
-        || status == 'delivered'
         || status == 'cancelled'
         || status == 'rejected';
   }
@@ -414,10 +415,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   value: 'complete',
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle_outline,
+                      Icon(Icons.local_shipping_outlined,
                           color: AppColors.statusActive, size: 18),
                       SizedBox(width: 10),
-                      Text('Mark job complete'),
+                      Text('Mark Delivered'),
                     ],
                   ),
                 ),
@@ -443,6 +444,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isLoading: _isCompletingJob,
             onPressed: _markJobComplete,
           ),
+          if (_conversation?.order?.status == 'delivered')
+            const _DeliveredBanner(),
           Expanded(child: _buildBody(myId)),
           _buildInput(),
         ],
@@ -502,16 +505,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildInput() {
     if (_isOrderChatClosed) {
+      final status = _conversation?.order?.status ?? '';
+      final closedReason = switch (status) {
+        'completed' => 'This booking is completed. Continue via a normal chat.',
+        'cancelled' => 'This booking was cancelled. The chat is closed.',
+        'rejected' => 'This booking was rejected. The chat is closed.',
+        _ => 'This booking chat is closed.',
+      };
       return SafeArea(
         top: false,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           color: Colors.white,
-          child: const Text(
-            'This booking chat is closed.',
+          child: Text(
+            closedReason,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textGrey,
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -732,7 +742,7 @@ class _MarkCompleteBar extends StatelessWidget {
         children: [
           const Expanded(
             child: Text(
-              'Job done? Mark this booking as complete to close the chat.',
+              'Job done? Mark Delivered — chat stays open until the customer confirms.',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textDark,
@@ -764,8 +774,40 @@ class _MarkCompleteBar extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.check, size: 16),
-            label: const Text('Mark complete'),
+                : const Icon(Icons.local_shipping_outlined, size: 16),
+            label: const Text('Mark Delivered'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeliveredBanner extends StatelessWidget {
+  const _DeliveredBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.statusActive.withAlpha(25),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: const Row(
+        children: [
+          Icon(Icons.local_shipping_outlined,
+              color: AppColors.statusActive, size: 18),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Marked Delivered. Customer needs to confirm completion in '
+              'My Bookings to close this chat.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textDark,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
+              ),
+            ),
           ),
         ],
       ),

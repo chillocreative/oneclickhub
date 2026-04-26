@@ -73,8 +73,11 @@ class ChatController extends Controller
             return $this->forbidden();
         }
 
+        // Booking chats stay open through 'delivered' so the customer can
+        // confirm or push back before completing. They only close once the
+        // booking is fully completed (or cancelled/rejected outright).
         if ($conversation->type === 'order' && $conversation->order
-            && in_array($conversation->order->status, ['completed', 'delivered', 'cancelled', 'rejected'], true)) {
+            && in_array($conversation->order->status, ['completed', 'cancelled', 'rejected'], true)) {
             return $this->error('This order chat is closed.', 422);
         }
 
