@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/chat/{conversation}', [ChatController::class, 'show']);
     Route::post('/chat/{conversation}/send', [ChatController::class, 'sendMessage']);
     Route::get('/chat/{conversation}/poll', [ChatController::class, 'poll']);
+    Route::delete('/chat/{conversation}', [ChatController::class, 'destroy']);
 
     // Subscriptions & Payments
     Route::post('/subscribe/pay/{plan:slug}', [SubscriptionController::class, 'initiatePayment']);

@@ -15,9 +15,9 @@ const statusColors = {
 };
 
 const statusLabels = {
-    pending_payment: 'Pending Payment',
-    pending_approval: 'Pending Approval',
-    active: 'Active',
+    pending_payment: 'Booking Confirmed',
+    pending_approval: 'Awaiting Confirmation',
+    active: 'Service Paid',
     delivered: 'Delivered',
     completed: 'Completed',
     cancelled: 'Cancelled',
@@ -154,12 +154,16 @@ export default function OrderShow({ order, isFreelancer, isCustomer }) {
                         </div>
                     )}
 
-                    {/* Freelancer: Accept/Reject */}
-                    {isFreelancer && order.status === 'pending_approval' && (
+                    {/* Freelancer: Accept/Reject — works for both pre-payment-slip and the new chat-receipt flow */}
+                    {isFreelancer && (order.status === 'pending_approval' || order.status === 'pending_payment') && (
                         <div className="bg-white dark:bg-[#111] p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 space-y-4">
-                            <h3 className="text-sm font-black text-gray-900 dark:text-white">Respond to Order</h3>
+                            <h3 className="text-sm font-black text-gray-900 dark:text-white">Respond to Booking</h3>
+                            <p className="text-xs text-gray-500">
+                                Confirm once the bank transfer has landed (the customer should share the receipt in the order chat).
+                                Marking accepted moves the booking to <span className="font-bold text-[#FF6600]">Service Paid</span>.
+                            </p>
                             <button onClick={handleAccept} className="w-full btn-gradient py-3 text-xs font-black flex items-center justify-center gap-2">
-                                <Check size={16} /> Accept Order
+                                <Check size={16} /> Mark Service Paid
                             </button>
                             <form onSubmit={handleReject} className="space-y-3">
                                 <textarea
@@ -170,7 +174,7 @@ export default function OrderShow({ order, isFreelancer, isCustomer }) {
                                     rows={2}
                                 />
                                 <button type="submit" disabled={rejectForm.processing} className="w-full py-3 text-xs font-black text-red-500 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100">
-                                    <X size={14} className="inline mr-1" /> Reject Order
+                                    <X size={14} className="inline mr-1" /> Reject Booking
                                 </button>
                             </form>
                         </div>

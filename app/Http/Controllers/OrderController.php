@@ -6,7 +6,9 @@ use App\Models\ChatConversation;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\Service;
+use App\Services\FcmService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -42,7 +44,27 @@ class OrderController extends Controller
             'status' => Order::STATUS_PENDING_PAYMENT,
         ]);
 
-        return redirect()->route('orders.show', $order)->with('success', 'Order created! Please upload your payment slip.');
+        // Open the booking-scoped chat right away so payment receipts can be
+        // shared without waiting for the freelancer to act first.
+        $userIds = collect([auth()->id(), $service->user_id])->sort()->values();
+        ChatConversation::firstOrCreate([
+            'user_one_id' => $userIds[0],
+            'user_two_id' => $userIds[1],
+            'order_id' => $order->id,
+        ], [
+            'type' => 'order',
+            'service_id' => $service->id,
+            'last_message_at' => now(),
+        ]);
+
+        $this->notifyUser(
+            $service->user_id,
+            'New booking received',
+            (auth()->user()->name ?: 'A customer') . ' booked "' . $service->title . '" — open the order to review.',
+            ['type' => 'order', 'event' => 'booking.created', 'order_id' => $order->id]
+        );
+
+        return redirect()->route('orders.show', $order)->with('success', 'Booking confirmed. Share the bank receipt in the booking chat.');
     }
 
     public function show(Order $order)
@@ -52,7 +74,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['customer', 'freelancer', 'freelancer.bankingDetail', 'service', 'review']);
+        $order->load(['customer', 'freelancer', 'freelancer.bankingDetail', 'service', 'review', 'conversation']);
 
         return Inertia::render('Orders/Show', [
             'order' => $order,
@@ -96,7 +118,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($order->status !== Order::STATUS_PENDING_APPROVAL) {
+        if (!in_array($order->status, [Order::STATUS_PENDING_PAYMENT, Order::STATUS_PENDING_APPROVAL], true)) {
             return back()->with('error', 'This order cannot be accepted.');
         }
 
@@ -105,7 +127,7 @@ class OrderController extends Controller
             'freelancer_responded_at' => now(),
         ]);
 
-        // Create order chat conversation
+        // Backfill chat in case the booking predates the auto-create flow.
         $userIds = collect([auth()->id(), $order->customer_id])->sort()->values();
         ChatConversation::firstOrCreate([
             'user_one_id' => $userIds[0],
@@ -113,10 +135,18 @@ class OrderController extends Controller
             'order_id' => $order->id,
         ], [
             'type' => 'order',
+            'service_id' => $order->service_id,
             'last_message_at' => now(),
         ]);
 
-        return back()->with('success', 'Order accepted! You can now chat with the customer.');
+        $this->notifyUser(
+            $order->customer_id,
+            'Booking accepted',
+            'Your booking is marked as Service Paid. The freelancer is starting work.',
+            ['type' => 'order', 'event' => 'booking.accepted', 'order_id' => $order->id]
+        );
+
+        return back()->with('success', 'Booking marked as Service Paid.');
     }
 
     public function reject(Request $request, Order $order)
@@ -125,7 +155,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if ($order->status !== Order::STATUS_PENDING_APPROVAL) {
+        if (!in_array($order->status, [Order::STATUS_PENDING_PAYMENT, Order::STATUS_PENDING_APPROVAL], true)) {
             return back()->with('error', 'This order cannot be rejected.');
         }
 
@@ -138,6 +168,13 @@ class OrderController extends Controller
             'freelancer_responded_at' => now(),
             'cancellation_reason' => $request->reason,
         ]);
+
+        $this->notifyUser(
+            $order->customer_id,
+            'Booking rejected',
+            $request->reason ?: 'The freelancer rejected your booking.',
+            ['type' => 'order', 'event' => 'booking.rejected', 'order_id' => $order->id]
+        );
 
         return back()->with('success', 'Order rejected.');
     }
@@ -157,7 +194,14 @@ class OrderController extends Controller
             'delivered_at' => now(),
         ]);
 
-        return back()->with('success', 'Order marked as delivered! Waiting for customer confirmation.');
+        $this->notifyUser(
+            $order->customer_id,
+            'Service delivered',
+            'The freelancer marked your booking as delivered. Confirm completion to leave a review.',
+            ['type' => 'order', 'event' => 'booking.delivered', 'order_id' => $order->id]
+        );
+
+        return back()->with('success', 'Order marked as delivered. Waiting for customer confirmation.');
     }
 
     public function complete(Request $request, Order $order)
@@ -189,7 +233,23 @@ class OrderController extends Controller
             'comment' => $request->comment,
         ]);
 
-        return back()->with('success', 'Order completed! Thank you for your review.');
+        $this->notifyUser(
+            $order->freelancer_id,
+            'Booking completed',
+            (auth()->user()->name ?: 'The customer') . ' confirmed completion and left a review.',
+            ['type' => 'order', 'event' => 'booking.completed', 'order_id' => $order->id]
+        );
+
+        return back()->with('success', 'Order completed. Thank you for your review.');
+    }
+
+    private function notifyUser(int $userId, string $title, string $body, array $data = []): void
+    {
+        try {
+            app(FcmService::class)->sendToUser($userId, $title, $body, $data);
+        } catch (\Throwable $e) {
+            Log::warning('Order FCM send failed (web)', ['error' => $e->getMessage()]);
+        }
     }
 
     public function freelancerOrders(Request $request)

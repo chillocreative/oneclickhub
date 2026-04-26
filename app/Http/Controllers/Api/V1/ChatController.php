@@ -20,9 +20,9 @@ class ChatController extends Controller
     {
         $userId = $request->user()->id;
 
-        $conversations = ChatConversation::where('user_one_id', $userId)
-            ->orWhere('user_two_id', $userId)
-            ->with(['userOne', 'userTwo', 'order.service', 'messages' => function ($q) {
+        $conversations = ChatConversation::forUser($userId)
+            ->notDeletedFor($userId)
+            ->with(['userOne', 'userTwo', 'order.service', 'service', 'messages' => function ($q) {
                 $q->latest()->limit(1);
             }])
             ->withCount(['messages as unread_count' => function ($q) use ($userId) {
@@ -42,6 +42,10 @@ class ChatController extends Controller
             return $this->forbidden();
         }
 
+        // Re-opening a conversation clears the user's own delete flag so they
+        // see history again the moment they revisit it.
+        $conversation->clearDeletedFor($userId);
+
         // Mark messages as read
         $conversation->messages()
             ->where('sender_id', '!=', $userId)
@@ -53,7 +57,7 @@ class ChatController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $conversation->load(['userOne', 'userTwo', 'order.service']);
+        $conversation->load(['userOne', 'userTwo', 'order.service', 'service']);
 
         return $this->success([
             'conversation' => new ChatConversationResource($conversation),
@@ -69,13 +73,14 @@ class ChatController extends Controller
             return $this->forbidden();
         }
 
-        if ($conversation->type === 'order' && $conversation->order && $conversation->order->status === 'completed') {
+        if ($conversation->type === 'order' && $conversation->order
+            && in_array($conversation->order->status, ['completed', 'delivered', 'cancelled', 'rejected'], true)) {
             return $this->error('This order chat is closed.', 422);
         }
 
         $request->validate([
             'body' => 'required_without:attachment|nullable|string|max:2000',
-            'attachment' => 'nullable|file|max:5120',
+            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,pdf',
         ]);
 
         $attachmentPath = null;
@@ -91,11 +96,12 @@ class ChatController extends Controller
 
         $conversation->update(['last_message_at' => now()]);
 
-        // Push-notify the other participant so they see the new message
-        // outside the app and can deep-link straight into this conversation.
+        // A new message un-deletes the conversation for the recipient so
+        // they can see it again — same as how WhatsApp/iMessage behave.
         $recipientId = $conversation->user_one_id === $userId
             ? $conversation->user_two_id
             : $conversation->user_one_id;
+        $conversation->clearDeletedFor($recipientId);
 
         $sender = $request->user();
         $title = $sender->name ?: 'New message';
@@ -110,7 +116,6 @@ class ChatController extends Controller
                 'sender_id' => (string) $userId,
             ]);
         } catch (\Throwable $e) {
-            // FCM failure must not block the message itself.
             \Log::warning('Chat FCM send failed', ['error' => $e->getMessage()]);
         }
 
@@ -125,6 +130,7 @@ class ChatController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
+            'service_id' => 'nullable|exists:services,id',
         ]);
 
         $userId = $request->user()->id;
@@ -142,8 +148,22 @@ class ChatController extends Controller
             'order_id' => null,
         ], [
             'type' => 'general',
+            'service_id' => $request->service_id,
             'last_message_at' => now(),
         ]);
+
+        // If this chat is being re-opened from a different service, update
+        // the service link so the summary header reflects the latest source.
+        if ($request->filled('service_id')
+            && (int) $conversation->service_id !== (int) $request->service_id) {
+            $conversation->service_id = $request->service_id;
+            $conversation->save();
+        }
+
+        // Reopening clears the requesting user's delete flag.
+        $conversation->clearDeletedFor($userId);
+
+        $conversation->load(['userOne', 'userTwo', 'service']);
 
         return $this->success(
             new ChatConversationResource($conversation),
@@ -175,5 +195,18 @@ class ChatController extends Controller
             ->get();
 
         return $this->success(ChatMessageResource::collection($messages));
+    }
+
+    public function destroy(ChatConversation $conversation, Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        if ($conversation->user_one_id !== $userId && $conversation->user_two_id !== $userId) {
+            return $this->forbidden();
+        }
+
+        $conversation->markDeletedFor($userId);
+
+        return $this->success(null, 'Chat deleted');
     }
 }
