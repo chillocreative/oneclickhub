@@ -108,7 +108,7 @@ class _BrowseServicesScreenState extends ConsumerState<BrowseServicesScreen> {
                             crossAxisCount: 2,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
-                            childAspectRatio: 0.68,
+                            childAspectRatio: 0.62,
                           ),
                           itemCount: state.services.length +
                               (state.isLoadingMore ? 2 : 0),
@@ -304,36 +304,38 @@ class _ServiceCard extends StatelessWidget {
                     ),
                   const SizedBox(height: 4),
 
-                  // Price + delivery
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          service.priceDisplay,
+                  // Price (full width, single line, scaled to fit)
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      service.priceDisplay,
+                      maxLines: 1,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  if (service.deliveryDays != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule,
+                            size: 12, color: AppColors.textLight),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${service.deliveryDays} days',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                            color: AppColors.primary,
+                            fontSize: 11,
+                            color: AppColors.textLight,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                      if (service.deliveryDays != null)
-                        Row(
-                          children: [
-                            const Icon(Icons.schedule,
-                                size: 12, color: AppColors.textLight),
-                            const SizedBox(width: 2),
-                            Text(
-                              '${service.deliveryDays}d',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

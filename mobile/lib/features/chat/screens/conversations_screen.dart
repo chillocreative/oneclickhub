@@ -25,6 +25,41 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
     });
   }
 
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, Conversation c) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete chat?'),
+        content: const Text(
+          'This removes the chat from your inbox. The other side will keep '
+          'their copy unless they delete it too.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusRejected),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final ok = await ref.read(chatProvider.notifier).deleteConversation(c.id);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete chat. Please try again.'),
+          backgroundColor: AppColors.statusRejected,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(chatProvider);
@@ -90,7 +125,10 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                             child: Column(
                               children: state.orderChats
                                   .map((c) => _ConversationTile(
-                                      conversation: c))
+                                        conversation: c,
+                                        onDelete: () =>
+                                            _confirmDelete(context, ref, c),
+                                      ))
                                   .toList(),
                             ),
                           ),
@@ -106,7 +144,10 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                             child: Column(
                               children: state.generalChats
                                   .map((c) => _ConversationTile(
-                                      conversation: c))
+                                        conversation: c,
+                                        onDelete: () =>
+                                            _confirmDelete(context, ref, c),
+                                      ))
                                   .toList(),
                             ),
                           ),
@@ -140,20 +181,25 @@ class _SectionLabel extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   final Conversation conversation;
+  final VoidCallback onDelete;
 
-  const _ConversationTile({required this.conversation});
+  const _ConversationTile({
+    required this.conversation,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
     final user = conversation.otherUser;
     final initials = user?.initials ?? '?';
     final name = user?.name ?? 'Unknown';
-    final serviceTitle = conversation.order?.serviceTitle;
+    final serviceTitle = conversation.summaryTitle;
     final lastMsg = conversation.lastMessage;
     final unread = conversation.unreadCount;
 
     return InkWell(
       onTap: () => context.push('/chat/${conversation.id}'),
+      onLongPress: onDelete,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

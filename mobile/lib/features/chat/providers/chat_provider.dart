@@ -58,6 +58,26 @@ class ChatNotifier extends StateNotifier<ChatState> {
       );
     }
   }
+
+  /// Soft-delete the conversation for the current user. Drops it from
+  /// the local list immediately and lets the server reconcile.
+  Future<bool> deleteConversation(int conversationId) async {
+    // Optimistic local removal
+    state = state.copyWith(
+      orderChats:
+          state.orderChats.where((c) => c.id != conversationId).toList(),
+      generalChats:
+          state.generalChats.where((c) => c.id != conversationId).toList(),
+    );
+    try {
+      await _dio.delete('${ApiConstants.chat}/$conversationId');
+      return true;
+    } on DioException {
+      // Reload to recover from a failed delete.
+      await loadConversations();
+      return false;
+    }
+  }
 }
 
 final chatProvider =

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/datetime_format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -227,21 +228,25 @@ class _BookingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '#${order.orderNumber}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: AppColors.textDark,
-                ),
-              ),
-              StatusBadge(status: order.status),
-            ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: StatusBadge(
+              status: order.status,
+              label: order.statusLabel,
+            ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          Text(
+            '#${order.orderNumber}',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              color: AppColors.textDark,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
           if (order.service != null)
             Text(
               order.service!.title,
@@ -263,16 +268,19 @@ class _BookingCard extends StatelessWidget {
                     fontSize: 13,
                     color: AppColors.textGrey,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (order.bookingDate != null)
-                Text(
-                  order.bookingDate!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textLight,
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                AppDateTime.formatBooking(order.bookingDate),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textLight,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 8),

@@ -1,7 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/datetime_format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -216,37 +220,82 @@ class _OrdersListView extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
+class _OrderCard extends ConsumerStatefulWidget {
   final Order order;
 
   const _OrderCard({required this.order});
 
   @override
+  ConsumerState<_OrderCard> createState() => _OrderCardState();
+}
+
+class _OrderCardState extends ConsumerState<_OrderCard> {
+  bool _isAccepting = false;
+
+  Future<void> _quickAccept() async {
+    if (_isAccepting) return;
+    setState(() => _isAccepting = true);
+    try {
+      final dio = ref.read(dioProvider);
+      await dio.post(
+          '${ApiConstants.orders}/${widget.order.id}/accept');
+      ref.read(myOrdersProvider.notifier).loadOrders(refresh: true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Booking marked as Service Paid.'),
+            backgroundColor: AppColors.statusActive,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not accept booking'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAccepting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final order = widget.order;
+    final showAccept =
+        order.status == 'pending_payment' || order.status == 'pending_approval';
+
     return AppCard(
       onTap: () => context.push('/orders/${order.id}'),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Order number + status badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '#${order.orderNumber}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: AppColors.textDark,
-                ),
-              ),
-              StatusBadge(status: order.status),
-            ],
+          // Status sits on its own row so the booking-flow label always
+          // fits, no matter how long the order number is below.
+          Align(
+            alignment: Alignment.centerRight,
+            child: StatusBadge(
+              status: order.status,
+              label: order.statusLabel,
+            ),
           ),
-          const SizedBox(height: 10),
-
-          // Service title
+          const SizedBox(height: 8),
+          Text(
+            '#${order.orderNumber}',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              color: AppColors.textDark,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
           if (order.service != null)
             Text(
               order.service!.title,
@@ -259,8 +308,6 @@ class _OrderCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           const SizedBox(height: 6),
-
-          // Customer/freelancer name + date
           Row(
             children: [
               Expanded(
@@ -270,28 +317,62 @@ class _OrderCard extends StatelessWidget {
                     fontSize: 13,
                     color: AppColors.textGrey,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (order.bookingDate != null)
-                Text(
-                  order.bookingDate!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textLight,
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                AppDateTime.formatBooking(order.bookingDate),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textLight,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
-
-          // Price
-          Text(
-            order.priceDisplay,
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: AppColors.primary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                order.priceDisplay,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: AppColors.primary,
+                ),
+              ),
+              if (showAccept)
+                FilledButton.icon(
+                  onPressed: _isAccepting ? null : _quickAccept,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                  icon: _isAccepting
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.check_circle_outline, size: 16),
+                  label: const Text('Accept'),
+                ),
+            ],
           ),
         ],
       ),

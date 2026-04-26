@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -28,6 +29,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
   bool _isStartingChat = false;
   Map<String, dynamic>? _service;
   List<String> _availableDates = [];
+  List<String> _bookedDates = [];
   String? _error;
   int _currentImageIndex = 0;
 
@@ -53,6 +55,9 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
           _availableDates = (data['available_dates'] as List? ?? [])
               .map((d) => d.toString())
               .toList();
+          _bookedDates = (data['booked_dates'] as List? ?? [])
+              .map((d) => d.toString())
+              .toList();
           _isLoading = false;
         });
       }
@@ -71,6 +76,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
 
   Future<void> _startChatWithFreelancer() async {
     final freelancerId = _service?['user_id'];
+    final serviceId = _service?['id'];
     if (freelancerId == null || _isStartingChat) return;
 
     setState(() => _isStartingChat = true);
@@ -78,7 +84,10 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
       final dio = ref.read(dioProvider);
       final res = await dio.post(
         ApiConstants.chatStart,
-        data: {'user_id': freelancerId},
+        data: {
+          'user_id': freelancerId,
+          if (serviceId != null) 'service_id': serviceId,
+        },
       );
       if (res.data['success'] == true && mounted) {
         final conversationId = res.data['data']['id'];
@@ -99,119 +108,107 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
     }
   }
 
-  void _showAvailabilitySheet() {
+  void _showAvailabilityCalendar() {
     final alwaysAvailable = _service?['always_available'] == true;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today,
-                      color: AppColors.primary, size: 20),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Freelancer Availability',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (alwaysAvailable)
-                _availabilityBanner(
-                  icon: Icons.check_circle,
-                  color: AppColors.statusActive,
-                  title: 'Always Available',
-                  subtitle:
-                      'This freelancer accepts bookings on any date.',
-                )
-              else if (_availableDates.isEmpty)
-                _availabilityBanner(
-                  icon: Icons.event_busy,
-                  color: Colors.grey,
-                  title: 'No availability set',
-                  subtitle:
-                      'The freelancer has not published any open dates yet. '
-                      'Tap "Chat" to ask.',
-                )
-              else
-                _AvailableDatesGrid(dates: _availableDates),
-            ],
-          ),
-        ),
+      builder: (ctx) => _AvailabilityCalendarSheet(
+        service: _service!,
+        availableDates: _availableDates,
+        bookedDates: _bookedDates,
+        alwaysAvailable: alwaysAvailable,
+        onDateConfirmed: _onDateConfirmed,
       ),
     );
   }
 
-  Widget _availabilityBanner({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textGrey,
-                    height: 1.4,
-                  ),
-                ),
-              ],
+  Future<void> _onDateConfirmed(DateTime date) async {
+    final serviceId = _service?['id'];
+    final priceFrom = _service?['price_from'];
+    if (serviceId == null) return;
+
+    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    final agreedPrice = (priceFrom is num) ? priceFrom.toDouble() : 0.0;
+
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.post(
+        ApiConstants.orders,
+        data: {
+          'service_id': serviceId,
+          'booking_date': dateStr,
+          'agreed_price': agreedPrice,
+        },
+      );
+      if (res.data['success'] != true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(res.data['message']?.toString()
+                  ?? 'Could not create booking'),
+              backgroundColor: AppColors.statusRejected,
             ),
+          );
+        }
+        return;
+      }
+
+      // The new booking response wraps the order under `data` and adds a
+      // sibling `conversation_id`. Older builds returned the order directly,
+      // so fall back to scanning either shape before giving up.
+      final data = res.data['data'];
+      final conversationId = _extractConversationId(data);
+
+      if (!mounted) return;
+
+      if (conversationId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Booking saved but the chat could not be opened. '
+              'Tap Chat from the freelancer card to continue.',
+            ),
+            backgroundColor: AppColors.statusPendingApproval,
           ),
-        ],
-      ),
-    );
+        );
+        // Refresh availability so the booked date is now disabled.
+        _loadService();
+        return;
+      }
+
+      // Push to chat first; the date list will be refreshed in the
+      // background so the user never gets stuck waiting for the
+      // service detail to reload before navigating.
+      context.push('/chat/$conversationId');
+      _loadService();
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not create booking'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    }
+  }
+
+  int? _extractConversationId(dynamic data) {
+    if (data is! Map) return null;
+    final direct = data['conversation_id'];
+    if (direct is int) return direct;
+    if (direct is String) return int.tryParse(direct);
+    final nestedConv = data['conversation'];
+    if (nestedConv is Map && nestedConv['id'] is int) {
+      return nestedConv['id'] as int;
+    }
+    return null;
   }
 
   Future<void> _editService() async {
@@ -566,16 +563,16 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                   ),
                 ],
 
-                // Customer actions: chat + check availability
+                // Customer actions: chat + book a date
                 if (!_isOwner && _service?['user_id'] != null) ...[
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _showAvailabilitySheet,
+                          onPressed: _showAvailabilityCalendar,
                           icon: const Icon(Icons.calendar_today, size: 18),
-                          label: const Text('Check Availability'),
+                          label: const Text('Book a Date'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.primary,
                             side: const BorderSide(color: AppColors.primary),
@@ -624,49 +621,367 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
   }
 }
 
-class _AvailableDatesGrid extends StatelessWidget {
-  final List<String> dates;
+class _AvailabilityCalendarSheet extends StatefulWidget {
+  final Map<String, dynamic> service;
+  final List<String> availableDates;
+  final List<String> bookedDates;
+  final bool alwaysAvailable;
+  final Future<void> Function(DateTime date) onDateConfirmed;
 
-  const _AvailableDatesGrid({required this.dates});
+  const _AvailabilityCalendarSheet({
+    required this.service,
+    required this.availableDates,
+    required this.bookedDates,
+    required this.alwaysAvailable,
+    required this.onDateConfirmed,
+  });
+
+  @override
+  State<_AvailabilityCalendarSheet> createState() =>
+      _AvailabilityCalendarSheetState();
+}
+
+class _AvailabilityCalendarSheetState
+    extends State<_AvailabilityCalendarSheet> {
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  static final _df = DateFormat('yyyy-MM-dd');
+
+  Set<String> get _availableSet => widget.availableDates.toSet();
+  Set<String> get _bookedSet => widget.bookedDates.toSet();
+
+  bool _isAvailable(DateTime day) {
+    if (widget.alwaysAvailable) return !_isBooked(day) && !_isPast(day);
+    return _availableSet.contains(_df.format(day));
+  }
+
+  bool _isBooked(DateTime day) => _bookedSet.contains(_df.format(day));
+
+  bool _isPast(DateTime day) {
+    final today = DateTime.now();
+    return day.isBefore(DateTime(today.year, today.month, today.day));
+  }
+
+  Future<void> _openConfirmDialog(DateTime day) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => _BookingConfirmDialog(
+        service: widget.service,
+        date: day,
+      ),
+    );
+    if (confirmed == true && mounted) {
+      Navigator.of(context).pop(); // close calendar sheet
+      await widget.onDateConfirmed(day);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final fmt = DateFormat('EEE, MMM d');
-    final parsed = dates
-        .map((d) => DateTime.tryParse(d))
-        .whereType<DateTime>()
-        .toList()
-      ..sort();
+    final priceFrom = widget.service['price_from']?.toString() ?? '0';
+    final priceTo = widget.service['price_to']?.toString();
+    final priceLabel = priceTo != null && priceTo != priceFrom
+        ? 'RM $priceFrom - RM $priceTo'
+        : 'RM $priceFrom';
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 320),
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: parsed.map((date) {
-            return Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withAlpha(60),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 12,
+          bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              child: Text(
-                fmt.format(date),
-                style: const TextStyle(
-                  fontSize: 12,
+            ),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today,
+                    color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Pick a Date',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ),
+                Text(
+                  priceLabel,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TableCalendar(
+              firstDay: DateTime.now(),
+              lastDay: DateTime.now().add(const Duration(days: 365)),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (d) => isSameDay(_selectedDay, d),
+              onDaySelected: (selected, focused) {
+                if (_isPast(selected) || _isBooked(selected)) return;
+                if (!widget.alwaysAvailable && !_isAvailable(selected)) return;
+                setState(() {
+                  _selectedDay = selected;
+                  _focusedDay = focused;
+                });
+                _openConfirmDialog(selected);
+              },
+              onPageChanged: (focused) => _focusedDay = focused,
+              calendarStyle: const CalendarStyle(
+                outsideDaysVisible: false,
+              ),
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+                titleTextStyle: TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
+                  color: AppColors.textDark,
                 ),
+                leftChevronIcon:
+                    Icon(Icons.chevron_left, color: AppColors.primary),
+                rightChevronIcon:
+                    Icon(Icons.chevron_right, color: AppColors.primary),
               ),
-            );
-          }).toList(),
+              calendarBuilders: CalendarBuilders(
+                defaultBuilder: (_, day, __) => _dayCell(day),
+                todayBuilder: (_, day, __) => _dayCell(day, isToday: true),
+                selectedBuilder: (_, day, __) =>
+                    _dayCell(day, isSelected: true),
+                disabledBuilder: (_, day, __) => _dayCell(day, isDisabled: true),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _LegendDot(color: AppColors.statusActive, label: 'Available'),
+                _LegendDot(
+                    color: AppColors.statusPendingApproval, label: 'Booked'),
+                _LegendDot(color: Colors.grey, label: 'Unavailable'),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _dayCell(DateTime day,
+      {bool isToday = false, bool isSelected = false, bool isDisabled = false}) {
+    final past = _isPast(day);
+    final booked = _isBooked(day);
+    final available = _isAvailable(day);
+
+    Color? bgColor;
+    Color textColor = AppColors.textDark;
+    bool isInteractive = !past && !booked && available;
+
+    if (isSelected) {
+      bgColor = AppColors.primary;
+      textColor = Colors.white;
+    } else if (booked) {
+      bgColor = AppColors.statusPendingApproval.withAlpha(40);
+      textColor = AppColors.statusPendingApproval;
+    } else if (available && !past) {
+      bgColor = AppColors.statusActive.withAlpha(30);
+      textColor = AppColors.statusActive;
+    } else if (past || isDisabled) {
+      textColor = Colors.grey.shade400;
+    }
+
+    return Opacity(
+      opacity: isInteractive || isSelected ? 1 : 0.7,
+      child: Container(
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+          border: isToday && !isSelected
+              ? Border.all(color: AppColors.primary, width: 1.5)
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            '${day.day}',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: (isSelected || available || booked)
+                  ? FontWeight.w700
+                  : FontWeight.w400,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BookingConfirmDialog extends StatelessWidget {
+  final Map<String, dynamic> service;
+  final DateTime date;
+
+  const _BookingConfirmDialog({
+    required this.service,
+    required this.date,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final title = service['title']?.toString() ?? '';
+    final priceFrom = service['price_from']?.toString() ?? '0';
+    final priceTo = service['price_to']?.toString();
+    final priceLabel = priceTo != null && priceTo != priceFrom
+        ? 'RM $priceFrom - RM $priceTo'
+        : 'RM $priceFrom';
+    final providerName = service['user']?['name']?.toString();
+    final dateLabel = DateFormat('EEEE, MMM d, yyyy').format(date);
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text(
+        'Confirm booking',
+        style: TextStyle(fontWeight: FontWeight.w800),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DetailRow(label: 'Service', value: title),
+          if (providerName != null && providerName.isNotEmpty)
+            _DetailRow(label: 'Freelancer', value: providerName),
+          _DetailRow(label: 'Date', value: dateLabel),
+          _DetailRow(label: 'Price', value: priceLabel, highlight: true),
+          const SizedBox(height: 8),
+          const Text(
+            'Confirming opens a private chat with the freelancer to '
+            'arrange details. The chat stays open until the freelancer '
+            'marks the job complete.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textGrey,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('No'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Yes, confirm'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool highlight;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textGrey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: highlight ? AppColors.primary : AppColors.textDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color.withAlpha(40),
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 1.5),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textGrey,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

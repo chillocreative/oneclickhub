@@ -3,8 +3,9 @@ import '../constants/app_colors.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
+  final String? label;
 
-  const StatusBadge({super.key, required this.status});
+  const StatusBadge({super.key, required this.status, this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
-        _formatStatus(status),
+        label ?? _bookingLabel(status),
         style: TextStyle(
           color: colors.$1,
           fontSize: 12,
@@ -26,6 +27,19 @@ class StatusBadge extends StatelessWidget {
       ),
     );
   }
+
+  /// Booking-flow display labels that line up with the new customer-facing
+  /// statuses (Booking Confirmed → Service Paid → Delivered → Completed).
+  static String _bookingLabel(String status) => switch (status.toLowerCase()) {
+        'pending_payment' => 'Booking Confirmed',
+        'pending_approval' => 'Awaiting Confirmation',
+        'active' => 'Service Paid',
+        'delivered' => 'Delivered',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'rejected' => 'Rejected',
+        _ => _formatStatus(status),
+      };
 
   static (Color, Color) _getStatusColors(String status) {
     switch (status.toLowerCase()) {
@@ -60,4 +74,9 @@ class StatusBadge extends StatelessWidget {
       return '${w[0].toUpperCase()}${w.substring(1)}';
     }).join(' ');
   }
+
+  /// Public helper so callers can compute the booking-flow label without
+  /// rendering the badge.
+  static String labelFor(String status, {String? override}) =>
+      override ?? _bookingLabel(status);
 }

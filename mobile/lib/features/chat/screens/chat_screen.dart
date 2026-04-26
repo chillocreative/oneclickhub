@@ -1,12 +1,20 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/datetime_format.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../models/conversation.dart';
+import '../providers/chat_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int conversationId;
@@ -20,9 +28,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
-  Map<String, dynamic>? _otherUser;
+  Conversation? _conversation;
   bool _isLoading = true;
   bool _isSending = false;
+  bool _isCompletingJob = false;
   String? _error;
   Timer? _pollTimer;
   String? _lastMessageAt;
@@ -52,13 +61,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final res = await dio.get('${ApiConstants.chat}/${widget.conversationId}');
       if (res.data['success'] == true) {
         final data = res.data['data'];
-        final convo = data['conversation'] as Map<String, dynamic>?;
+        final convoJson = data['conversation'] as Map<String, dynamic>?;
         final msgs = (data['messages'] as List? ?? [])
             .map((m) => Map<String, dynamic>.from(m as Map))
             .toList();
 
         setState(() {
-          _otherUser = convo?['other_user'] as Map<String, dynamic>?;
+          _conversation = convoJson != null
+              ? Conversation.fromJson(convoJson)
+              : null;
           _messages
             ..clear()
             ..addAll(msgs);
@@ -140,6 +151,179 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  Future<void> _pickAndSendAttachment() async {
+    if (_isSending) return;
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      withData: false,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final picked = result.files.single;
+    final path = picked.path;
+    if (path == null) return;
+
+    final file = File(path);
+    final size = await file.length();
+    if (size > 10 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File too large. Maximum 10 MB.'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isSending = true);
+    final captionRaw = _inputCtrl.text.trim();
+    _inputCtrl.clear();
+
+    try {
+      final dio = ref.read(dioProvider);
+      final formData = FormData.fromMap({
+        if (captionRaw.isNotEmpty) 'body': captionRaw,
+        'attachment': await MultipartFile.fromFile(
+          path,
+          filename: picked.name,
+        ),
+      });
+      final res = await dio.post(
+        '${ApiConstants.chat}/${widget.conversationId}/send',
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+      if (res.data['success'] == true) {
+        final msg = Map<String, dynamic>.from(res.data['data'] as Map);
+        setState(() {
+          _messages.add(msg);
+          _lastMessageAt = msg['created_at']?.toString();
+        });
+        _scrollToBottom();
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        if (captionRaw.isNotEmpty) _inputCtrl.text = captionRaw;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Failed to send attachment'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  Future<void> _confirmAndDeleteChat() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete chat?'),
+        content: const Text(
+          'This removes the chat from your inbox. The other side will keep '
+          'their copy unless they delete it too.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusRejected),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final ok = await ref
+        .read(chatProvider.notifier)
+        .deleteConversation(widget.conversationId);
+
+    if (!mounted) return;
+
+    if (ok) {
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete chat. Please try again.'),
+          backgroundColor: AppColors.statusRejected,
+        ),
+      );
+    }
+  }
+
+  Future<void> _markJobComplete() async {
+    final order = _conversation?.order;
+    if (order == null || _isCompletingJob) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Mark job complete?'),
+        content: const Text(
+          'This closes the booking chat. The customer will be asked to leave '
+          'a review. You will not be able to send more messages here.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Not yet'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Mark complete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isCompletingJob = true);
+    try {
+      final dio = ref.read(dioProvider);
+      await dio.post('${ApiConstants.orders}/${order.id}/deliver');
+      if (!mounted) return;
+      // Reload so the closed-chat banner shows and the input disables.
+      await _loadMessages();
+      // Refresh chat list for the next time user opens it.
+      ref.read(chatProvider.notifier).loadConversations();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Job marked complete. Chat closed.'),
+            backgroundColor: AppColors.statusActive,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not mark job complete'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCompletingJob = false);
+    }
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollCtrl.hasClients) {
@@ -152,10 +336,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  bool get _isOrderChatClosed {
+    final status = _conversation?.order?.status;
+    if (status == null) return false;
+    return status == 'completed'
+        || status == 'delivered'
+        || status == 'cancelled'
+        || status == 'rejected';
+  }
+
+  bool get _canMarkComplete {
+    final myId = ref.read(authProvider).user?.id;
+    final order = _conversation?.order;
+    if (myId == null || order == null) return false;
+    // Only the freelancer (the other side, when current user is freelancer)
+    // can close the chat. We infer freelancer-ness via the chat being an
+    // order chat where status is still active and current user is not the
+    // customer; backend enforces the real authorisation.
+    if (order.status != 'active') return false;
+    return _conversation?.otherUser != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final myId = ref.watch(authProvider).user?.id;
-    final otherName = _otherUser?['name']?.toString() ?? 'Chat';
+    final otherName = _conversation?.otherUser?.name ?? 'Chat';
+    final hasSummary = _conversation?.hasServiceSummary == true;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundWarm,
@@ -192,9 +398,51 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: AppColors.textDark),
+            onSelected: (value) {
+              if (value == 'complete') {
+                _markJobComplete();
+              } else if (value == 'delete') {
+                _confirmAndDeleteChat();
+              }
+            },
+            itemBuilder: (ctx) => [
+              if (_canMarkComplete)
+                const PopupMenuItem(
+                  value: 'complete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color: AppColors.statusActive, size: 18),
+                      SizedBox(width: 10),
+                      Text('Mark job complete'),
+                    ],
+                  ),
+                ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline,
+                        color: AppColors.statusRejected, size: 18),
+                    SizedBox(width: 10),
+                    Text('Delete chat'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
+          if (hasSummary) _ServiceSummaryHeader(conversation: _conversation!),
+          if (_canMarkComplete) _MarkCompleteBar(
+            isLoading: _isCompletingJob,
+            onPressed: _markJobComplete,
+          ),
           Expanded(child: _buildBody(myId)),
           _buildInput(),
         ],
@@ -244,16 +492,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           body: body,
           isMine: isMine,
           createdAt: createdAt,
+          attachmentUrl: m['attachment_url']?.toString(),
+          attachmentMime: m['attachment_mime']?.toString(),
+          attachmentName: m['attachment_name']?.toString(),
         );
       },
     );
   }
 
   Widget _buildInput() {
+    if (_isOrderChatClosed) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          color: Colors.white,
+          child: const Text(
+            'This booking chat is closed.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.textGrey,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
@@ -261,6 +532,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            IconButton(
+              tooltip: 'Attach file (PDF, JPG, PNG)',
+              onPressed: _isSending ? null : _pickAndSendAttachment,
+              icon: const Icon(
+                Icons.attach_file,
+                color: AppColors.primary,
+              ),
+            ),
             Expanded(
               child: TextField(
                 controller: _inputCtrl,
@@ -323,15 +602,192 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 }
 
+class _ServiceSummaryHeader extends StatelessWidget {
+  final Conversation conversation;
+  const _ServiceSummaryHeader({required this.conversation});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = conversation.summaryTitle ?? '';
+    final image = conversation.summaryImage;
+    final order = conversation.order;
+    final price = order?.agreedPrice != null
+        ? 'RM ${order!.agreedPrice!.toStringAsFixed(0)}'
+        : conversation.service?.priceDisplay;
+    final bookingDate = order?.bookingDate;
+    final formattedDate = bookingDate != null
+        ? AppDateTime.formatBooking(bookingDate)
+        : null;
+    final slug = order?.service?.slug ?? conversation.service?.slug;
+
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: slug != null
+            ? () => context.push('/services/$slug')
+            : null,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(8),
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: image != null && image.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: image,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) => Container(
+                            color: AppColors.primary.withAlpha(20),
+                            child: const Icon(Icons.work,
+                                color: AppColors.primary, size: 22),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.primary.withAlpha(20),
+                          child: const Icon(Icons.work,
+                              color: AppColors.primary, size: 22),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 2,
+                      children: [
+                        if (price != null)
+                          Text(
+                            price,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        if (formattedDate != null)
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGrey,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (slug != null)
+                const Icon(Icons.chevron_right,
+                    color: AppColors.textLight, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+
+class _MarkCompleteBar extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _MarkCompleteBar({
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.statusActive.withAlpha(15),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Job done? Mark this booking as complete to close the chat.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textDark,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.icon(
+            onPressed: isLoading ? null : onPressed,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.statusActive,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+            icon: isLoading
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 16),
+            label: const Text('Mark complete'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MessageBubble extends StatelessWidget {
   final String body;
   final bool isMine;
   final String? createdAt;
+  final String? attachmentUrl;
+  final String? attachmentMime;
+  final String? attachmentName;
 
   const _MessageBubble({
     required this.body,
     required this.isMine,
     this.createdAt,
+    this.attachmentUrl,
+    this.attachmentMime,
+    this.attachmentName,
   });
 
   String? _formatTime() {
@@ -341,9 +797,29 @@ class _MessageBubble extends StatelessWidget {
     return DateFormat('h:mm a').format(dt);
   }
 
+  bool get _isImage =>
+      attachmentMime != null && attachmentMime!.startsWith('image/');
+  bool get _isPdf => attachmentMime == 'application/pdf';
+  bool get _hasAttachment =>
+      attachmentUrl != null && attachmentUrl!.isNotEmpty;
+
+  Future<void> _open(BuildContext context) async {
+    if (!_hasAttachment) return;
+    final uri = Uri.tryParse(attachmentUrl!);
+    if (uri == null) return;
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open attachment')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final time = _formatTime();
+    final showText = body.isNotEmpty;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -356,7 +832,7 @@ class _MessageBubble extends StatelessWidget {
                 maxWidth: MediaQuery.of(context).size.width * 0.78,
               ),
               padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 10),
+                  horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: isMine ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.only(
@@ -376,16 +852,20 @@ class _MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    body,
-                    style: TextStyle(
-                      color: isMine ? Colors.white : AppColors.textDark,
-                      fontSize: 14,
-                      height: 1.35,
+                  if (_hasAttachment) _buildAttachment(context),
+                  if (showText) ...[
+                    if (_hasAttachment) const SizedBox(height: 6),
+                    Text(
+                      body,
+                      style: TextStyle(
+                        color: isMine ? Colors.white : AppColors.textDark,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
                     ),
-                  ),
+                  ],
                   if (time != null) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       time,
                       style: TextStyle(
@@ -401,6 +881,87 @@ class _MessageBubble extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAttachment(BuildContext context) {
+    if (_isImage) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => _open(context),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 220,
+              maxHeight: 260,
+            ),
+            child: CachedNetworkImage(
+              imageUrl: attachmentUrl!,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
+                color: Colors.grey.shade200,
+                width: 200,
+                height: 160,
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2,
+                ),
+              ),
+              errorWidget: (_, __, ___) => Container(
+                color: Colors.grey.shade200,
+                width: 200,
+                height: 120,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image,
+                    color: AppColors.textGrey),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final fg = isMine ? Colors.white : AppColors.primary;
+    final bg = isMine
+        ? Colors.white.withAlpha(40)
+        : AppColors.primary.withAlpha(20);
+
+    return InkWell(
+      onTap: () => _open(context),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _isPdf ? Icons.picture_as_pdf : Icons.insert_drive_file,
+              color: fg,
+              size: 22,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                attachmentName ?? 'Attachment',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.open_in_new, color: fg, size: 14),
+          ],
+        ),
       ),
     );
   }
