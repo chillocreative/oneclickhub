@@ -9,10 +9,11 @@ import { LanguageProvider } from '@/Contexts/LanguageContext';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // On 419 (CSRF token mismatch) we used to window.location.reload(), which
-// wiped any in-progress form data and forced users to re-type everything
-// before a second submit succeeded — exactly what was happening on /contact.
-// Instead, fetch a fresh token in-place and let the user click submit
-// again with their data intact.
+// wiped any in-progress form data and forced users to re-type everything.
+// Instead, swallow the failure and refresh the token in-place so the
+// user's next click goes through with their data intact. No popup —
+// the form already shows a "submit" affordance, and a second click is
+// less jarring than a system alert.
 router.on('invalid', async (event) => {
     if (event.detail.response.status !== 419) return;
     event.preventDefault();
@@ -32,7 +33,6 @@ router.on('invalid', async (event) => {
     } catch (e) {
         // fall through — user can refresh manually if this fails
     }
-    alert('Your session was refreshed for security. Please click the button once more to submit.');
 });
 
 createInertiaApp({
