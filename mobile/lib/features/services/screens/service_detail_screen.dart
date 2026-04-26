@@ -157,7 +157,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                   title: 'No availability set',
                   subtitle:
                       'The freelancer has not published any open dates yet. '
-                      'Tap "Chat with Freelancer" to ask.',
+                      'Tap "Chat" to ask.',
                 )
               else
                 _AvailableDatesGrid(dates: _availableDates),
@@ -593,7 +593,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: GradientButton(
-                          text: 'Chat with Freelancer',
+                          text: 'Chat',
                           icon: Icons.chat_bubble_outline,
                           isLoading: _isStartingChat,
                           onPressed: _startChatWithFreelancer,
@@ -614,7 +614,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                SizedBox(height: 48 + MediaQuery.of(context).padding.bottom),
               ],
             ),
           ),

@@ -238,7 +238,6 @@ class ServiceController extends Controller
         $service->update([
             'service_category_id' => $validated['service_category_id'],
             'title' => $validated['title'],
-            'slug' => Str::slug($validated['title']) . '-' . Str::random(6),
             'description' => $validated['description'],
             'price_from' => $validated['price_from'],
             'price_to' => $validated['price_to'] ?? null,

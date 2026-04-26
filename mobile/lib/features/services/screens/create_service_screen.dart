@@ -3,9 +3,12 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/uploading_overlay.dart';
+import '../../calendar/providers/calendar_provider.dart';
 import '../providers/my_services_provider.dart';
 
 class CreateServiceScreen extends ConsumerStatefulWidget {
@@ -29,6 +32,9 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   bool _alwaysAvailable = false;
   List<File> _imageFiles = [];
   List<String> _existingImageUrls = [];
+  DateTime _calendarFocusedDay = DateTime.now();
+  DateTime? _calendarSelectedDay;
+  final _calendarDateFormat = DateFormat('yyyy-MM-dd');
 
   bool get isEditing => widget.existingService != null;
 
@@ -37,6 +43,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     super.initState();
     Future.microtask(() {
       ref.read(myServicesProvider.notifier).loadCategories();
+      ref.read(calendarProvider.notifier).loadCalendar();
     });
 
     if (widget.existingService != null) {
@@ -285,7 +292,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                   subtitle: Text(
                     _alwaysAvailable
                         ? 'Customers can book any date.'
-                        : 'Customers see your calendar availability dates.',
+                        : 'Tap dates below to mark when you are available.',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textGrey,
@@ -293,7 +300,12 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              // Inline availability calendar (only shown when not always available)
+              if (!_alwaysAvailable) ...[
+                const SizedBox(height: 16),
+                _buildAvailabilityCalendar(),
+              ],
 
               const SizedBox(height: 32),
 
@@ -390,6 +402,216 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     );
   }
 
+  Widget _buildAvailabilityCalendar() {
+    final calendarState = ref.watch(calendarProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Text(
+              'Tap a date to toggle availability',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textGrey,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          TableCalendar(
+            firstDay: DateTime.now().subtract(const Duration(days: 1)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
+            focusedDay: _calendarFocusedDay,
+            selectedDayPredicate: (day) =>
+                isSameDay(_calendarSelectedDay, day),
+            onDaySelected: (selected, focused) =>
+                _onCalendarDayTapped(selected, focused, calendarState),
+            onPageChanged: (focused) => _calendarFocusedDay = focused,
+            calendarStyle: CalendarStyle(
+              outsideDaysVisible: false,
+              todayDecoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(30),
+                shape: BoxShape.circle,
+              ),
+              todayTextStyle: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+              selectedDecoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextStyle: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+              leftChevronIcon:
+                  Icon(Icons.chevron_left, color: AppColors.primary),
+              rightChevronIcon:
+                  Icon(Icons.chevron_right, color: AppColors.primary),
+            ),
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day, calendarState),
+              todayBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day, calendarState, isToday: true),
+              selectedBuilder: (context, day, focusedDay) =>
+                  _buildCalendarDayCell(day, calendarState, isSelected: true),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Legend
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _CalendarLegendDot(
+                  color: AppColors.statusActive,
+                  label: 'Available',
+                ),
+                _CalendarLegendDot(
+                  color: AppColors.statusPendingApproval,
+                  label: 'Booked',
+                ),
+              ],
+            ),
+          ),
+          if (calendarState.isSaving)
+            const Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: LinearProgressIndicator(
+                color: AppColors.primary,
+                minHeight: 2,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarDayCell(
+    DateTime day,
+    CalendarState state, {
+    bool isToday = false,
+    bool isSelected = false,
+  }) {
+    final dateStr = _calendarDateFormat.format(day);
+    final type = state.getDateType(dateStr);
+    final isBooked = state.isBooked(dateStr);
+
+    Color? bgColor;
+    Color textColor = AppColors.textDark;
+
+    if (isSelected) {
+      bgColor = AppColors.primary;
+      textColor = Colors.white;
+    } else if (isBooked) {
+      bgColor = AppColors.statusPendingApproval.withAlpha(30);
+      textColor = AppColors.statusPendingApproval;
+    } else if (type == 'available') {
+      bgColor = AppColors.statusActive.withAlpha(30);
+      textColor = AppColors.statusActive;
+    } else if (isToday) {
+      bgColor = AppColors.primary.withAlpha(20);
+      textColor = AppColors.primary;
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+        border: isToday && !isSelected
+            ? Border.all(color: AppColors.primary, width: 1.5)
+            : null,
+      ),
+      child: Center(
+        child: Text(
+          '${day.day}',
+          style: TextStyle(
+            color: textColor,
+            fontWeight: (isToday || isSelected || type != null || isBooked)
+                ? FontWeight.w700
+                : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onCalendarDayTapped(
+    DateTime selected,
+    DateTime focused,
+    CalendarState state,
+  ) async {
+    setState(() {
+      _calendarSelectedDay = selected;
+      _calendarFocusedDay = focused;
+    });
+
+    final dateStr = _calendarDateFormat.format(selected);
+
+    // Don't allow modifying booked dates
+    if (state.isBooked(dateStr)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This date is already booked.'),
+          backgroundColor: AppColors.statusPendingApproval,
+        ),
+      );
+      return;
+    }
+
+    final currentType = state.getDateType(dateStr);
+    if (currentType == 'available') {
+      // Tap again to remove
+      await ref.read(calendarProvider.notifier).removeDate(dateStr);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Date removed'),
+          backgroundColor: AppColors.statusActive,
+          duration: Duration(seconds: 1),
+        ),
+      );
+    } else {
+      // Mark as available
+      ref.read(calendarProvider.notifier).addLocalAvailability(
+            dateStr,
+            'available',
+          );
+      final ok = await ref.read(calendarProvider.notifier).updateDates([
+        {'date': dateStr, 'type': 'available'},
+      ]);
+      if (!mounted) return;
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Date marked available'),
+            backgroundColor: AppColors.statusActive,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildImagePicker() {
     final hasImages =
         _imageFiles.isNotEmpty || _existingImageUrls.isNotEmpty;
@@ -469,6 +691,40 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
                 ),
               ),
       ),
+    );
+  }
+}
+
+class _CalendarLegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _CalendarLegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color.withAlpha(40),
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 1.5),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textGrey,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
