@@ -164,11 +164,16 @@ class _AnimatedBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _NavItem(Icons.dashboard_outlined, Icons.dashboard, 0),
-      _NavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 1),
-      _NavItem(Icons.add, Icons.add, 2), // center FAB placeholder
-      _NavItem(Icons.receipt_long_outlined, Icons.receipt_long, 3),
-      _NavItem(Icons.person_outlined, Icons.person, 4),
+      _NavItem(Icons.dashboard_outlined, Icons.dashboard, 0, 'HOME'),
+      _NavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 1, 'CHAT'),
+      _NavItem(Icons.add, Icons.add, 2, ''), // center FAB placeholder
+      _NavItem(
+        Icons.receipt_long_outlined,
+        Icons.receipt_long,
+        3,
+        isFreelancer ? 'ORDERS' : 'BOOKINGS',
+      ),
+      _NavItem(Icons.person_outlined, Icons.person, 4, 'PROFILE'),
     ];
 
     return Container(
@@ -185,7 +190,7 @@ class _AnimatedBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 65,
+          height: 78,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: items.map((item) {
@@ -200,6 +205,7 @@ class _AnimatedBottomBar extends StatelessWidget {
               return _NavBarItem(
                 icon: item.icon,
                 activeIcon: item.activeIcon,
+                label: item.label,
                 isSelected: isSelected,
                 onTap: () => onTap(item.index),
               );
@@ -215,19 +221,22 @@ class _NavItem {
   final IconData icon;
   final IconData activeIcon;
   final int index;
+  final String label;
 
-  _NavItem(this.icon, this.activeIcon, this.index);
+  _NavItem(this.icon, this.activeIcon, this.index, this.label);
 }
 
 class _NavBarItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _NavBarItem({
     required this.icon,
     required this.activeIcon,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
@@ -238,8 +247,8 @@ class _NavBarItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 56,
-        height: 65,
+        width: 64,
+        height: 78,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -265,8 +274,20 @@ class _NavBarItem extends StatelessWidget {
                   isSelected ? activeIcon : icon,
                   key: ValueKey(isSelected),
                   color: isSelected ? AppColors.primary : AppColors.textGrey,
-                  size: 24,
+                  size: 22,
                 ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+                color: isSelected ? AppColors.primary : AppColors.textGrey,
               ),
             ),
           ],
