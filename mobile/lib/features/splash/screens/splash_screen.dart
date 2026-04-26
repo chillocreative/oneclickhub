@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -27,9 +28,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late Animation<double> _taglineSlide;
 
   // Each letter animates individually
-  static const _oneclick = 'ONECLICK';
+  static const _oneclick = 'ONE CLICK ';
   static const _hub = 'HUB';
-  static const _totalLetters = 11; // ONECLICK(8) + HUB(3)
+  static const _totalLetters = 13; // 'ONE CLICK '(10) + HUB(3)
 
   @override
   void initState() {
@@ -103,12 +104,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (mounted) _navigateNext();
   }
 
-  void _navigateNext() {
-    final authState = ref.read(authProvider);
-    if (authState.isAuthenticated) {
-      context.go('/dashboard');
+  Future<void> _navigateNext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+
+    if (!mounted) return;
+
+    if (!onboardingCompleted) {
+      context.go('/onboarding');
     } else {
-      context.go('/home');
+      final authState = ref.read(authProvider);
+      if (authState.isAuthenticated) {
+        context.go('/dashboard');
+      } else {
+        context.go('/home');
+      }
     }
   }
 
@@ -170,8 +180,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           children: [
                             // Glow ring
                             Container(
-                              width: 160 * _glowPulse.value,
-                              height: 160 * _glowPulse.value,
+                              width: 208 * _glowPulse.value,
+                              height: 208 * _glowPulse.value,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 boxShadow: [
@@ -187,8 +197,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                             ),
                             // Logo image
                             Container(
-                              width: 130,
-                              height: 130,
+                              width: 169,
+                              height: 169,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 boxShadow: [
@@ -222,7 +232,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     return Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // ONECLICK
+                        // ONE CLICK
                         ..._buildLetters(
                           _oneclick,
                           0,

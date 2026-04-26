@@ -189,7 +189,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               text: const TextSpan(
                 children: [
                   TextSpan(
-                    text: 'ONECLICK',
+                    text: 'ONE CLICK ',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,

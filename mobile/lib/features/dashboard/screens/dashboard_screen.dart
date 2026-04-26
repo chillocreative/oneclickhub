@@ -73,7 +73,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               text: const TextSpan(
                 children: [
                   TextSpan(
-                    text: 'ONECLICK',
+                    text: 'ONE CLICK ',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,

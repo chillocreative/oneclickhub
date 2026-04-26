@@ -57,7 +57,7 @@ class AboutScreen extends StatelessWidget {
                     text: const TextSpan(
                       children: [
                         TextSpan(
-                          text: 'ONECLICK',
+                          text: 'ONE CLICK ',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w900,

@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     text: const TextSpan(
                       children: [
                         TextSpan(
-                          text: 'ONECLICK',
+                          text: 'ONE CLICK ',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
