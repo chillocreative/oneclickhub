@@ -49,6 +49,7 @@ jobs:
           exclude: |
             .git/
             .github/
+            mobile/
             node_modules/
             tests/
             .env
@@ -62,8 +63,10 @@ jobs:
             vite.config.js
             postcss.config.js
             tailwind.config.js
+            jsconfig.json
             README.md
             TECHNICAL_DOCS.md
+            CLAUDE.md
             phpunit.xml
             docker-compose.yml
             storage/framework/cache/*
@@ -85,3 +88,4 @@ jobs:
             php artisan route:cache
             php artisan view:cache
             php artisan migrate --force
+            php artisan sendora:clear-throttle 2>/dev/null || true

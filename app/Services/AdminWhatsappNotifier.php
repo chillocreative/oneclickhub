@@ -29,7 +29,11 @@ use Illuminate\Support\Facades\Log;
  */
 class AdminWhatsappNotifier
 {
-    private const SLOT_KEY = 'sendora.admin.last_sent_at';
+    // v2 key bypasses any stale 24-hour reservations left by the old
+    // `app()->terminating()` flow, which could lock the slot for a full
+    // day even though the actual send never fired. Bumping the suffix
+    // gives us a clean throttle slate after each deploy that touches it.
+    public const SLOT_KEY = 'sendora.admin.last_sent_at.v2';
 
     public function notify(string $body): void
     {
@@ -41,9 +45,10 @@ class AdminWhatsappNotifier
             $lastSent = Carbon::parse($lastSentRaw);
             $nextEligible = $lastSent->copy()->addMinutes($throttleMinutes);
             if ($nextEligible->isFuture()) {
-                Log::info('Sendora admin notify throttled — skipping', [
+                Log::notice('Sendora admin notify throttled — skipping', [
                     'last_sent_at' => $lastSent->toIso8601String(),
                     'next_eligible' => $nextEligible->toIso8601String(),
+                    'hint' => 'Run `php artisan sendora:clear-throttle` to force the next event through.',
                 ]);
                 return;
             }
