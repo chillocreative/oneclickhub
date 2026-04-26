@@ -109,3 +109,9 @@ Schedule::call(function () {
         }
     }
 })->daily()->name('ssm-grace-reminders');
+
+// Day-30 / Day-10 founding-member nudges for early-adopter trials.
+Schedule::command('early-adopter:remind')
+    ->dailyAt('09:00')
+    ->timezone('Asia/Kuala_Lumpur')
+    ->name('early-adopter-reminders');

@@ -227,5 +227,46 @@ class User extends Authenticatable
     {
         return $this->ssmVerification?->gracePeriodDaysRemaining() ?? 0;
     }
+
+    /**
+     * The user can claim the founding-member RM 99 starter rate if they're
+     * currently or were previously an early-adopter grant holder AND they
+     * haven't yet purchased Starter Hub at full price.
+     */
+    public function isFoundingMemberEligible(): bool
+    {
+        $hadEarlyAdopter = $this->subscriptions()
+            ->where('grant_type', 'early_adopter')
+            ->exists();
+
+        if (!$hadEarlyAdopter) {
+            return false;
+        }
+
+        $alreadyPaidStarter = $this->subscriptions()
+            ->where('grant_type', 'payment')
+            ->whereHas('plan', fn ($q) => $q->where('slug', 'starter-hub'))
+            ->exists();
+
+        return !$alreadyPaidStarter;
+    }
+
+    public function activeServicesCount(): int
+    {
+        return $this->services()->where('is_active', true)->count();
+    }
+
+    /**
+     * Distinct service-category ids the user is currently listing under.
+     * Used to enforce SubscriptionPlan::max_categories.
+     */
+    public function activeCategoryIds(): \Illuminate\Support\Collection
+    {
+        return $this->services()
+            ->where('is_active', true)
+            ->pluck('service_category_id')
+            ->unique()
+            ->values();
+    }
 }
 

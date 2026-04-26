@@ -19,6 +19,9 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'position' => $this->position,
             'must_change_password' => (bool) $this->must_change_password,
+            'founding_member_eligible' => method_exists($this->resource, 'isFoundingMemberEligible')
+                ? $this->resource->isFoundingMemberEligible()
+                : false,
             'identity_document' => $this->identity_document,
             'profile_picture_url' => $this->profile_picture ? asset('storage/' . $this->profile_picture) : null,
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),

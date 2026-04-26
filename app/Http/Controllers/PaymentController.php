@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminSetting;
 use App\Models\PaymentGateway;
 use App\Models\SubscriptionPlan;
 use App\Models\Transaction;
@@ -89,31 +90,38 @@ class PaymentController extends Controller
 
         $orderNumber = 'PLAN-' . $user->id . '-' . $plan->id . '-' . time();
 
+        // Founding-member discount mirrors the API V1 controller.
+        $amount = (float) $plan->price;
+        if ($plan->slug === 'starter-hub' && method_exists($user, 'isFoundingMemberEligible') && $user->isFoundingMemberEligible()) {
+            $amount = (float) (AdminSetting::get('founding_member_starter_price') ?? 99);
+        }
+
         Transaction::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $plan->id,
             'order_number' => $orderNumber,
-            'amount' => $plan->price,
+            'amount' => $amount,
             'currency' => 'MYR',
             'gateway' => $gateway,
             'status' => 'pending',
         ]);
 
         if ($gateway === 'bayarcash') {
-            return $this->payWithBayarcash($user, $plan, $orderNumber);
+            return $this->payWithBayarcash($user, $plan, $orderNumber, $amount);
         }
 
-        return $this->payWithSenangpay($user, $plan, $orderNumber);
+        return $this->payWithSenangpay($user, $plan, $orderNumber, $amount);
     }
 
     /**
      * Create Bayarcash payment intent and redirect
      */
-    protected function payWithBayarcash($user, SubscriptionPlan $plan, string $orderNumber)
+    protected function payWithBayarcash($user, SubscriptionPlan $plan, string $orderNumber, ?float $amount = null)
     {
+        $amount = $amount ?? (float) $plan->price;
         $result = $this->bayarcash->createPaymentIntent([
             'order_number' => $orderNumber,
-            'amount' => $plan->price,
+            'amount' => $amount,
             'payer_name' => $user->name,
             'payer_email' => $user->email ?? $user->phone_number . '@noemail.oneclickhub.com',
             'payer_telephone_number' => $user->phone_number,
@@ -143,11 +151,12 @@ class PaymentController extends Controller
     /**
      * Create SenangPay payment and redirect
      */
-    protected function payWithSenangpay($user, SubscriptionPlan $plan, string $orderNumber)
+    protected function payWithSenangpay($user, SubscriptionPlan $plan, string $orderNumber, ?float $amount = null)
     {
+        $amount = $amount ?? (float) $plan->price;
         $result = $this->senangpay->createPayment([
             'detail' => 'Subscription: ' . $plan->name,
-            'amount' => $plan->price,
+            'amount' => $amount,
             'order_id' => $orderNumber,
             'name' => $user->name,
             'email' => $user->email ?? '',

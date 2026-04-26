@@ -151,11 +151,13 @@ class ServiceController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        if (!$request->user()->hasActiveSubscription()) {
+        $user = $request->user();
+
+        if (!$user->hasActiveSubscription()) {
             return $this->forbidden('Active subscription required to create services.');
         }
 
-        if (!$request->user()->canShowServices()) {
+        if (!$user->canShowServices()) {
             return $this->forbidden('Verified SSM certificate required to create services.');
         }
 
@@ -170,6 +172,29 @@ class ServiceController extends Controller
             'images.*' => 'nullable|image|max:25600',
         ]);
 
+        // Plan caps — null = unlimited.
+        $plan = $user->currentPlan;
+        if ($plan) {
+            if ($plan->max_services !== null && $user->activeServicesCount() >= $plan->max_services) {
+                return $this->error(
+                    "You've reached your plan's listing limit ({$plan->max_services}). Upgrade to add more.",
+                    422,
+                );
+            }
+            if ($plan->max_categories !== null) {
+                $current = $user->activeCategoryIds();
+                if (!$current->contains((int) $validated['service_category_id'])
+                    && $current->count() >= $plan->max_categories) {
+                    return $this->error(
+                        "Your plan allows up to {$plan->max_categories} service " .
+                        ($plan->max_categories === 1 ? 'category' : 'categories') .
+                        '. Upgrade to span more.',
+                        422,
+                    );
+                }
+            }
+        }
+
         $imagePaths = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
@@ -177,7 +202,7 @@ class ServiceController extends Controller
             }
         }
 
-        $service = $request->user()->services()->create([
+        $service = $user->services()->create([
             'service_category_id' => $validated['service_category_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
@@ -225,6 +250,30 @@ class ServiceController extends Controller
             'existing_images' => 'nullable|array',
             'existing_images.*' => 'nullable|string',
         ]);
+
+        // Category cap — only kicks in if the freelancer is moving this service
+        // into a new category that none of their other services already covers.
+        $user = $request->user();
+        $plan = $user->currentPlan;
+        if ($plan && $plan->max_categories !== null) {
+            $newCategoryId = (int) $validated['service_category_id'];
+            if ($newCategoryId !== (int) $service->service_category_id) {
+                $otherCategoryIds = $user->services()
+                    ->where('id', '!=', $service->id)
+                    ->where('is_active', true)
+                    ->pluck('service_category_id')
+                    ->unique();
+                if (!$otherCategoryIds->contains($newCategoryId)
+                    && $otherCategoryIds->count() >= $plan->max_categories) {
+                    return $this->error(
+                        "Your plan allows up to {$plan->max_categories} service " .
+                        ($plan->max_categories === 1 ? 'category' : 'categories') .
+                        '. Upgrade to span more.',
+                        422,
+                    );
+                }
+            }
+        }
 
         $existingPaths = $service->images ?? [];
 

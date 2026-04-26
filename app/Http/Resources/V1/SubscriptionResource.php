@@ -17,6 +17,7 @@ class SubscriptionResource extends JsonResource
             'remaining_days' => $this->remaining_days,
             'amount_paid' => $this->amount_paid,
             'payment_gateway' => $this->payment_gateway,
+            'grant_type' => $this->grant_type,
             'plan' => $this->whenLoaded('plan', fn () => new SubscriptionPlanResource($this->plan)),
             'created_at' => $this->created_at?->toISOString(),
         ];

@@ -12,6 +12,7 @@ class SubscriptionPlan extends Model
     protected $fillable = [
         'name', 'slug', 'price', 'interval', 'features', 'is_active', 'is_popular',
         'description', 'requires_approval', 'sponsored_by',
+        'max_services', 'max_categories',
     ];
 
     protected $casts = [
@@ -20,6 +21,8 @@ class SubscriptionPlan extends Model
         'is_popular' => 'boolean',
         'requires_approval' => 'boolean',
         'price' => 'decimal:2',
+        'max_services' => 'integer',
+        'max_categories' => 'integer',
     ];
 
     // Note: subscribers_count is NOT in appends to avoid errors when subscriptions table doesn't exist
