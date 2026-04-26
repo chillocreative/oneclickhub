@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off.
+         Edge-to-edge is enabled in MainActivity via enableEdgeToEdge(); the system handles
+         transparent bars natively, so we don't set the deprecated statusBarColor /
+         navigationBarColor attributes here (they trigger Android 15 deprecation warnings). -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
