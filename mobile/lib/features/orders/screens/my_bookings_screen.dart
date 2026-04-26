@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -222,75 +223,139 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstImage = order.service?.firstImage;
+    final freelancerName = order.freelancer?.name ?? '';
+    final initial = freelancerName.isNotEmpty
+        ? freelancerName[0].toUpperCase()
+        : '?';
+
     return AppCard(
       onTap: () => context.push('/orders/${order.id}'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: StatusBadge(
-              status: order.status,
-              label: order.statusLabel,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '#${order.orderNumber}',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-              color: AppColors.textDark,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          if (order.service != null)
-            Text(
-              order.service!.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.textDark,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          const SizedBox(height: 6),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  order.freelancer?.name ?? '',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textGrey,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: firstImage != null && firstImage.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: firstImage,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: AppColors.primary.withAlpha(20),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            color: AppColors.primary.withAlpha(20),
+                            child: const Icon(Icons.work,
+                                color: AppColors.primary, size: 28),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.primary.withAlpha(20),
+                          child: const Icon(Icons.work,
+                              color: AppColors.primary, size: 28),
+                        ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                AppDateTime.formatBooking(order.bookingDate),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textLight,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.priceDisplay,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (order.service != null)
+                      Text(
+                        order.service!.title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textDark,
+                          height: 1.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            initial,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            freelancerName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textGrey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        StatusBadge(
+                          status: order.status,
+                          label: order.statusLabel,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            order.priceDisplay,
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              color: AppColors.primary,
-            ),
+          const SizedBox(height: 12),
+          Container(height: 1, color: const Color(0xFFEFEFEF)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  AppDateTime.formatBooking(order.bookingDate),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.more_vert, color: AppColors.textGrey),
+                onPressed: () => context.push('/orders/${order.id}'),
+                tooltip: 'View detail',
+              ),
+            ],
           ),
         ],
       ),

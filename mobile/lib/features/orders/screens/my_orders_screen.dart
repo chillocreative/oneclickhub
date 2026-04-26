@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -230,20 +231,23 @@ class _OrderCard extends ConsumerStatefulWidget {
 }
 
 class _OrderCardState extends ConsumerState<_OrderCard> {
-  bool _isAccepting = false;
+  bool _isBusy = false;
 
-  Future<void> _quickAccept() async {
-    if (_isAccepting) return;
-    setState(() => _isAccepting = true);
+  Future<void> _doAction(String suffix, String successMessage,
+      {Map<String, dynamic>? data}) async {
+    if (_isBusy) return;
+    setState(() => _isBusy = true);
     try {
       final dio = ref.read(dioProvider);
       await dio.post(
-          '${ApiConstants.orders}/${widget.order.id}/accept');
+        '${ApiConstants.orders}/${widget.order.id}/$suffix',
+        data: data,
+      );
       ref.read(myOrdersProvider.notifier).loadOrders(refresh: true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Booking marked as Service Paid.'),
+          SnackBar(
+            content: Text(successMessage),
             backgroundColor: AppColors.statusActive,
           ),
         );
@@ -253,125 +257,270 @@ class _OrderCardState extends ConsumerState<_OrderCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.response?.data?['message']?.toString()
-                ?? 'Could not accept booking'),
+                ?? 'Action failed'),
             backgroundColor: AppColors.statusRejected,
           ),
         );
       }
     } finally {
-      if (mounted) setState(() => _isAccepting = false);
+      if (mounted) setState(() => _isBusy = false);
+    }
+  }
+
+  Future<void> _confirmReject() async {
+    final reasonCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reject booking'),
+        content: TextField(
+          controller: reasonCtrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'Reason (optional)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusRejected),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reject'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await _doAction(
+        'reject',
+        'Booking rejected.',
+        data: {'reason': reasonCtrl.text.trim()},
+      );
+    }
+  }
+
+  void _onMenuSelected(String value) {
+    switch (value) {
+      case 'view':
+        context.push('/orders/${widget.order.id}');
+        break;
+      case 'accept':
+        _doAction('accept', 'Booking marked as Service Paid.');
+        break;
+      case 'reject':
+        _confirmReject();
+        break;
+      case 'deliver':
+        _doAction('deliver', 'Booking marked as Delivered.');
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final showAccept =
+    final canAcceptOrReject =
         order.status == 'pending_payment' || order.status == 'pending_approval';
+    final canDeliver = order.status == 'active';
+    final firstImage = order.service?.firstImage;
+    final customerName = order.customer?.name ?? '';
+    final initial = customerName.isNotEmpty
+        ? customerName[0].toUpperCase()
+        : '?';
 
     return AppCard(
       onTap: () => context.push('/orders/${order.id}'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status sits on its own row so the booking-flow label always
-          // fits, no matter how long the order number is below.
-          Align(
-            alignment: Alignment.centerRight,
-            child: StatusBadge(
-              status: order.status,
-              label: order.statusLabel,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '#${order.orderNumber}',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
-              color: AppColors.textDark,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          if (order.service != null)
-            Text(
-              order.service!.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: AppColors.textDark,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          const SizedBox(height: 6),
+          // Top: image + price/title + customer/status
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  order.customer?.name ?? order.freelancer?.name ?? '',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textGrey,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: firstImage != null && firstImage.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: firstImage,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: AppColors.primary.withAlpha(20),
+                          ),
+                          errorWidget: (_, __, ___) => Container(
+                            color: AppColors.primary.withAlpha(20),
+                            child: const Icon(Icons.work,
+                                color: AppColors.primary, size: 28),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.primary.withAlpha(20),
+                          child: const Icon(Icons.work,
+                              color: AppColors.primary, size: 28),
+                        ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                AppDateTime.formatBooking(order.bookingDate),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textLight,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.priceDisplay,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (order.service != null)
+                      Text(
+                        order.service!.title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textDark,
+                          height: 1.3,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            initial,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            customerName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textGrey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        StatusBadge(
+                          status: order.status,
+                          label: order.statusLabel,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          Container(height: 1, color: const Color(0xFFEFEFEF)),
+          // Footer: date + 3-dot menu
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                order.priceDisplay,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  color: AppColors.primary,
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  AppDateTime.formatBooking(order.bookingDate),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
                 ),
               ),
-              if (showAccept)
-                FilledButton.icon(
-                  onPressed: _isAccepting ? null : _quickAccept,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
-                  ),
-                  icon: _isAccepting
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+              _isBusy
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )
+                  : PopupMenuButton<String>(
+                      onSelected: _onMenuSelected,
+                      icon: const Icon(Icons.more_vert,
+                          color: AppColors.textGrey),
+                      itemBuilder: (ctx) => [
+                        const PopupMenuItem(
+                          value: 'view',
+                          child: Row(
+                            children: [
+                              Icon(Icons.open_in_new,
+                                  size: 18, color: AppColors.textDark),
+                              SizedBox(width: 10),
+                              Text('View detail'),
+                            ],
                           ),
-                        )
-                      : const Icon(Icons.check_circle_outline, size: 16),
-                  label: const Text('Accept'),
-                ),
+                        ),
+                        if (canAcceptOrReject) ...[
+                          const PopupMenuItem(
+                            value: 'accept',
+                            child: Row(
+                              children: [
+                                Icon(Icons.check_circle_outline,
+                                    size: 18, color: AppColors.statusActive),
+                                SizedBox(width: 10),
+                                Text('Mark Service Paid'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'reject',
+                            child: Row(
+                              children: [
+                                Icon(Icons.close,
+                                    size: 18, color: AppColors.statusRejected),
+                                SizedBox(width: 10),
+                                Text('Reject'),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (canDeliver)
+                          const PopupMenuItem(
+                            value: 'deliver',
+                            child: Row(
+                              children: [
+                                Icon(Icons.local_shipping_outlined,
+                                    size: 18, color: AppColors.statusActive),
+                                SizedBox(width: 10),
+                                Text('Mark Delivered'),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
             ],
           ),
         ],

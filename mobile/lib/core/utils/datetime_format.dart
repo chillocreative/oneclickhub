@@ -7,25 +7,34 @@
 /// components of the parsed `DateTime` instead of converting to local time.
 library;
 
+import 'package:intl/intl.dart';
+
 class AppDateTime {
   AppDateTime._();
 
   static String _pad(int n) => n.toString().padLeft(2, '0');
 
-  /// Format any ISO/`Y-m-d` string as `dd-MM-yyyy @ HH:mm`.
-  /// Returns `'—'` for null/empty and the original input if it cannot be
-  /// parsed (so we never silently lose information).
+  /// Date-only label for booking dates — matches the order-card design
+  /// style: `MMM d, yyyy` (e.g. `Jul 26, 2025`). Returns `—` for null/empty
+  /// and the original input if it cannot be parsed.
   static String formatBooking(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '—';
     final dt = DateTime.tryParse(raw);
     if (dt == null) return raw;
-    return '${_pad(dt.day)}-${_pad(dt.month)}-${dt.year}'
-        ' @ ${_pad(dt.hour)}:${_pad(dt.minute)}';
+    return DateFormat('MMM d, yyyy').format(dt);
   }
 
-  /// Same format but for full ISO timestamps converted to the device's
-  /// local time — appropriate for created_at / delivered_at where the
-  /// time-of-day actually matters to the user.
+  /// Date-only label using `dd-MM-yyyy` for callers that need a numeric
+  /// representation (legacy form).
+  static String formatBookingNumeric(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '—';
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return raw;
+    return '${_pad(dt.day)}-${_pad(dt.month)}-${dt.year}';
+  }
+
+  /// Full local timestamp `dd-MM-yyyy @ HH:mm` — appropriate for
+  /// created_at / delivered_at where the time-of-day matters.
   static String formatLocal(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '—';
     final dt = DateTime.tryParse(raw)?.toLocal();
