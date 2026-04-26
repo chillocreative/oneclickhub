@@ -14,10 +14,13 @@ use Illuminate\Support\Facades\Log;
  *
  * Implementation notes:
  *  - We do NOT use a queue here. Production may not run a queue worker,
- *    in which case `dispatch()->delay()` would silently sit in the jobs
- *    table forever. Instead we fire the HTTP send synchronously, but
- *    inside `app()->terminating()` so the request response is already
- *    flushed to the user — they don't wait on Sendora.
+ *    so `dispatch()` would silently sit in the jobs table forever.
+ *  - We also do NOT defer via `app()->terminating()`. On Apache mod_php
+ *    and several FCGI configurations the terminating callbacks don't
+ *    reliably fire after the response flushes, which silently dropped
+ *    contact-form pings. We now call Sendora synchronously inside the
+ *    request — same pattern the admin "Test ping" button uses, which
+ *    is why that one always works. Sendora typically responds in 1–2s.
  *  - Throttling is implemented as a "skip" (silently drop) rather than
  *    a "delay" (queue for later). For low-frequency events like new
  *    subscriptions / contact-form submissions, skipping is fine — the
@@ -52,37 +55,21 @@ class AdminWhatsappNotifier
             return;
         }
 
-        // Reserve the slot now so two concurrent requests don't both fire.
-        // Use a SHORT reservation initially — if the actual send succeeds we
-        // extend it to the full throttle window. This prevents a single
-        // failed send from silently blocking notifications for 30 minutes.
+        // Reserve the slot briefly so two concurrent requests don't both fire.
+        // We extend it to the full throttle window only after a confirmed send.
         Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addSeconds(60));
 
-        // Defer the HTTP call until the user response has flushed so the
-        // form submission stays snappy. If the framework can't terminate
-        // (e.g. running from CLI), fall back to immediate send.
-        $throttleMinutes = $this->throttleMinutes();
-        $task = function () use ($phone, $body, $now, $throttleMinutes) {
-            try {
-                $ok = app(SendoraService::class)->sendMessage($phone, $body);
-                if ($ok) {
-                    // Confirmed delivery — hold the slot for the full window.
-                    Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addMinutes($throttleMinutes + 5));
-                } else {
-                    // Send failed — release the slot so the next event can retry.
-                    Cache::forget(self::SLOT_KEY);
-                    Log::warning('Sendora admin notify dispatched but Sendora returned non-success.');
-                }
-            } catch (\Throwable $e) {
+        try {
+            $ok = app(SendoraService::class)->sendMessage($phone, $body);
+            if ($ok) {
+                Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addMinutes($throttleMinutes + 5));
+            } else {
                 Cache::forget(self::SLOT_KEY);
-                Log::error('Sendora admin notify exception', ['error' => $e->getMessage()]);
+                Log::warning('Sendora admin notify dispatched but Sendora returned non-success.');
             }
-        };
-
-        if (app()->bound('Illuminate\Foundation\Application') && method_exists(app(), 'terminating')) {
-            app()->terminating($task);
-        } else {
-            $task();
+        } catch (\Throwable $e) {
+            Cache::forget(self::SLOT_KEY);
+            Log::error('Sendora admin notify exception', ['error' => $e->getMessage()]);
         }
     }
 
