@@ -5,8 +5,10 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
+import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/services/screens/browse_services_screen.dart';
+import '../../features/services/screens/guest_browse_services_screen.dart';
 import '../../features/services/screens/service_detail_screen.dart';
 import '../../features/services/screens/my_services_screen.dart';
 import '../../features/services/screens/create_service_screen.dart';
@@ -39,12 +41,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isGuestHome = state.matchedLocation == '/home';
 
-      // Let splash screen handle its own navigation
-      if (isSplash) return null;
+      // Let splash and onboarding screens handle their own navigation
+      final isOnboarding = state.matchedLocation == '/onboarding';
+      if (isSplash || isOnboarding) return null;
 
       // Allow unauthenticated users to access /home, /auth, and guest routes
       final isGuestRoute = state.matchedLocation == '/halal-restaurants' ||
-          state.matchedLocation == '/notifications';
+          state.matchedLocation == '/notifications' ||
+          state.matchedLocation == '/browse-services';
       if (!isAuth && !isAuthRoute && !isGuestHome && !isGuestRoute) {
         return '/home';
       }
@@ -60,6 +64,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+
+      // Onboarding screen (first-time install)
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
 
       // Auth routes (no shell)
@@ -148,6 +159,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Guest browse services (no shell — has its own back button)
+      GoRoute(
+        path: '/browse-services',
+        name: 'guest-browse-services',
+        builder: (context, state) {
+          final categoryParam = state.uri.queryParameters['category'];
+          final categoryId = categoryParam == null
+              ? null
+              : int.tryParse(categoryParam);
+          return GuestBrowseServicesScreen(initialCategoryId: categoryId);
+        },
+      ),
+
       // Detail routes (no shell)
       GoRoute(
         path: '/services/:slug',
@@ -205,7 +229,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'privacy-policy',
         builder: (context, state) => const WebViewPageScreen(
           title: 'Privacy Policy',
-          url: 'https://oneclickhub.verranet.com/privacy',
+          url: 'https://oneclickhub.com.my/privacy',
         ),
       ),
       GoRoute(
@@ -213,7 +237,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'terms',
         builder: (context, state) => const WebViewPageScreen(
           title: 'Terms & Conditions',
-          url: 'https://oneclickhub.verranet.com/terms',
+          url: 'https://oneclickhub.com.my/terms',
         ),
       ),
     ],

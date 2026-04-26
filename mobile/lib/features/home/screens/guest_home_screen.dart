@@ -302,7 +302,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: () => context.go('/auth/login'),
+                onTap: () => context.push('/browse-services'),
                 child: const Text(
                   'See All',
                   style: TextStyle(
@@ -341,7 +341,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
 
   Widget _buildCategoryCard(ServiceCategoryModel category) {
     return GestureDetector(
-      onTap: () => context.go('/auth/login'),
+      onTap: () => context.push('/browse-services?category=${category.id}'),
       child: Container(
         width: 100,
         margin: const EdgeInsets.symmetric(horizontal: 4),
