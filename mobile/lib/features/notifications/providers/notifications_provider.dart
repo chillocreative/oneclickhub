@@ -38,6 +38,13 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
 
   NotificationsNotifier(this._dio) : super(const NotificationsState());
 
+  // Guest uses the legacy key for backward compat with existing installs.
+  String _readKey(bool isGuest) =>
+      isGuest ? 'notification_read_at' : 'notification_read_at_user';
+
+  String _deletedKey(bool isGuest) =>
+      isGuest ? 'notification_deleted_at_guest' : 'notification_deleted_at_user';
+
   Future<void> loadNotifications({bool isGuest = false}) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -48,20 +55,23 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
       final data = response.data;
 
       if (data['success'] == true) {
-        final list = (data['data']['notifications'] as List)
+        final all = (data['data']['notifications'] as List)
             .map((n) => PushNotificationModel.fromJson(n))
             .toList();
 
-        int unread;
-        if (isGuest) {
-          unread = await _computeGuestUnread(list);
-        } else {
-          unread = data['data']['unread_count'] ?? 0;
-        }
+        final deletedAt = await _getDeletedAt(isGuest);
+        final visible = deletedAt == null
+            ? all
+            : all.where((n) {
+                final created = DateTime.tryParse(n.createdAt);
+                return created != null && created.isAfter(deletedAt);
+              }).toList();
+
+        final unread = await _computeUnread(visible, isGuest, data);
 
         state = state.copyWith(
           isLoading: false,
-          notifications: list,
+          notifications: visible,
           unreadCount: unread,
         );
       } else {
@@ -73,31 +83,64 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
   }
 
   Future<void> markAllRead({bool isGuest = false}) async {
-    if (isGuest) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'notification_read_at', DateTime.now().toIso8601String());
-      state = state.copyWith(unreadCount: 0);
-    } else {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_readKey(isGuest), DateTime.now().toIso8601String());
+
+    if (!isGuest) {
       try {
         await _dio.post(ApiConstants.markNotificationsRead);
-        state = state.copyWith(unreadCount: 0);
       } catch (_) {}
     }
+
+    state = state.copyWith(unreadCount: 0);
   }
 
-  Future<int> _computeGuestUnread(List<PushNotificationModel> list) async {
+  Future<void> deleteAll({bool isGuest = false}) async {
     final prefs = await SharedPreferences.getInstance();
-    final readAtStr = prefs.getString('notification_read_at');
-    if (readAtStr == null) return list.length;
+    final now = DateTime.now();
+    await prefs.setString(_deletedKey(isGuest), now.toIso8601String());
+    // Treat as read too — count starts fresh for any new notifications.
+    await prefs.setString(_readKey(isGuest), now.toIso8601String());
 
-    final readAt = DateTime.tryParse(readAtStr);
-    if (readAt == null) return list.length;
+    if (!isGuest) {
+      try {
+        await _dio.post(ApiConstants.markNotificationsRead);
+      } catch (_) {}
+    }
 
-    return list.where((n) {
-      final created = DateTime.tryParse(n.createdAt);
-      return created != null && created.isAfter(readAt);
-    }).length;
+    state = state.copyWith(notifications: [], unreadCount: 0);
+  }
+
+  Future<DateTime?> _getDeletedAt(bool isGuest) async {
+    final prefs = await SharedPreferences.getInstance();
+    final str = prefs.getString(_deletedKey(isGuest));
+    if (str == null) return null;
+    return DateTime.tryParse(str);
+  }
+
+  Future<int> _computeUnread(
+    List<PushNotificationModel> visible,
+    bool isGuest,
+    Map data,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final readAtStr = prefs.getString(_readKey(isGuest));
+    final readAt = readAtStr == null ? null : DateTime.tryParse(readAtStr);
+
+    if (readAt != null) {
+      return visible.where((n) {
+        final created = DateTime.tryParse(n.createdAt);
+        return created != null && created.isAfter(readAt);
+      }).length;
+    }
+
+    if (!isGuest) {
+      // Server's unread_count was computed from the full set; clamp to visible.
+      final serverUnread = data['data']['unread_count'] ?? visible.length;
+      return serverUnread > visible.length ? visible.length : serverUnread;
+    }
+
+    return visible.length;
   }
 }
 

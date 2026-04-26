@@ -32,6 +32,35 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return 'Just now';
   }
 
+  Future<void> _confirmDeleteAll() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete all notifications?'),
+        content: const Text(
+          'This will remove all notifications from your device. New notifications will still arrive.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete all'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await ref
+          .read(notificationsProvider.notifier)
+          .deleteAll(isGuest: widget.isGuest);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(notificationsProvider);
@@ -43,21 +72,43 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         elevation: 0,
         title: const Text('Notifications'),
         actions: [
-          if (state.unreadCount > 0)
-            TextButton(
-              onPressed: () {
-                ref
-                    .read(notificationsProvider.notifier)
-                    .markAllRead(isGuest: widget.isGuest);
+          if (state.notifications.isNotEmpty)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: AppColors.textDark),
+              onSelected: (value) {
+                if (value == 'mark_read') {
+                  ref
+                      .read(notificationsProvider.notifier)
+                      .markAllRead(isGuest: widget.isGuest);
+                } else if (value == 'delete_all') {
+                  _confirmDeleteAll();
+                }
               },
-              child: const Text(
-                'Clear All',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+              itemBuilder: (context) => [
+                if (state.unreadCount > 0)
+                  const PopupMenuItem(
+                    value: 'mark_read',
+                    child: Row(
+                      children: [
+                        Icon(Icons.done_all,
+                            size: 18, color: AppColors.primary),
+                        SizedBox(width: 12),
+                        Text('Mark all as read'),
+                      ],
+                    ),
+                  ),
+                const PopupMenuItem(
+                  value: 'delete_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline,
+                          size: 18, color: Colors.red),
+                      SizedBox(width: 12),
+                      Text('Delete all'),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
         ],
       ),
