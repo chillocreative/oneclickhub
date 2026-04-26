@@ -447,6 +447,11 @@ class AdminController extends Controller
             'claude_api_key' => AdminSetting::get('claude_api_key') ? '••••••••' : '',
             'active_ai_provider' => AdminSetting::get('active_ai_provider', 'openai'),
             'early_adopter_enabled' => (string) AdminSetting::get('early_adopter_enabled', '1') === '1',
+            'sendora_base_url' => AdminSetting::get('sendora_base_url', config('sendora.base_url', '')),
+            'sendora_api_token' => AdminSetting::get('sendora_api_token') ? '••••••••' : '',
+            'sendora_device_id' => AdminSetting::get('sendora_device_id', config('sendora.device_id', '')),
+            'sendora_admin_phone' => AdminSetting::get('sendora_admin_phone', config('sendora.admin_phone', '')),
+            'sendora_admin_throttle_minutes' => AdminSetting::get('sendora_admin_throttle_minutes', (string) config('sendora.admin_throttle_minutes', 30)),
         ]);
     }
 
@@ -457,6 +462,11 @@ class AdminController extends Controller
             'claude_api_key' => 'nullable|string|max:255',
             'active_ai_provider' => 'required|in:openai,claude',
             'early_adopter_enabled' => 'nullable|boolean',
+            'sendora_base_url' => 'nullable|url|max:255',
+            'sendora_api_token' => 'nullable|string|max:512',
+            'sendora_device_id' => 'nullable|string|max:128',
+            'sendora_admin_phone' => 'nullable|string|max:20',
+            'sendora_admin_throttle_minutes' => 'nullable|integer|min:1|max:1440',
         ]);
 
         if ($request->openai_api_key && $request->openai_api_key !== '••••••••') {
@@ -474,6 +484,16 @@ class AdminController extends Controller
                 'early_adopter_enabled',
                 $request->boolean('early_adopter_enabled') ? '1' : '0',
             );
+        }
+
+        foreach (['sendora_base_url', 'sendora_device_id', 'sendora_admin_phone', 'sendora_admin_throttle_minutes'] as $key) {
+            if ($request->has($key)) {
+                AdminSetting::set($key, (string) $request->input($key, ''));
+            }
+        }
+
+        if ($request->filled('sendora_api_token') && $request->sendora_api_token !== '••••••••') {
+            AdminSetting::set('sendora_api_token', $request->sendora_api_token);
         }
 
         return $this->success(null, 'Settings updated.');

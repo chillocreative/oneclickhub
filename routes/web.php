@@ -210,6 +210,7 @@ Route::middleware('auth')->group(function () {
         // Admin settings
         Route::get('/admin/settings', [SsmVerificationController::class, 'adminSettings'])->name('admin.settings');
         Route::patch('/admin/settings', [SsmVerificationController::class, 'updateSettings'])->name('admin.settings.update');
+        Route::post('/admin/settings/sendora-test', [SsmVerificationController::class, 'sendoraTest'])->name('admin.settings.sendora.test');
     });
 });
 

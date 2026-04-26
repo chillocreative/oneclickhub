@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AdminSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -14,9 +15,9 @@ class SendoraService
      */
     public function sendMessage(string $phone, string $body): bool
     {
-        $base = rtrim(config('sendora.base_url'), '/');
-        $token = config('sendora.api_token');
-        $device = config('sendora.device_id');
+        $base = rtrim($this->setting('sendora_base_url', 'sendora.base_url'), '/');
+        $token = $this->setting('sendora_api_token', 'sendora.api_token');
+        $device = $this->setting('sendora_device_id', 'sendora.device_id');
 
         if ($base === '' || $token === '' || $device === '') {
             Log::warning('Sendora not configured — skipping message', [
@@ -70,12 +71,24 @@ class SendoraService
         if ($digits === '') {
             return null;
         }
-        $prefix = (string) config('sendora.country_prefix', '6');
+        $prefix = (string) ($this->setting('sendora_country_prefix', 'sendora.country_prefix') ?: '6');
         if (str_starts_with($digits, '0')) {
             $digits = $prefix . substr($digits, 1);
-        } elseif (!str_starts_with($digits, $prefix)) {
-            // Already-international or unknown country left as-is.
         }
         return $digits;
+    }
+
+    /**
+     * Resolve a setting from the admin_settings table first, falling back to
+     * the static config (which still reads .env). Lets admins rotate creds
+     * without an SSH session while keeping current installs working.
+     */
+    private function setting(string $adminKey, string $configKey): string
+    {
+        $value = AdminSetting::get($adminKey);
+        if ($value !== null && $value !== '') {
+            return (string) $value;
+        }
+        return (string) config($configKey, '');
     }
 }

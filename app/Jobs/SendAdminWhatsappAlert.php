@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\AdminSetting;
 use App\Services\SendoraService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,10 @@ class SendAdminWhatsappAlert implements ShouldQueue
 
     public function handle(SendoraService $sendora): void
     {
-        $phone = config('sendora.admin_phone');
+        // AdminSetting wins over .env so dashboard edits take effect
+        // immediately without a redeploy.
+        $phone = AdminSetting::get('sendora_admin_phone')
+            ?: config('sendora.admin_phone');
         if (!$phone) {
             return;
         }

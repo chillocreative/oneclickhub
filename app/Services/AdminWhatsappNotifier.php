@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\SendAdminWhatsappAlert;
+use App\Models\AdminSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -22,7 +23,10 @@ class AdminWhatsappNotifier
 
     public function notify(string $body): void
     {
-        $throttleMinutes = (int) config('sendora.admin_throttle_minutes', 30);
+        $stored = AdminSetting::get('sendora_admin_throttle_minutes');
+        $throttleMinutes = (int) ($stored !== null && $stored !== ''
+            ? $stored
+            : config('sendora.admin_throttle_minutes', 30));
         $now = now();
 
         $stored = Cache::get(self::SLOT_KEY);
