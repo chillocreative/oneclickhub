@@ -1,15 +1,92 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import { Head, Link } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 /**
  * Public-facing About Us article.
  *
  * The mobile app's About Us screen is a thin WebViewPageScreen pointing
- * at /about, so editing the copy here updates both web and mobile in
- * one go — no Play Store release required.
+ * at /about?embedded=1, which renders this page in chromeless mode:
+ * no top nav, no card chrome, full-bleed body — so it blends with
+ * the native app shell. Editing the copy here updates both web and
+ * mobile in one go — no Play Store release required.
  */
 export default function About() {
+    const [embedded, setEmbedded] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setEmbedded(params.get('embedded') === '1');
+    }, []);
+
+    const article = (
+        <>
+            <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 tracking-tight">
+                About One Click Hub
+            </h2>
+
+            <div className="prose prose-gray dark:prose-invert max-w-none text-[15px] leading-relaxed text-gray-700 dark:text-gray-300 space-y-5">
+                <p>
+                    One Click Hub was established with a clear vision: to make digital tools
+                    accessible, efficient, and impactful for businesses of every scale. As a
+                    centralized digital platform, One Click Hub empowers entrepreneurs, startups,
+                    and established organizations to manage their online presence, streamline
+                    daily operations, and engage with customers through a single, intuitive system.
+                    Our platform is built to simplify complex digital workflows, allowing businesses
+                    to dedicate their energy to growth rather than navigating technical hurdles.
+                </p>
+
+                <p>
+                    The concept behind One Click Hub emerged from years of hands-on experience
+                    supporting businesses that grappled with fragmented tools and disjointed digital
+                    systems. Many organizations depend on a patchwork of platforms to manage
+                    marketing, automation, communication, and analytics, often resulting in
+                    inefficiency and lost opportunities. One Click Hub was designed to address
+                    this challenge by consolidating these essential functions into one unified
+                    ecosystem, reflecting the modern shift toward integrated digital platforms
+                    that enhance productivity, collaboration, and operational clarity.
+                </p>
+
+                <p>
+                    One Click Hub was founded by <strong>Helmy Samsudin</strong>, a passionate
+                    photographer who successfully transformed his lifelong hobby into a thriving
+                    business. Through his journey as a freelance professional, Helmy experienced
+                    firsthand the challenges of promoting services, attracting clients, and managing
+                    bookings across scattered platforms. This inspired him to envision a dedicated
+                    space where freelancers like himself could easily showcase their talents,
+                    connect with potential clients, and grow their businesses with confidence. His
+                    goal was to create a platform that empowers every freelancer to turn their
+                    passion into opportunity, making it simple to promote services and reach the
+                    right audience in just a few clicks.
+                </p>
+
+                <p>
+                    He was later joined by <strong>Abdul Rahim Abdul Rani</strong>, Co-Founder of
+                    One Click Hub, who brings deep expertise in product development and digital
+                    growth strategy. Together, Helmy and Abdul Rahim built a dedicated team
+                    committed to developing scalable, forward-thinking tools that serve
+                    entrepreneurs, digital marketers, and expanding enterprises. Today, One Click
+                    Hub continues to evolve as a modern business platform engineered to help
+                    organizations operate smarter, move faster, and thrive in an increasingly
+                    competitive digital landscape.
+                </p>
+            </div>
+        </>
+    );
+
+    // Embedded mode (mobile WebView) — no nav, full-bleed, no card chrome.
+    if (embedded) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-[#0c0c0c]">
+                <Head title="About Us" />
+                <div className="px-5 py-6 text-gray-700 dark:text-gray-300">
+                    {article}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
             <Head title="About Us" />
@@ -43,56 +120,7 @@ export default function About() {
                 </div>
 
                 <div className="bg-white dark:bg-[#111] p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100 dark:border-white/5">
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6 tracking-tight">
-                        About One Click Hub
-                    </h2>
-
-                    <div className="prose prose-gray dark:prose-invert max-w-none text-[15px] leading-relaxed text-gray-700 dark:text-gray-300 space-y-5">
-                        <p>
-                            One Click Hub was established with a clear vision: to make digital tools
-                            accessible, efficient, and impactful for businesses of every scale. As a
-                            centralized digital platform, One Click Hub empowers entrepreneurs, startups,
-                            and established organizations to manage their online presence, streamline
-                            daily operations, and engage with customers through a single, intuitive system.
-                            Our platform is built to simplify complex digital workflows, allowing businesses
-                            to dedicate their energy to growth rather than navigating technical hurdles.
-                        </p>
-
-                        <p>
-                            The concept behind One Click Hub emerged from years of hands-on experience
-                            supporting businesses that grappled with fragmented tools and disjointed digital
-                            systems. Many organizations depend on a patchwork of platforms to manage
-                            marketing, automation, communication, and analytics, often resulting in
-                            inefficiency and lost opportunities. One Click Hub was designed to address
-                            this challenge by consolidating these essential functions into one unified
-                            ecosystem, reflecting the modern shift toward integrated digital platforms
-                            that enhance productivity, collaboration, and operational clarity.
-                        </p>
-
-                        <p>
-                            One Click Hub was founded by <strong>Helmy Samsudin</strong>, a passionate
-                            photographer who successfully transformed his lifelong hobby into a thriving
-                            business. Through his journey as a freelance professional, Helmy experienced
-                            firsthand the challenges of promoting services, attracting clients, and managing
-                            bookings across scattered platforms. This inspired him to envision a dedicated
-                            space where freelancers like himself could easily showcase their talents,
-                            connect with potential clients, and grow their businesses with confidence. His
-                            goal was to create a platform that empowers every freelancer to turn their
-                            passion into opportunity, making it simple to promote services and reach the
-                            right audience in just a few clicks.
-                        </p>
-
-                        <p>
-                            He was later joined by <strong>Abdul Rahim Abdul Rani</strong>, Co-Founder of
-                            One Click Hub, who brings deep expertise in product development and digital
-                            growth strategy. Together, Helmy and Abdul Rahim built a dedicated team
-                            committed to developing scalable, forward-thinking tools that serve
-                            entrepreneurs, digital marketers, and expanding enterprises. Today, One Click
-                            Hub continues to evolve as a modern business platform engineered to help
-                            organizations operate smarter, move faster, and thrive in an increasingly
-                            competitive digital landscape.
-                        </p>
-                    </div>
+                    {article}
 
                     <div className="mt-10 pt-6 border-t border-gray-100 dark:border-white/5 flex flex-wrap gap-4 justify-center text-sm font-bold">
                         <Link href={route('privacy')} className="text-[#FF6600] hover:underline">Privacy Policy</Link>

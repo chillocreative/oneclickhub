@@ -475,129 +475,128 @@ class _PlanCard extends StatelessWidget {
     final features = (plan['features'] as List?) ?? [];
     final isPopular = plan['is_popular'] == true;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Plan name + popular badge inline
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (isPopular) const SizedBox(height: 8),
-              // Plan name & price
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
+              Flexible(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    formattedPrice,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  if (intervalLabel.isNotEmpty) ...[
-                    const SizedBox(width: 4),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '/ $intervalLabel',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textGrey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Features list
-              ...features.map((feature) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: AppColors.statusActive, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          feature.toString(),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textDark,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-
-              const SizedBox(height: 16),
-
-              // Subscribe button
-              if (isCurrentPlan)
+              if (isPopular) ...[
+                const SizedBox(width: 8),
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.statusActiveBg,
+                    gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: const Text(
-                    'Current Plan',
-                    textAlign: TextAlign.center,
+                    'Popular',
                     style: TextStyle(
-                      color: AppColors.statusActive,
+                      color: Colors.white,
+                      fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      fontSize: 15,
                     ),
                   ),
-                )
-              else
-                GradientButton(
-                  text: requiresApproval ? 'Apply' : 'Subscribe',
-                  icon: requiresApproval ? Icons.assignment : null,
-                  width: double.infinity,
-                  isLoading: isProcessing,
-                  onPressed: onSubscribe,
                 ),
+              ],
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                formattedPrice,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
+              if (intervalLabel.isNotEmpty) ...[
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    intervalLabel,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textGrey,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 16),
 
-        // Popular badge
-        if (isPopular)
-          Positioned(
-            top: -8,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          // Features list
+          ...features.map((feature) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle,
+                      color: AppColors.statusActive, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      feature.toString(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          const SizedBox(height: 16),
+
+          if (isCurrentPlan)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: AppColors.statusActiveBg,
                 borderRadius: BorderRadius.circular(100),
               ),
               child: const Text(
-                'Popular',
+                'Current Plan',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
+                  color: AppColors.statusActive,
                   fontWeight: FontWeight.w700,
+                  fontSize: 15,
                 ),
               ),
+            )
+          else
+            GradientButton(
+              text: requiresApproval ? 'Apply' : 'Subscribe',
+              icon: requiresApproval ? Icons.assignment : null,
+              width: double.infinity,
+              isLoading: isProcessing,
+              onPressed: onSubscribe,
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

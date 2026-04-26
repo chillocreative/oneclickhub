@@ -250,10 +250,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/about',
         name: 'about',
         // The About Us copy lives at /about on the web so it can be edited
-        // without shipping a new app release.
+        // without shipping a new app release. ?embedded=1 strips the top
+        // nav and card chrome so it blends with the native shell.
         builder: (context, state) => const WebViewPageScreen(
           title: 'About Us',
-          url: 'https://oneclickhub.com.my/about',
+          url: 'https://oneclickhub.com.my/about?embedded=1',
         ),
       ),
       GoRoute(
