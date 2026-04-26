@@ -35,7 +35,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">1. Acceptance of Terms</h2>
                         <p>
-                            By accessing or using the OneClickHub platform ("Platform"), operated by OneClickHub Enterprise ("we", "our", or "us"),
+                            By accessing or using the One Click Hub platform ("Platform"), operated by One Click Hub Enterprise ("we", "our", or "us"),
                             you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not use the Platform.
                         </p>
                         <p>
@@ -46,7 +46,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">2. Platform Description</h2>
                         <p>
-                            OneClickHub is a freelance services marketplace that connects customers with freelancers across Malaysia.
+                            One Click Hub is a freelance services marketplace that connects customers with freelancers across Malaysia.
                             The Platform allows freelancers to list their services and customers to browse, book, and pay for those services.
                         </p>
                     </section>
@@ -146,7 +146,7 @@ export default function Terms() {
 
                         <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mt-4">7.3 Platform IP</h3>
                         <p>
-                            The OneClickHub name, logo, and platform design are the intellectual property of OneClickHub Enterprise.
+                            The One Click Hub name, logo, and platform design are the intellectual property of One Click Hub Enterprise.
                             You may not use our branding without written permission.
                         </p>
                     </section>
@@ -154,7 +154,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">8. Limitation of Liability</h2>
                         <p>
-                            OneClickHub acts as a marketplace connecting customers and freelancers. We are not a party to
+                            One Click Hub acts as a marketplace connecting customers and freelancers. We are not a party to
                             agreements between customers and freelancers and do not guarantee the quality, safety, or legality
                             of services offered.
                         </p>
@@ -174,7 +174,7 @@ export default function Terms() {
                             If a resolution cannot be reached, we may intervene at our discretion.
                         </p>
                         <p>
-                            For disputes with OneClickHub Enterprise, Malaysian law shall apply and disputes shall be
+                            For disputes with One Click Hub Enterprise, Malaysian law shall apply and disputes shall be
                             resolved in the courts of Penang, Malaysia.
                         </p>
                     </section>
@@ -195,7 +195,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">11. Indemnification</h2>
                         <p>
-                            You agree to indemnify and hold harmless OneClickHub Enterprise, its officers, employees, and agents
+                            You agree to indemnify and hold harmless One Click Hub Enterprise, its officers, employees, and agents
                             from any claims, damages, losses, or expenses arising from your use of the Platform, your violation
                             of these Terms, or your violation of any rights of a third party.
                         </p>
@@ -222,8 +222,8 @@ export default function Terms() {
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">14. Contact Us</h2>
                         <p>If you have any questions about these Terms of Service, please contact us:</p>
                         <ul className="list-disc pl-6 space-y-1">
-                            <li><strong>Company:</strong> OneClickHub Enterprise</li>
-                            <li><strong>Email:</strong> support@oneclickhub.verranet.com</li>
+                            <li><strong>Company:</strong> One Click Hub Enterprise</li>
+                            <li><strong>Email:</strong> support@oneclickhub.com.my</li>
                             <li><strong>Location:</strong> Penang, Malaysia</li>
                         </ul>
                     </section>
@@ -238,9 +238,9 @@ export default function Terms() {
                         <div className="w-8 h-8 flex items-center justify-center">
                             <ApplicationLogo />
                         </div>
-                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
+                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 OneClickHub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
                 </div>
             </footer>
         </div>

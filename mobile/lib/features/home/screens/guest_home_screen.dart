@@ -183,7 +183,7 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ONECLICKHUB',
+                  'ONE CLICK HUB',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,

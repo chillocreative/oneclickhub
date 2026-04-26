@@ -57,7 +57,7 @@ export default function Contact() {
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 dark:text-white text-sm">Email</h3>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">support@oneclickhub.verranet.com</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">support@oneclickhub.com.my</p>
                             </div>
                         </div>
 
@@ -170,9 +170,9 @@ export default function Contact() {
                         <div className="w-8 h-8 flex items-center justify-center">
                             <ApplicationLogo />
                         </div>
-                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
+                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 OneClickHub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
                 </div>
             </footer>
         </div>

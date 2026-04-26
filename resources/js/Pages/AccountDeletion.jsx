@@ -35,7 +35,7 @@ export default function AccountDeletion() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">How to Request Account Deletion</h2>
                         <p>
-                            If you wish to delete your OneClickHub account, whether you are a <strong>Customer</strong> or a <strong>Freelancer</strong>,
+                            If you wish to delete your One Click Hub account, whether you are a <strong>Customer</strong> or a <strong>Freelancer</strong>,
                             you can request account deletion by contacting our admin team through our Contact page.
                         </p>
                     </section>
@@ -94,7 +94,7 @@ export default function AccountDeletion() {
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Contact Us</h2>
                         <p>If you have any questions about account deletion, please reach out to us:</p>
                         <ul className="list-disc pl-6 space-y-1">
-                            <li><strong>Email:</strong> support@oneclickhub.verranet.com</li>
+                            <li><strong>Email:</strong> support@oneclickhub.com.my</li>
                             <li><strong>Contact Page:</strong> <Link href={route('contact')} className="text-[#FF6600] font-bold hover:underline">Contact Us</Link></li>
                         </ul>
                     </section>
@@ -121,9 +121,9 @@ export default function AccountDeletion() {
                         <div className="w-8 h-8 flex items-center justify-center">
                             <ApplicationLogo />
                         </div>
-                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
+                        <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 OneClickHub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
                 </div>
             </footer>
         </div>

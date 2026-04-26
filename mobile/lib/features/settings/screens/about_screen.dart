@@ -98,7 +98,7 @@ class AboutScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'About OneClickHub',
+                    'About One Click Hub',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -107,7 +107,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'OneClickHub was created with a simple vision to make digital tools accessible, efficient, and powerful for businesses of all sizes. Built as a centralized digital platform, OneClickHub enables entrepreneurs, startups, and organizations to manage their online presence, streamline operations, and connect with their customers through a single, user-friendly system. The platform focuses on simplifying complex digital processes so businesses can focus on growth rather than technical challenges.',
+                    'One Click Hub was created with a simple vision to make digital tools accessible, efficient, and powerful for businesses of all sizes. Built as a centralized digital platform, One Click Hub enables entrepreneurs, startups, and organizations to manage their online presence, streamline operations, and connect with their customers through a single, user-friendly system. The platform focuses on simplifying complex digital processes so businesses can focus on growth rather than technical challenges.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textGrey,
@@ -116,7 +116,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'The idea behind OneClickHub was born from years of experience working with businesses that struggled with fragmented tools and complicated digital systems. Many companies rely on multiple platforms to handle marketing, automation, communication, and analytics. OneClickHub was designed to solve this problem by bringing everything together into one integrated ecosystem a concept increasingly used in modern digital platforms that combine multiple business tools into one interface to improve efficiency and collaboration.',
+                    'The idea behind One Click Hub was born from years of experience working with businesses that struggled with fragmented tools and complicated digital systems. Many companies rely on multiple platforms to handle marketing, automation, communication, and analytics. One Click Hub was designed to solve this problem by bringing everything together into one integrated ecosystem a concept increasingly used in modern digital platforms that combine multiple business tools into one interface to improve efficiency and collaboration.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textGrey,
@@ -125,7 +125,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'OneClickHub was founded by Sharil Azman, a technology entrepreneur with a background in digital infrastructure, web platforms, and online business automation. After working closely with startups and digital agencies across Southeast Asia, he recognized the growing need for a streamlined platform that empowers businesses to launch and manage their digital operations quickly and effectively. His vision was to build a platform that could help businesses move from idea to execution with just a few clicks.',
+                    'One Click Hub was founded by Sharil Azman, a technology entrepreneur with a background in digital infrastructure, web platforms, and online business automation. After working closely with startups and digital agencies across Southeast Asia, he recognized the growing need for a streamlined platform that empowers businesses to launch and manage their digital operations quickly and effectively. His vision was to build a platform that could help businesses move from idea to execution with just a few clicks.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textGrey,
@@ -134,7 +134,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    'The platform was later joined by Daniel Lokman, the co-founder of OneClickHub, who brought strong expertise in product development and digital growth strategy. Together, they assembled a small but passionate team focused on building scalable tools that support entrepreneurs, digital marketers, and growing companies. Today, OneClickHub continues to evolve as a modern business platform designed to help organizations operate smarter, faster, and more efficiently in an increasingly digital world.',
+                    'The platform was later joined by Daniel Lokman, the co-founder of One Click Hub, who brought strong expertise in product development and digital growth strategy. Together, they assembled a small but passionate team focused on building scalable tools that support entrepreneurs, digital marketers, and growing companies. Today, One Click Hub continues to evolve as a modern business platform designed to help organizations operate smarter, faster, and more efficiently in an increasingly digital world.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textGrey,

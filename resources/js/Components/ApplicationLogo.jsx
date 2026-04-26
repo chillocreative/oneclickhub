@@ -3,7 +3,7 @@ export default function ApplicationLogo({ className, ...props }) {
         <img
             {...props}
             src="/oneclickhub-logo-transparent.png"
-            alt="OneClickHub Logo"
+            alt="One Click Hub Logo"
             className={`w-full h-full object-contain ${className || ''}`}
         />
     );

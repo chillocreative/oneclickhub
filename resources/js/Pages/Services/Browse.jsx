@@ -91,7 +91,7 @@ export default function BrowseServices({ services, categories, filters }) {
                                     <ApplicationLogo />
                                 </div>
                                 <span className="text-xl font-black tracking-tighter text-white uppercase whitespace-nowrap">
-                                    OneClickHub
+                                    One Click Hub
                                 </span>
                             </div>
                             <button
@@ -299,7 +299,7 @@ export default function BrowseServices({ services, categories, filters }) {
                         <div className="bg-white dark:bg-white/5 w-10 h-10 rounded-xl flex items-center justify-center p-2 shadow-sm">
                             <ApplicationLogo />
                         </div>
-                        <span className="text-xl font-black dark:text-white tracking-tighter uppercase">OneClickHub</span>
+                        <span className="text-xl font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
                         <a href="#" className="hover:text-white transition-colors">{t('footer.privacy')}</a>

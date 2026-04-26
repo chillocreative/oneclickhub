@@ -39,7 +39,7 @@ class _OneClickHubAppState extends ConsumerState<OneClickHubApp> {
     final textTheme = GoogleFonts.figtreeTextTheme();
 
     return MaterialApp.router(
-      title: 'OneClickHub',
+      title: 'One Click Hub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

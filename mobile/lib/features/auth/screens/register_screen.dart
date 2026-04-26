@@ -80,6 +80,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Require SSM certificate for Freelancer
+    if (_selectedRole == 'Freelancer' && _identityDocument == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please upload your SSM Certificate'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final success = await ref.read(authProvider.notifier).register(
           companyName: _selectedRole == 'Freelancer' ? _companyNameController.text.trim() : null,
           businessName: _selectedRole == 'Freelancer' ? _businessNameController.text.trim() : null,
@@ -199,7 +210,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Join OneClickHub',
+            'Join One Click Hub',
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey[600],
@@ -223,6 +234,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             title: 'Freelancer',
             subtitle: 'Offer your services to Malaysian customers',
             onTap: () => _selectRole('Freelancer'),
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildRoleCard(
+            icon: Icons.person_outlined,
+            title: 'Customer',
+            subtitle: 'Find and hire freelancers in Malaysia',
+            onTap: () => _selectRole('Customer'),
           ),
 
           const SizedBox(height: 40),
@@ -320,44 +340,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           children: [
             const SizedBox(height: 8),
 
-            // Back button + header
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() => _currentStep = 0);
-                  },
-                  icon: const Icon(Icons.arrow_back),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey[200]!),
+            // Header
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 20, color: AppColors.textDark),
+                children: [
+                  const TextSpan(
+                    text: 'Register as ',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  TextSpan(
+                    text: _selectedRole,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 20, color: AppColors.textDark),
-                      children: [
-                        const TextSpan(
-                          text: 'Register as ',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        TextSpan(
-                          text: _selectedRole,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -545,6 +545,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Phone is required';
+                if (!RegExp(r'^\d+$').hasMatch(v)) return 'Digits only';
                 if (v.length < 10 || v.length > 11) return 'Must be 10-11 digits';
                 return null;
               },
@@ -665,7 +666,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 TextButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.go('/auth/login'),
                   child: const Text(
                     'Login',
                     style: TextStyle(fontWeight: FontWeight.w600),

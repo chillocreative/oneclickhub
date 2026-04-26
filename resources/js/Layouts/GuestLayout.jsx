@@ -108,7 +108,7 @@ export default function GuestLayout({ children, maxWidth = 'max-w-md' }) {
                                     <ApplicationLogo />
                                 </div>
                                 <span className="text-xl font-black tracking-tighter text-white uppercase whitespace-nowrap">
-                                    OneClickHub
+                                    One Click Hub
                                 </span>
                             </div>
                             <button
