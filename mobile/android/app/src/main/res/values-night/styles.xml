@@ -3,11 +3,16 @@
     <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is on.
          Edge-to-edge is enabled in MainActivity via enableEdgeToEdge(); the system handles
          transparent bars natively, so we don't set the deprecated statusBarColor /
-         navigationBarColor attributes here (they trigger Android 15 deprecation warnings). -->
+         navigationBarColor attributes here (they trigger Android 15 deprecation warnings).
+
+         Android 12+ uses the SplashScreen API attributes below. The animated icon points to
+         the launcher foreground (no adaptive-icon inset), so the logo renders ~30% larger
+         than the default behavior of using the masked launcher icon. -->
     <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
-        <!-- Show a splash screen on the activity. Automatically removed when
-             the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your

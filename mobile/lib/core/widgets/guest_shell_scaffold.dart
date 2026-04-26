@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../api/api_client.dart';
@@ -16,6 +17,8 @@ class GuestShellScaffold extends ConsumerStatefulWidget {
 }
 
 class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
+  DateTime? _lastBackPress;
+
   @override
   void initState() {
     super.initState();
@@ -38,7 +41,34 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
     if (location == '/halal-restaurants') selectedIndex = 2;
     if (location == '/auth/login') selectedIndex = 3;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+
+        // Any non-home root tab → go to home tab first
+        if (location != '/home') {
+          context.go('/home');
+          return;
+        }
+
+        // On home: double-tap to exit
+        final now = DateTime.now();
+        if (_lastBackPress != null &&
+            now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+          SystemNavigator.pop();
+        } else {
+          _lastBackPress = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
       body: widget.child,
       bottomNavigationBar: _GuestBottomBar(
         selectedIndex: selectedIndex,
@@ -58,6 +88,7 @@ class _GuestShellScaffoldState extends ConsumerState<GuestShellScaffold> {
               break;
           }
         },
+      ),
       ),
     );
   }

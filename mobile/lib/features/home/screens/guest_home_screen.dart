@@ -184,11 +184,13 @@ class _GuestHomeScreenState extends ConsumerState<GuestHomeScreen> {
               children: [
                 Text(
                   'ONE CLICK HUB',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w900,
                     color: AppColors.textDark,
-                    letterSpacing: 1,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 Text(
