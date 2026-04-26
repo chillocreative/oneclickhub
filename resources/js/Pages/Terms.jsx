@@ -36,7 +36,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">1. Acceptance of Terms</h2>
                         <p>
-                            By accessing or using the One Click Hub platform ("Platform"), operated by One Click Hub Enterprise ("we", "our", or "us"),
+                            By accessing or using the One Click Hub platform ("Platform"), operated by One Click Hub ("we", "our", or "us"),
                             you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not use the Platform.
                         </p>
                         <p>
@@ -147,7 +147,7 @@ export default function Terms() {
 
                         <h3 className="text-base font-bold text-gray-800 dark:text-gray-200 mt-4">7.3 Platform IP</h3>
                         <p>
-                            The One Click Hub name, logo, and platform design are the intellectual property of One Click Hub Enterprise.
+                            The One Click Hub name, logo, and platform design are the intellectual property of One Click Hub.
                             You may not use our branding without written permission.
                         </p>
                     </section>
@@ -175,7 +175,7 @@ export default function Terms() {
                             If a resolution cannot be reached, we may intervene at our discretion.
                         </p>
                         <p>
-                            For disputes with One Click Hub Enterprise, Malaysian law shall apply and disputes shall be
+                            For disputes with One Click Hub, Malaysian law shall apply and disputes shall be
                             resolved in the courts of Penang, Malaysia.
                         </p>
                     </section>
@@ -196,7 +196,7 @@ export default function Terms() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">11. Indemnification</h2>
                         <p>
-                            You agree to indemnify and hold harmless One Click Hub Enterprise, its officers, employees, and agents
+                            You agree to indemnify and hold harmless One Click Hub, its officers, employees, and agents
                             from any claims, damages, losses, or expenses arising from your use of the Platform, your violation
                             of these Terms, or your violation of any rights of a third party.
                         </p>
@@ -223,7 +223,7 @@ export default function Terms() {
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">14. Contact Us</h2>
                         <p>If you have any questions about these Terms of Service, please contact us:</p>
                         <ul className="list-disc pl-6 space-y-1">
-                            <li><strong>Company:</strong> One Click Hub Enterprise</li>
+                            <li><strong>Company:</strong> One Click Hub</li>
                             <li><strong>Email:</strong> support@oneclickhub.com.my</li>
                             <li><strong>Location:</strong> Penang, Malaysia</li>
                         </ul>
@@ -241,7 +241,7 @@ export default function Terms() {
                         </div>
                         <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub. All rights reserved.</p>
                 </div>
             </footer>
 

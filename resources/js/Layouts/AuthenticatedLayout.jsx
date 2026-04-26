@@ -29,6 +29,7 @@ import {
     FileCheck,
     Megaphone,
     UtensilsCrossed,
+    Mail,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuccessNotification from '@/Components/SuccessNotification';
@@ -191,6 +192,13 @@ function AdminSidebar({ collapsed, t }) {
                     icon={Bell}
                     label="Notifications"
                     active={route().current('admin.notifications.*')}
+                    collapsed={collapsed}
+                />
+                <SidebarItem
+                    href={route('admin.contacts.index')}
+                    icon={Mail}
+                    label="Contact Messages"
+                    active={route().current('admin.contacts.*')}
                     collapsed={collapsed}
                 />
             </div>

@@ -205,6 +205,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/halal-restaurants/{restaurant}', [HalalRestaurantController::class, 'update'])->name('admin.halal-restaurants.update');
         Route::delete('/admin/halal-restaurants/{restaurant}', [HalalRestaurantController::class, 'destroy'])->name('admin.halal-restaurants.destroy');
 
+        // Admin contact messages
+        Route::get('/admin/contacts', [\App\Http\Controllers\ContactController::class, 'adminIndex'])->name('admin.contacts.index');
+        Route::delete('/admin/contacts', [\App\Http\Controllers\ContactController::class, 'adminClearAll'])->name('admin.contacts.clearAll');
+        Route::delete('/admin/contacts/{contact}', [\App\Http\Controllers\ContactController::class, 'adminDestroy'])->name('admin.contacts.destroy');
+
         // Admin notifications
         Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
         Route::post('/admin/notifications/send', [NotificationController::class, 'send'])->name('admin.notifications.send');

@@ -52,7 +52,7 @@ class SubscriptionSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'Enterprise Hub',
+                'name' => 'Business Hub',
                 'slug' => 'enterprise-hub',
                 'price' => 1499.00,
                 'interval' => 'year',

@@ -7,6 +7,12 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon — One Click Hub logo -->
+        <link rel="icon" type="image/png" href="{{ asset('oneclickhub-logo-transparent.png') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('oneclickhub-logo-transparent.svg') }}">
+        <link rel="apple-touch-icon" href="{{ asset('oneclickhub-logo-transparent.png') }}">
+        <link rel="shortcut icon" href="{{ asset('oneclickhub-logo-transparent.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

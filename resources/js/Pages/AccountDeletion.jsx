@@ -124,7 +124,7 @@ export default function AccountDeletion() {
                         </div>
                         <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub. All rights reserved.</p>
                 </div>
             </footer>
 

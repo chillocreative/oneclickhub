@@ -36,7 +36,7 @@ export default function Privacy() {
                     <section>
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">1. Introduction</h2>
                         <p>
-                            One Click Hub Enterprise ("we", "our", or "us") operates the One Click Hub platform at
+                            One Click Hub ("we", "our", or "us") operates the One Click Hub platform at
                             oneclickhub.com.my and the One Click Hub mobile application. This Privacy Policy explains
                             how we collect, use, disclose, and safeguard your information when you use our platform.
                         </p>
@@ -175,7 +175,7 @@ export default function Privacy() {
                         <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">12. Contact Us</h2>
                         <p>If you have any questions about this Privacy Policy, please contact us:</p>
                         <ul className="list-disc pl-6 space-y-1">
-                            <li><strong>Company:</strong> One Click Hub Enterprise</li>
+                            <li><strong>Company:</strong> One Click Hub</li>
                             <li><strong>Email:</strong> support@oneclickhub.com.my</li>
                             <li><strong>Location:</strong> Penang, Malaysia</li>
                         </ul>
@@ -193,7 +193,7 @@ export default function Privacy() {
                         </div>
                         <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub. All rights reserved.</p>
                 </div>
             </footer>
 

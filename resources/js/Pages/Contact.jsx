@@ -1,13 +1,14 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, MapPin, Send, CheckCircle } from 'lucide-react';
 
 export default function Contact() {
     const { flash } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
+        phone_number: '',
         subject: '',
         message: '',
     });
@@ -64,16 +65,6 @@ export default function Contact() {
 
                         <div className="flex items-start gap-4">
                             <div className="w-10 h-10 rounded-xl bg-[#FF6600]/10 flex items-center justify-center flex-shrink-0">
-                                <Phone className="w-5 h-5 text-[#FF6600]" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900 dark:text-white text-sm">Phone</h3>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">+60 4-XXX XXXX</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-[#FF6600]/10 flex items-center justify-center flex-shrink-0">
                                 <MapPin className="w-5 h-5 text-[#FF6600]" />
                             </div>
                             <div>
@@ -121,6 +112,20 @@ export default function Contact() {
                                     />
                                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={data.phone_number}
+                                    onChange={(e) => setData('phone_number', e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#111] text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-[#FF6600] focus:border-transparent outline-none transition-all"
+                                    placeholder="e.g. 60123456789"
+                                />
+                                {errors.phone_number && <p className="text-red-500 text-xs mt-1">{errors.phone_number}</p>}
                             </div>
 
                             <div>
@@ -173,7 +178,7 @@ export default function Contact() {
                         </div>
                         <span className="text-sm font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
-                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
+                    <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub. All rights reserved.</p>
                 </div>
             </footer>
 
