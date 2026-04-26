@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import AnimatedPreloader from '@/Components/AnimatedPreloader';
+import AppStoreBadges from '@/Components/AppStoreBadges';
 import BackToTop from '@/Components/BackToTop';
 import { Head, Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -469,26 +470,38 @@ export default function Welcome({ auth, plans }) {
                                 {t('cta.contactSales')}
                             </button>
                         </div>
+
+                        {/* Mobile app download badges */}
+                        <div className="mt-10 flex flex-col items-center gap-4">
+                            <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Download the mobile app</p>
+                            <AppStoreBadges />
+                        </div>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer className="py-20 px-6 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#0c0c0c]">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white dark:bg-white/5 w-10 h-10 rounded-xl flex items-center justify-center p-2 shadow-sm">
-                            <ApplicationLogo />
+            <footer className="py-16 px-6 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#0c0c0c]">
+                <div className="max-w-7xl mx-auto flex flex-col gap-10">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-12">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white dark:bg-white/5 w-10 h-10 rounded-xl flex items-center justify-center p-2 shadow-sm">
+                                <ApplicationLogo />
+                            </div>
+                            <span className="text-xl font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                         </div>
-                        <span className="text-xl font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
+                        <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
+                            <Link href={route('about')} className="hover:text-white transition-colors">{t('footer.about')}</Link>
+                            <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
+                            <Link href={route('terms')} className="hover:text-white transition-colors">{t('footer.terms')}</Link>
+                            <Link href={route('account-deletion')} className="hover:text-white transition-colors">{t('footer.accountDeletion')}</Link>
+                        </div>
+                        <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                     </div>
-                    <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
-                        <Link href={route('about')} className="hover:text-white transition-colors">{t('footer.about')}</Link>
-                        <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
-                        <Link href={route('terms')} className="hover:text-white transition-colors">{t('footer.terms')}</Link>
-                        <Link href={route('account-deletion')} className="hover:text-white transition-colors">{t('footer.accountDeletion')}</Link>
+                    <div className="border-t border-gray-100 dark:border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">Available on</p>
+                        <AppStoreBadges align="end" />
                     </div>
-                    <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                 </div>
             </footer>
 
