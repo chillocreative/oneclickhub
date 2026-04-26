@@ -395,9 +395,6 @@ export default function Welcome({ auth, plans }) {
             <section id="pricing" className="py-32 px-6 bg-gray-50 dark:bg-[#0c0c0c] relative transition-all">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950/30 text-[#FF6600] text-xs font-bold uppercase tracking-widest mb-6 border border-orange-200 dark:border-orange-900/50">
-                            {t('pricing.badge')}
-                        </div>
                         <h2 className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter leading-none mb-6">
                             {t('pricing.title1')} <span className="text-gradient">{t('pricing.title2')}</span> {t('pricing.title3')}
                         </h2>
