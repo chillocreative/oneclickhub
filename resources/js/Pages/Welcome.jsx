@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import AnimatedPreloader from '@/Components/AnimatedPreloader';
+import BackToTop from '@/Components/BackToTop';
 import { Head, Link } from '@inertiajs/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState } from 'react';
@@ -84,6 +85,7 @@ export default function Welcome({ auth, plans }) {
                         <a href="/" className="hover:text-[#FF6600] transition-colors">{t('nav.home')}</a>
                         <a href="#pricing" className="hover:text-[#FF6600] transition-colors">{t('nav.pricing')}</a>
                         <Link href={route('services.browse')} className="hover:text-[#FF6600] transition-colors">{t('nav.services')}</Link>
+                        <Link href={route('about')} className="hover:text-[#FF6600] transition-colors">{t('nav.about')}</Link>
                         <Link href={route('contact')} className="hover:text-[#FF6600] transition-colors">{t('nav.contact')}</Link>
                     </div>
 
@@ -157,6 +159,7 @@ export default function Welcome({ auth, plans }) {
                                     { name: t('nav.home'), href: '/' },
                                     { name: t('nav.pricing'), href: '#pricing' },
                                     { name: t('nav.services'), href: route('services.browse') },
+                                    { name: t('nav.about'), href: route('about') },
                                     { name: t('nav.contact'), href: route('contact') }
                                 ].map((item, idx) => (
                                     <motion.a
@@ -480,6 +483,7 @@ export default function Welcome({ auth, plans }) {
                         <span className="text-xl font-black dark:text-white tracking-tighter uppercase">One Click Hub</span>
                     </div>
                     <div className="flex items-center gap-8 text-sm font-bold text-gray-400">
+                        <Link href={route('about')} className="hover:text-white transition-colors">{t('footer.about')}</Link>
                         <Link href={route('privacy')} className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
                         <Link href={route('terms')} className="hover:text-white transition-colors">{t('footer.terms')}</Link>
                         <Link href={route('account-deletion')} className="hover:text-white transition-colors">{t('footer.accountDeletion')}</Link>
@@ -487,6 +491,8 @@ export default function Welcome({ auth, plans }) {
                     <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
                 </div>
             </footer>
+
+            <BackToTop />
         </div>
         </>
     );

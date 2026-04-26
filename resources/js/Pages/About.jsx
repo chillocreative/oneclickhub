@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import BackToTop from '@/Components/BackToTop';
 import { Head, Link } from '@inertiajs/react';
 
 /**
@@ -102,6 +103,8 @@ export default function About() {
                     </div>
                 </div>
             </div>
+
+            <BackToTop />
         </div>
     );
 }

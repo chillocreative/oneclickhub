@@ -5,6 +5,7 @@
     "nav.signIn": "Sign In",
     "nav.getStarted": "Get Started",
     "nav.dashboard": "Dashboard",
+    "nav.about": "About",
     "nav.contact": "Contact",
     "nav.goToDashboard": "Go to Dashboard",
 
@@ -64,6 +65,7 @@
     "cta.getStarted": "Get Started for Free",
     "cta.contactSales": "Contact Sales",
 
+    "footer.about": "About",
     "footer.privacy": "Privacy",
     "footer.terms": "Terms",
     "footer.offices": "Local Offices",

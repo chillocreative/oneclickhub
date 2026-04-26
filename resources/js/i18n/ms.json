@@ -5,6 +5,7 @@
     "nav.signIn": "Log Masuk",
     "nav.getStarted": "Mula Sekarang",
     "nav.dashboard": "Papan Pemuka",
+    "nav.about": "Tentang",
     "nav.contact": "Hubungi",
     "nav.goToDashboard": "Ke Papan Pemuka",
 
@@ -64,6 +65,7 @@
     "cta.getStarted": "Mula Secara Percuma",
     "cta.contactSales": "Hubungi Jualan",
 
+    "footer.about": "Tentang",
     "footer.privacy": "Privasi",
     "footer.terms": "Syarat",
     "footer.offices": "Pejabat Tempatan",

@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import BackToTop from '@/Components/BackToTop';
 import { Head, Link } from '@inertiajs/react';
 
 export default function AccountDeletion() {
@@ -126,6 +127,8 @@ export default function AccountDeletion() {
                     <p className="text-gray-400 text-sm">&copy; 2026 One Click Hub Enterprise. All rights reserved.</p>
                 </div>
             </footer>
+
+            <BackToTop />
         </div>
     );
 }
