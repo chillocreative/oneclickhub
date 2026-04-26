@@ -19,9 +19,15 @@ class SendoraService
         $token = $this->setting('sendora_api_token', 'sendora.api_token');
         $device = $this->setting('sendora_device_id', 'sendora.device_id');
 
-        if ($base === '' || $token === '' || $device === '') {
+        $missing = [];
+        if ($base === '') $missing[] = 'sendora_base_url';
+        if ($token === '') $missing[] = 'sendora_api_token';
+        if ($device === '') $missing[] = 'sendora_device_id';
+        if (!empty($missing)) {
             Log::warning('Sendora not configured — skipping message', [
                 'phone' => $phone,
+                'missing' => $missing,
+                'hint' => 'Fill these in Admin → Settings → Sendora WhatsApp, or set the matching SENDORA_* env vars.',
             ]);
             return false;
         }
@@ -43,16 +49,24 @@ class SendoraService
                 ]);
 
             if ($response->successful()) {
+                Log::info('Sendora send OK', ['to' => $to, 'status' => $response->status()]);
                 return true;
             }
 
-            Log::warning('Sendora send failed', [
+            Log::warning('Sendora send failed (non-2xx response)', [
                 'status' => $response->status(),
                 'body' => $response->body(),
                 'to' => $to,
+                'base' => $base,
+                'device_id' => $device,
+                'hint' => 'Check the Sendora app: device connected? token valid? recipient on WhatsApp?',
             ]);
         } catch (\Throwable $e) {
-            Log::error('Sendora send exception', ['error' => $e->getMessage()]);
+            Log::error('Sendora send exception', [
+                'error' => $e->getMessage(),
+                'base' => $base,
+                'to' => $to,
+            ]);
         }
 
         return false;
