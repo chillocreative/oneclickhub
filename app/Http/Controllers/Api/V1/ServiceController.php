@@ -167,7 +167,7 @@ class ServiceController extends Controller
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
             'always_available' => 'nullable|boolean',
-            'images.*' => 'nullable|image|max:8192',
+            'images.*' => 'nullable|image|max:25600',
         ]);
 
         $imagePaths = [];
@@ -221,7 +221,7 @@ class ServiceController extends Controller
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
             'always_available' => 'nullable|boolean',
-            'images.*' => 'nullable|image|max:8192',
+            'images.*' => 'nullable|image|max:25600',
             'existing_images' => 'nullable|array',
             'existing_images.*' => 'nullable|string',
         ]);

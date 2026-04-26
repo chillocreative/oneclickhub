@@ -23,7 +23,7 @@ class AdvertisementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|max:25600',
             'link' => 'nullable|string|max:500',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
@@ -48,7 +48,7 @@ class AdvertisementController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:25600',
             'link' => 'nullable|string|max:500',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',

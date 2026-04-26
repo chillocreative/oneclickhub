@@ -94,7 +94,7 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'payment_slip' => 'required|image|max:5120',
+            'payment_slip' => 'required|image|max:25600',
         ]);
 
         if ($order->payment_slip) {

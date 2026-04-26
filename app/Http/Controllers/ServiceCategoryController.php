@@ -24,7 +24,7 @@ class ServiceCategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:service_categories,name',
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:25600',
         ]);
 
         $data = [
@@ -47,7 +47,7 @@ class ServiceCategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:service_categories,name,' . $category->id,
             'description' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:25600',
         ]);
 
         $data = [
