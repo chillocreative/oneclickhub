@@ -43,7 +43,7 @@ export default function ShowService({ service, relatedServices, availableDates =
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3">
                         <div className="w-10 h-10 overflow-hidden"><ApplicationLogo /></div>
-                        <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">ONECLICK<span className="text-[#FF6600]">HUB</span></span>
+                        <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">ONE CLICK <span className="text-[#FF6600]">HUB</span></span>
                     </Link>
                     <div className="flex items-center gap-4">
                         <Link href={route('services.browse')} className="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-[#FF6600] flex items-center gap-2">

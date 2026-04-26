@@ -75,7 +75,7 @@ export default function Welcome({ auth, plans }) {
                             <ApplicationLogo />
                         </div>
                         <span className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            ONECLICK<span className="text-gradient">HUB</span>
+                            ONE CLICK <span className="text-gradient">HUB</span>
                         </span>
                     </div>
 

@@ -14,7 +14,7 @@ export default function Privacy() {
                             <ApplicationLogo />
                         </div>
                         <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            ONECLICK<span className="text-[#FF6600]">HUB</span>
+                            ONE CLICK <span className="text-[#FF6600]">HUB</span>
                         </span>
                     </Link>
                     <Link href="/" className="text-sm font-bold text-[#FF6600] hover:underline">

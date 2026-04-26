@@ -72,7 +72,7 @@ export default function AnimatedPreloader({ onComplete }) {
                         transition={{ delay: 0.2, duration: 0.5 }}
                         className="text-gray-900 dark:text-white"
                     >
-                        ONECLICK
+                        ONE CLICK&nbsp;
                     </motion.span>
                     <motion.span
                         initial={{ opacity: 0, x: 20 }}

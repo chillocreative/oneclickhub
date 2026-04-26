@@ -437,7 +437,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     animate={{ opacity: 1 }}
                                     className="text-2xl font-black text-white tracking-tighter"
                                 >
-                                    ONECLICK<span className="text-[#2B313F]">HUB</span>
+                                    ONE CLICK <span className="text-[#2B313F]">HUB</span>
                                 </motion.span>
                             )}
                         </Link>
