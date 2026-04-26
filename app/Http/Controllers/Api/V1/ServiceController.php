@@ -16,7 +16,6 @@ use App\Models\ServiceCategory;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -37,7 +36,17 @@ class ServiceController extends Controller
     {
         $restaurants = HalalRestaurant::where('is_active', true)
             ->orderBy('sort_order')
-            ->get(['id', 'name', 'address', 'phone_number']);
+            ->get([
+                'id',
+                'name',
+                'address',
+                'phone_number',
+                'rating',
+                'rating_count',
+                'cuisine_type',
+                'photo_url',
+                'google_maps_url',
+            ]);
 
         return $this->success($restaurants);
     }
@@ -55,17 +64,15 @@ class ServiceController extends Controller
             ->withCount('reviews')
             ->withAvg('reviews', 'rating');
 
-        if (Schema::hasTable('ssm_verifications')) {
-            $query->whereHas('user', function ($q) {
-                $q->whereHas('ssmVerification', function ($sq) {
-                    $sq->where('status', 'verified')
-                        ->orWhere(function ($gq) {
-                            $gq->whereNotNull('grace_period_ends_at')
-                                ->where('grace_period_ends_at', '>', now());
-                        });
-                });
+        $query->whereHas('user', function ($q) {
+            $q->whereHas('ssmVerification', function ($sq) {
+                $sq->where('status', 'verified')
+                    ->orWhere(function ($gq) {
+                        $gq->whereNotNull('grace_period_ends_at')
+                            ->where('grace_period_ends_at', '>', now());
+                    });
             });
-        }
+        });
 
         if ($request->filled('search')) {
             $search = $request->search;

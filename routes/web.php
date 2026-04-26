@@ -180,6 +180,8 @@ Route::middleware('auth')->group(function () {
 
         // Admin halal restaurants
         Route::get('/admin/halal-restaurants', [HalalRestaurantController::class, 'index'])->name('admin.halal-restaurants.index');
+        Route::get('/admin/halal-restaurants/places/autocomplete', [HalalRestaurantController::class, 'autocomplete'])->name('admin.halal-restaurants.autocomplete');
+        Route::get('/admin/halal-restaurants/places/details', [HalalRestaurantController::class, 'placeDetails'])->name('admin.halal-restaurants.place-details');
         Route::post('/admin/halal-restaurants', [HalalRestaurantController::class, 'store'])->name('admin.halal-restaurants.store');
         Route::post('/admin/halal-restaurants/{restaurant}', [HalalRestaurantController::class, 'update'])->name('admin.halal-restaurants.update');
         Route::delete('/admin/halal-restaurants/{restaurant}', [HalalRestaurantController::class, 'destroy'])->name('admin.halal-restaurants.destroy');
