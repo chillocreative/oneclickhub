@@ -25,7 +25,6 @@ import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/settings/screens/profile_screen.dart';
 import '../../features/settings/screens/banking_screen.dart';
 import '../../features/settings/screens/ssm_screen.dart';
-import '../../features/settings/screens/about_screen.dart';
 import '../../features/settings/screens/webview_page_screen.dart';
 import '../../features/home/screens/guest_home_screen.dart';
 import '../../features/home/screens/halal_restaurants_screen.dart';
@@ -250,7 +249,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/about',
         name: 'about',
-        builder: (context, state) => const AboutScreen(),
+        // The About Us copy lives at /about on the web so it can be edited
+        // without shipping a new app release.
+        builder: (context, state) => const WebViewPageScreen(
+          title: 'About Us',
+          url: 'https://oneclickhub.com.my/about',
+        ),
       ),
       GoRoute(
         path: '/settings/privacy-policy',
