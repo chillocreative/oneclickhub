@@ -11,6 +11,7 @@ use App\Models\PushNotification;
 use App\Models\Service;
 use App\Models\SsmVerification;
 use App\Models\User;
+use App\Services\SsmAiVerifier;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ use Illuminate\Support\Facades\Storage;
 class SettingsController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(private SsmAiVerifier $verifier)
+    {
+    }
 
     public function profile(Request $request): JsonResponse
     {
@@ -114,115 +119,12 @@ class SettingsController extends Controller
             ]
         );
 
-        // Try AI verification if configured
-        $apiKey = AdminSetting::get('openai_api_key');
-        if ($apiKey) {
-            $this->verifyWithAi($verification, $apiKey);
-        }
+        $this->verifier->verify($verification);
 
         return $this->success(
             new SsmVerificationResource($verification->fresh()),
             'SSM document uploaded. Verification is being processed.'
         );
-    }
-
-    private function verifyWithAi(SsmVerification $verification, string $apiKey): void
-    {
-        try {
-            $filePath = Storage::disk('public')->path($verification->document_path);
-            $mimeType = mime_content_type($filePath);
-            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-
-            $prompt = 'Extract the following from this SSM (Suruhanjaya Syarikat Malaysia) business certificate: company_name, registration_number, expiry_date (YYYY-MM-DD format). Return JSON only: {"company_name": "...", "registration_number": "...", "expiry_date": "...", "is_valid": true/false}. If not a valid SSM certificate, set is_valid to false.';
-
-            $content = [['type' => 'text', 'text' => $prompt]];
-
-            if (in_array($extension, ['doc', 'docx'])) {
-                $extractedText = $this->extractTextFromDocx($filePath);
-                if ($extractedText) {
-                    $content = [['type' => 'text', 'text' => $prompt . "\n\nDocument text content:\n" . $extractedText]];
-                } else {
-                    $verification->update(['status' => 'failed', 'ai_response' => 'Could not extract text from document.']);
-                    return;
-                }
-            } elseif ($extension === 'pdf') {
-                $fileData = base64_encode(file_get_contents($filePath));
-                $content[] = [
-                    'type' => 'file',
-                    'file' => [
-                        'filename' => basename($filePath),
-                        'file_data' => "data:application/pdf;base64,{$fileData}",
-                    ],
-                ];
-            } else {
-                $imageData = base64_encode(file_get_contents($filePath));
-                $content[] = [
-                    'type' => 'image_url',
-                    'image_url' => ['url' => "data:{$mimeType};base64,{$imageData}"],
-                ];
-            }
-
-            $response = \Illuminate\Support\Facades\Http::timeout(60)->withHeaders([
-                'Authorization' => "Bearer {$apiKey}",
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4o',
-                'messages' => [['role' => 'user', 'content' => $content]],
-                'max_tokens' => 500,
-            ]);
-
-            if ($response->failed()) {
-                $verification->update(['status' => 'failed', 'ai_response' => 'OpenAI API error: ' . $response->body()]);
-                return;
-            }
-
-            $aiContent = $response->json('choices.0.message.content');
-            $verification->update(['ai_response' => $aiContent]);
-
-            preg_match('/\{.*\}/s', $aiContent, $matches);
-            if (!empty($matches)) {
-                $data = json_decode($matches[0], true);
-                if ($data && ($data['is_valid'] ?? false)) {
-                    $verification->update([
-                        'status' => 'verified',
-                        'company_name' => $data['company_name'] ?? null,
-                        'registration_number' => $data['registration_number'] ?? null,
-                        'expiry_date' => $data['expiry_date'] ?? null,
-                        'grace_period_ends_at' => null,
-                        'services_hidden_at' => null,
-                    ]);
-                    Service::where('user_id', $verification->user_id)->update(['is_active' => true]);
-                    // Sync company name from SSM to user
-                    if (!empty($data['company_name'])) {
-                        User::where('id', $verification->user_id)->update(['company_name' => $data['company_name']]);
-                    }
-                    return;
-                }
-            }
-
-            $verification->update(['status' => 'failed']);
-        } catch (\Exception $e) {
-            $verification->update(['status' => 'failed', 'ai_response' => 'Error: ' . $e->getMessage()]);
-        }
-    }
-
-    private function extractTextFromDocx(string $filePath): ?string
-    {
-        try {
-            $zip = new \ZipArchive();
-            if ($zip->open($filePath) !== true) {
-                return null;
-            }
-            $content = $zip->getFromName('word/document.xml');
-            $zip->close();
-            if (!$content) {
-                return null;
-            }
-            $text = strip_tags(str_replace('<', ' <', $content));
-            $text = preg_replace('/\s+/', ' ', $text);
-            return trim($text);
-        } catch (\Exception $e) {
-            return null;
-        }
     }
 
     public function notifications(Request $request): JsonResponse
