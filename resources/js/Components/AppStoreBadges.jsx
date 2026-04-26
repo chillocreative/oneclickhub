@@ -53,24 +53,13 @@ export default function AppStoreBadges({ align = 'center', className = '' }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Explore it on AppGallery"
-                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl bg-black text-white border border-white/10 hover:bg-gray-900 transition-colors min-w-[180px]"
+                className="inline-block hover:opacity-90 transition-opacity"
             >
-                <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="hw-a" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stopColor="#FF3D3D" /><stop offset="1" stopColor="#C30000" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="12" cy="12" r="11" fill="url(#hw-a)" />
-                    <path
-                        fill="#fff"
-                        d="M12 5.2c.6 1.7 1.7 3 3.6 3.5-1.2.9-1.9 2.1-1.9 3.7 0 1.6.7 2.8 1.9 3.7-1.9.5-3 1.8-3.6 3.5-.6-1.7-1.7-3-3.6-3.5 1.2-.9 1.9-2.1 1.9-3.7 0-1.6-.7-2.8-1.9-3.7 1.9-.5 3-1.8 3.6-3.5z"
-                    />
-                </svg>
-                <div className="flex flex-col leading-tight text-left">
-                    <span className="text-[9px] uppercase tracking-wide text-gray-300">Explore it on</span>
-                    <span className="text-base font-black tracking-tight">AppGallery</span>
-                </div>
+                <img
+                    src="/images/appgallery-badge.png"
+                    alt="Explore it on Huawei AppGallery"
+                    className="h-12 w-auto"
+                />
             </a>
         </div>
     );
