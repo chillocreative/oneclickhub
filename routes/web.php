@@ -79,6 +79,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/madani-application', [\App\Http\Controllers\MadaniController::class, 'create'])->name('madani.create');
     Route::post('/madani-application', [\App\Http\Controllers\MadaniController::class, 'store'])->name('madani.store');
 
+    // Freelancer review replies
+    Route::get('/my-reviews', [\App\Http\Controllers\ReviewController::class, 'myReviews'])->name('reviews.mine');
+    Route::post('/reviews/{review}/respond', [\App\Http\Controllers\ReviewController::class, 'respond'])->name('reviews.respond');
+    Route::delete('/reviews/{review}/respond', [\App\Http\Controllers\ReviewController::class, 'removeResponse'])->name('reviews.respond.destroy');
+
     // Freelancer service management
     Route::prefix('my-services')->name('my-services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index');

@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/datetime_format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/gradient_button.dart';
 import '../../../core/widgets/shimmer_loading.dart';
@@ -30,6 +31,7 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
   Map<String, dynamic>? _service;
   List<String> _availableDates = [];
   List<String> _bookedDates = [];
+  List<Map<String, dynamic>> _reviews = [];
   String? _error;
   int _currentImageIndex = 0;
 
@@ -57,6 +59,9 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
               .toList();
           _bookedDates = (data['booked_dates'] as List? ?? [])
               .map((d) => d.toString())
+              .toList();
+          _reviews = (data['reviews'] as List? ?? [])
+              .map((r) => Map<String, dynamic>.from(r as Map))
               .toList();
           _isLoading = false;
         });
@@ -209,6 +214,146 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
       return nestedConv['id'] as int;
     }
     return null;
+  }
+
+  Future<void> _openReplySheet(Map<String, dynamic> review) async {
+    final controller = TextEditingController(
+      text: review['freelancer_response']?.toString() ?? '',
+    );
+    final saved = await showModalBottomSheet<String?>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16, 12, 16,
+          16 + MediaQuery.of(ctx).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const Text(
+              'Reply to this review',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 5,
+              maxLength: 2000,
+              decoration: InputDecoration(
+                hintText: 'Thanks for the feedback…',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () =>
+                  Navigator.pop(ctx, controller.text.trim()),
+              child: const Text('Save reply'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (saved == null || saved.isEmpty) return;
+
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.post(
+        '/reviews/${review['id']}/respond',
+        data: {'body': saved},
+      );
+      if (res.data['success'] == true && mounted) {
+        final updated = Map<String, dynamic>.from(res.data['data'] as Map);
+        setState(() {
+          final idx = _reviews.indexWhere((r) => r['id'] == review['id']);
+          if (idx >= 0) _reviews[idx] = updated;
+        });
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not save reply'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteReply(Map<String, dynamic> review) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Remove reply?'),
+        content: const Text('Your reply will be removed from this review.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.statusRejected),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.delete('/reviews/${review['id']}/respond');
+      if (res.data['success'] == true && mounted) {
+        final updated = Map<String, dynamic>.from(res.data['data'] as Map);
+        setState(() {
+          final idx = _reviews.indexWhere((r) => r['id'] == review['id']);
+          if (idx >= 0) _reviews[idx] = updated;
+        });
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not remove reply'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _editService() async {
@@ -561,6 +706,29 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                             ))
                         .toList(),
                   ),
+                ],
+
+                // Reviews section
+                if (_reviews.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Reviews (${_reviews.length})',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._reviews.map((review) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _ReviewCard(
+                          review: review,
+                          isOwner: _isOwner,
+                          onReply: () => _openReplySheet(review),
+                          onDeleteReply: () => _deleteReply(review),
+                        ),
+                      )),
                 ],
 
                 // Customer actions: chat + book a date
@@ -982,6 +1150,189 @@ class _LegendDot extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReviewCard extends StatelessWidget {
+  final Map<String, dynamic> review;
+  final bool isOwner;
+  final VoidCallback onReply;
+  final VoidCallback onDeleteReply;
+
+  const _ReviewCard({
+    required this.review,
+    required this.isOwner,
+    required this.onReply,
+    required this.onDeleteReply,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final customer = review["customer"] as Map?;
+    final customerName = customer?["name"]?.toString() ?? "Anonymous";
+    final initial = customerName.isNotEmpty
+        ? customerName[0].toUpperCase()
+        : "?";
+    final rating = (review["rating"] as num?)?.toInt() ?? 0;
+    final comment = review["comment"]?.toString() ?? "";
+    final createdAt = review["created_at"]?.toString();
+    final replyBody = review["freelancer_response"]?.toString();
+    final repliedAt = review["responded_at"]?.toString();
+    final freelancer = review["freelancer"] as Map?;
+    final freelancerName = freelancer?["name"]?.toString() ?? "Freelancer";
+    final hasReply = replyBody != null && replyBody.isNotEmpty;
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32, height: 32,
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      customerName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < rating ? Icons.star : Icons.star_border,
+                          size: 14,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (createdAt != null)
+                Text(
+                  AppDateTime.formatBooking(createdAt),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textLight,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+          if (comment.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              comment,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textDark,
+                height: 1.4,
+              ),
+            ),
+          ],
+          if (hasReply) ...[
+            const SizedBox(height: 10),
+            Container(
+              margin: const EdgeInsets.only(left: 10),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(10),
+                borderRadius: BorderRadius.circular(10),
+                border: Border(
+                  left: BorderSide(
+                    color: AppColors.primary.withAlpha(80),
+                    width: 3,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Reply from $freelancerName"
+                    "${repliedAt != null ? " · ${AppDateTime.formatBooking(repliedAt)}" : ""}",
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    replyBody,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textDark,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (isOwner) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (hasReply) ...[
+                  TextButton.icon(
+                    onPressed: onDeleteReply,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.statusRejected,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text("Delete"),
+                  ),
+                  const SizedBox(width: 4),
+                  TextButton.icon(
+                    onPressed: onReply,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text("Edit reply"),
+                  ),
+                ] else
+                  TextButton.icon(
+                    onPressed: onReply,
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: const Icon(Icons.reply, size: 16),
+                    label: const Text("Reply"),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

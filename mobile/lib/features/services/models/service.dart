@@ -10,6 +10,8 @@ class Service {
   final bool isActive;
   final ServiceCategory? category;
   final ServiceUser? user;
+  final int reviewsCount;
+  final double? reviewsAvgRating;
 
   Service({
     required this.id,
@@ -23,6 +25,8 @@ class Service {
     this.isActive = true,
     this.category,
     this.user,
+    this.reviewsCount = 0,
+    this.reviewsAvgRating,
   });
 
   factory Service.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,12 @@ class Service {
       user: json['user'] != null
           ? ServiceUser.fromJson(json['user'])
           : null,
+      reviewsCount: (json['reviews_count'] is int)
+          ? json['reviews_count'] as int
+          : (json['reviews_count'] is String
+              ? int.tryParse(json['reviews_count']) ?? 0
+              : 0),
+      reviewsAvgRating: _toDouble(json['reviews_avg_rating']),
     );
   }
 

@@ -24,12 +24,20 @@ export default function FreelancerDashboard({ services, totalServices, activeSer
                         </h2>
                         <p className="text-gray-400 text-sm font-semibold">{t('dashboard.freelancer.subtitle')}</p>
                     </div>
-                    <Link
-                        href={route('my-services.create')}
-                        className="btn-gradient px-6 py-2 text-xs inline-flex items-center gap-2 w-fit"
-                    >
-                        <Plus size={16} /> {t('dashboard.freelancer.newService')}
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={route('reviews.mine')}
+                            className="px-4 py-2 text-xs inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 dark:bg-white/5 dark:border-white/10 text-gray-700 dark:text-gray-200 font-black hover:bg-orange-50"
+                        >
+                            ★ My Reviews
+                        </Link>
+                        <Link
+                            href={route('my-services.create')}
+                            className="btn-gradient px-6 py-2 text-xs inline-flex items-center gap-2 w-fit"
+                        >
+                            <Plus size={16} /> {t('dashboard.freelancer.newService')}
+                        </Link>
+                    </div>
                 </div>
             }
         >

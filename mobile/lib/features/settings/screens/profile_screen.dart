@@ -337,6 +337,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         label: 'Calendar',
                         onTap: () => context.push('/calendar'),
                       ),
+                      _ActionButton(
+                        icon: Icons.star_outline,
+                        label: 'My Reviews',
+                        onTap: () => context.push('/my-reviews'),
+                      ),
                     ],
 
                     _ActionButton(

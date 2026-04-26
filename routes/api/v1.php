@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\CalendarController;
 use App\Http\Controllers\Api\V1\MadaniController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\AdminController;
@@ -115,6 +116,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Madani sponsored plan applications
     Route::post('/madani-applications', [MadaniController::class, 'store']);
     Route::get('/madani-applications/me', [MadaniController::class, 'mine']);
+
+    // Reviews — freelancer self-service replies
+    Route::get('/my-reviews', [ReviewController::class, 'myReviews']);
+    Route::post('/reviews/{review}/respond', [ReviewController::class, 'respond']);
+    Route::delete('/reviews/{review}/respond', [ReviewController::class, 'removeResponse']);
 
     // Admin Routes
     Route::middleware('role:Admin')->prefix('admin')->group(function () {

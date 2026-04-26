@@ -123,7 +123,7 @@ class ServiceController extends Controller
             ->map(fn($d) => $d->format('Y-m-d'));
 
         $reviews = Review::where('service_id', $service->id)
-            ->with('customer')
+            ->with(['customer', 'freelancer'])
             ->latest()
             ->take(10)
             ->get();

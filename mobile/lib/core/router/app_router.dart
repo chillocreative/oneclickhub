@@ -16,6 +16,7 @@ import '../../features/services/screens/create_service_screen.dart';
 import '../../features/orders/screens/order_detail_screen.dart';
 import '../../features/orders/screens/my_orders_screen.dart';
 import '../../features/orders/screens/my_bookings_screen.dart';
+import '../../features/orders/screens/my_reviews_screen.dart';
 import '../../features/chat/screens/conversations_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/subscriptions/screens/plans_screen.dart';
@@ -105,6 +106,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/madani-application',
         name: 'madani-application',
         builder: (context, state) => const MadaniApplicationScreen(),
+      ),
+      GoRoute(
+        path: '/my-reviews',
+        name: 'my-reviews',
+        builder: (context, state) => const MyReviewsScreen(),
       ),
 
       // Guest home with guest bottom navigation

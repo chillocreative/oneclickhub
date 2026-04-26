@@ -120,27 +120,14 @@ export default function ShowService({ service, relatedServices, availableDates =
                         {/* Reviews */}
                         {reviews.length > 0 && (
                             <div className="bg-white dark:bg-[#0c0c0c] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5">
-                                <h2 className="text-lg font-black text-gray-900 dark:text-white mb-6">Reviews</h2>
+                                <h2 className="text-lg font-black text-gray-900 dark:text-white mb-6">Reviews ({reviews.length})</h2>
                                 <div className="space-y-4">
                                     {reviews.map(review => (
-                                        <div key={review.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="size-8 rounded-lg bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[1.5px]">
-                                                    <div className="size-full bg-white dark:bg-gray-900 rounded-[5px] flex items-center justify-center text-[10px] font-black text-[#FF6600]">
-                                                        {review.customer?.name?.charAt(0)}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <span className="text-xs font-black text-gray-900 dark:text-white">{review.customer?.name}</span>
-                                                    <div className="flex gap-0.5">
-                                                        {[1,2,3,4,5].map(n => (
-                                                            <Star key={n} size={10} className={n <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {review.comment && <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>}
-                                        </div>
+                                        <ReviewItem
+                                            key={review.id}
+                                            review={review}
+                                            isOwner={auth?.user?.id === service.user_id}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -274,6 +261,118 @@ export default function ShowService({ service, relatedServices, availableDates =
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+function ReviewItem({ review, isOwner }) {
+    const [editing, setEditing] = useState(false);
+    const [body, setBody] = useState(review.freelancer_response || '');
+
+    const save = () => {
+        if (!body.trim()) return;
+        router.post(route('reviews.respond', review.id), { body }, {
+            preserveScroll: true,
+            onSuccess: () => setEditing(false),
+        });
+    };
+
+    const remove = () => {
+        if (!confirm('Remove your reply?')) return;
+        router.delete(route('reviews.respond.destroy', review.id), {
+            preserveScroll: true,
+            onSuccess: () => { setEditing(false); setBody(''); },
+        });
+    };
+
+    return (
+        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5">
+            <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-lg bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[1.5px]">
+                    <div className="size-full bg-white dark:bg-gray-900 rounded-[5px] flex items-center justify-center text-[10px] font-black text-[#FF6600]">
+                        {review.customer?.name?.charAt(0)}
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <span className="text-xs font-black text-gray-900 dark:text-white">{review.customer?.name}</span>
+                    <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map(n => (
+                            <Star key={n} size={10} className={n <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} />
+                        ))}
+                    </div>
+                </div>
+                {review.created_at && (
+                    <span className="text-[10px] text-gray-400">
+                        {new Date(review.created_at).toLocaleDateString()}
+                    </span>
+                )}
+            </div>
+            {review.comment && <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>}
+
+            {/* Freelancer reply */}
+            {review.freelancer_response && !editing && (
+                <div className="mt-3 ml-3 pl-3 border-l-2 border-[#FF6600]/40 bg-[#FF6600]/5 p-3 rounded">
+                    <div className="text-[10px] font-black text-[#FF6600] mb-1">
+                        Reply from {review.freelancer?.name || 'Freelancer'}
+                        {review.responded_at && ` · ${new Date(review.responded_at).toLocaleDateString()}`}
+                    </div>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">{review.freelancer_response}</p>
+                </div>
+            )}
+
+            {/* Owner controls */}
+            {isOwner && (
+                <div className="mt-3 flex flex-wrap gap-2 justify-end">
+                    {editing ? (
+                        <div className="w-full">
+                            <textarea
+                                value={body}
+                                onChange={e => setBody(e.target.value)}
+                                rows={3}
+                                maxLength={2000}
+                                placeholder="Thanks for the feedback…"
+                                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-white/5 text-sm"
+                            />
+                            <div className="mt-2 flex gap-2 justify-end">
+                                <button
+                                    onClick={() => { setEditing(false); setBody(review.freelancer_response || ''); }}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-black bg-gray-100 text-gray-600"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={save}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-black bg-[#FF6600] text-white"
+                                >
+                                    Save reply
+                                </button>
+                            </div>
+                        </div>
+                    ) : review.freelancer_response ? (
+                        <>
+                            <button
+                                onClick={remove}
+                                className="px-3 py-1.5 rounded-xl text-xs font-black bg-red-50 text-red-600"
+                            >
+                                Delete
+                            </button>
+                            <button
+                                onClick={() => setEditing(true)}
+                                className="px-3 py-1.5 rounded-xl text-xs font-black bg-gray-100 text-gray-600"
+                            >
+                                Edit reply
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={() => setEditing(true)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-black bg-[#FF6600]/10 text-[#FF6600]"
+                        >
+                            Reply
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

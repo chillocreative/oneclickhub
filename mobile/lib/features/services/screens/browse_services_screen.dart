@@ -304,6 +304,26 @@ class _ServiceCard extends StatelessWidget {
                     ),
                   const SizedBox(height: 4),
 
+                  // Star + count (only when service has reviews)
+                  if (service.reviewsCount > 0 &&
+                      service.reviewsAvgRating != null) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.star,
+                            size: 12, color: Colors.amber),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${service.reviewsAvgRating!.toStringAsFixed(1)} · ${service.reviewsCount}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textGrey,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                  ],
                   // Price (full width, single line, scaled to fit)
                   FittedBox(
                     fit: BoxFit.scaleDown,

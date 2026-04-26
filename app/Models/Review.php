@@ -14,6 +14,12 @@ class Review extends Model
         'service_id',
         'rating',
         'comment',
+        'freelancer_response',
+        'responded_at',
+    ];
+
+    protected $casts = [
+        'responded_at' => 'datetime',
     ];
 
     public function order(): BelongsTo
