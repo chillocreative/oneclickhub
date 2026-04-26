@@ -53,18 +53,28 @@ class AdminWhatsappNotifier
         }
 
         // Reserve the slot now so two concurrent requests don't both fire.
-        Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addDay());
+        // Use a SHORT reservation initially — if the actual send succeeds we
+        // extend it to the full throttle window. This prevents a single
+        // failed send from silently blocking notifications for 30 minutes.
+        Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addSeconds(60));
 
         // Defer the HTTP call until the user response has flushed so the
         // form submission stays snappy. If the framework can't terminate
         // (e.g. running from CLI), fall back to immediate send.
-        $task = function () use ($phone, $body) {
+        $throttleMinutes = $this->throttleMinutes();
+        $task = function () use ($phone, $body, $now, $throttleMinutes) {
             try {
                 $ok = app(SendoraService::class)->sendMessage($phone, $body);
-                if (!$ok) {
+                if ($ok) {
+                    // Confirmed delivery — hold the slot for the full window.
+                    Cache::put(self::SLOT_KEY, $now->toIso8601String(), now()->addMinutes($throttleMinutes + 5));
+                } else {
+                    // Send failed — release the slot so the next event can retry.
+                    Cache::forget(self::SLOT_KEY);
                     Log::warning('Sendora admin notify dispatched but Sendora returned non-success.');
                 }
             } catch (\Throwable $e) {
+                Cache::forget(self::SLOT_KEY);
                 Log::error('Sendora admin notify exception', ['error' => $e->getMessage()]);
             }
         };

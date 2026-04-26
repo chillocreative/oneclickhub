@@ -8,12 +8,31 @@ import { LanguageProvider } from '@/Contexts/LanguageContext';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-// Handle 419 (CSRF token mismatch) by refreshing the page
-router.on('invalid', (event) => {
-    if (event.detail.response.status === 419) {
-        event.preventDefault();
-        window.location.reload();
+// On 419 (CSRF token mismatch) we used to window.location.reload(), which
+// wiped any in-progress form data and forced users to re-type everything
+// before a second submit succeeded — exactly what was happening on /contact.
+// Instead, fetch a fresh token in-place and let the user click submit
+// again with their data intact.
+router.on('invalid', async (event) => {
+    if (event.detail.response.status !== 419) return;
+    event.preventDefault();
+    try {
+        const res = await fetch(window.location.pathname + window.location.search, {
+            headers: { Accept: 'text/html' },
+            credentials: 'same-origin',
+            cache: 'no-store',
+        });
+        const html = await res.text();
+        const match = html.match(/<meta name="csrf-token" content="([^"]+)"/);
+        if (match) {
+            const fresh = match[1];
+            document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', fresh);
+            if (window.axios) window.axios.defaults.headers.common['X-CSRF-TOKEN'] = fresh;
+        }
+    } catch (e) {
+        // fall through — user can refresh manually if this fails
     }
+    alert('Your session was refreshed for security. Please click the button once more to submit.');
 });
 
 createInertiaApp({
