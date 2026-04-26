@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link, router } from '@inertiajs/react';
-import { FileCheck, Check, X, Eye, Trash2, Search, ShieldCheck, Clock, XCircle, AlertTriangle } from 'lucide-react';
+import { FileCheck, Check, X, Eye, Trash2, Search, ShieldCheck, Clock, XCircle, AlertTriangle, Sparkles, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '@/Contexts/LanguageContext';
 
@@ -16,8 +16,21 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
     const [viewing, setViewing] = useState(null);
     const [verifying, setVerifying] = useState(null);
     const [deleting, setDeleting] = useState(null);
+    const [aiVerifying, setAiVerifying] = useState(null);
+    const [aiRunningId, setAiRunningId] = useState(null);
     const [search, setSearch] = useState(filters.search || '');
     const form = useForm({ status: 'verified', admin_notes: '' });
+
+    const runAiVerify = (v) => {
+        setAiRunningId(v.id);
+        router.post(route('admin.ssm.ai-verify', v.id), {}, {
+            preserveScroll: true,
+            onFinish: () => {
+                setAiRunningId(null);
+                setAiVerifying(null);
+            },
+        });
+    };
 
     const handleVerify = (e) => {
         e.preventDefault();
@@ -132,9 +145,24 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                                     {v.services_hidden_at && <span className="block text-red-400 text-[10px] font-bold">Services Hidden</span>}
                                 </td>
                                 <td className="p-4 text-gray-400 text-xs">{new Date(v.created_at).toLocaleDateString()}</td>
-                                <td className="p-4 text-right space-x-2">
+                                <td className="p-4 text-right space-x-2 space-y-1">
                                     <button onClick={() => setViewing(v)} className="px-3 py-1 text-xs font-bold text-[#FF6600] bg-orange-50 dark:bg-orange-500/10 rounded-lg">
                                         <Eye size={12} className="inline mr-1" /> {t('admin.viewCertificate')}
+                                    </button>
+                                    <button
+                                        onClick={() => setAiVerifying(v)}
+                                        disabled={aiRunningId === v.id}
+                                        className="px-3 py-1 text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-500/10 rounded-lg disabled:opacity-50"
+                                    >
+                                        {aiRunningId === v.id ? (
+                                            <>
+                                                <Loader2 size={12} className="inline mr-1 animate-spin" /> {t('admin.aiAnalyzing')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles size={12} className="inline mr-1" /> {t('admin.aiAnalyze')}
+                                            </>
+                                        )}
                                     </button>
                                     {v.status !== 'verified' && (
                                         <button onClick={() => { setVerifying(v); form.setData({ status: 'verified', admin_notes: '' }); }} className="px-3 py-1 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-500/10 rounded-lg">
@@ -279,6 +307,52 @@ export default function SsmVerifications({ verifications, filters = {}, stats = 
                                 <button type="submit" disabled={form.processing} className="flex-1 btn-gradient py-3 text-xs font-black">Submit</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* AI Verify Confirm Modal */}
+            {aiVerifying && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => aiRunningId === null && setAiVerifying(null)}>
+                    <div className="bg-white dark:bg-[#111] rounded-[2rem] p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="size-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center">
+                                <Sparkles size={18} className="text-purple-600" />
+                            </div>
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">{t('admin.aiAnalyzeConfirm')}</h3>
+                        </div>
+                        <p className="text-xs text-gray-400 mb-2">
+                            Freelancer: <span className="font-bold text-gray-600 dark:text-gray-300">{aiVerifying.user?.name}</span>
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">
+                            {t('admin.aiAnalyzeConfirmDesc')}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setAiVerifying(null)}
+                                disabled={aiRunningId !== null}
+                                className="flex-1 py-3 text-xs font-black text-gray-500 bg-gray-100 dark:bg-white/5 rounded-xl disabled:opacity-50"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => runAiVerify(aiVerifying)}
+                                disabled={aiRunningId !== null}
+                                className="flex-1 py-3 text-xs font-black text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {aiRunningId !== null ? (
+                                    <>
+                                        <Loader2 size={14} className="animate-spin" /> {t('admin.aiAnalyzing')}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={14} /> {t('admin.aiAnalyzeRun')}
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

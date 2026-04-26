@@ -176,6 +176,7 @@ Route::middleware('auth')->group(function () {
         // Admin SSM verifications
         Route::get('/admin/ssm-verifications', [SsmVerificationController::class, 'index'])->name('admin.ssm.index');
         Route::post('/admin/ssm-verifications/{verification}/verify', [SsmVerificationController::class, 'manualVerify'])->name('admin.ssm.verify');
+        Route::post('/admin/ssm-verifications/{verification}/ai-verify', [SsmVerificationController::class, 'aiVerify'])->name('admin.ssm.ai-verify');
         Route::delete('/admin/ssm-verifications/{verification}', [SsmVerificationController::class, 'destroy'])->name('admin.ssm.destroy');
 
         // Admin halal restaurants

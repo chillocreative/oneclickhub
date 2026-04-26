@@ -343,6 +343,34 @@ class SsmVerificationController extends Controller
         return redirect()->route('admin.ssm.index')->with('success', 'SSM verification deleted.');
     }
 
+    public function aiVerify(SsmVerification $verification)
+    {
+        $provider = AdminSetting::get('active_ai_provider', 'openai');
+        $keyName = $provider === 'claude' ? 'claude_api_key' : 'openai_api_key';
+
+        if (! AdminSetting::get($keyName)) {
+            return back()->withErrors([
+                'ai' => 'No API key configured for the active AI provider (' . $provider . '). Add one in Admin → Settings.',
+            ]);
+        }
+
+        // Reset to pending so the row reflects the re-analysis attempt regardless of outcome.
+        $verification->update([
+            'status' => 'pending',
+            'ai_response' => null,
+        ]);
+
+        $this->verifyWithAi($verification);
+
+        $verification->refresh();
+
+        return match ($verification->status) {
+            'verified' => back()->with('success', 'Verified by AI (' . $provider . ').'),
+            'failed' => back()->with('error', 'AI could not validate this certificate. See raw response in the certificate modal.'),
+            default => back()->with('warning', 'AI analysis finished without a verdict. Status left as ' . $verification->status . '.'),
+        };
+    }
+
     public function adminSettings()
     {
         return Inertia::render('Admin/Settings', [
