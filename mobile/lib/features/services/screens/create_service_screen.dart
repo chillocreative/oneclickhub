@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/app_colors.dart';
@@ -30,8 +30,8 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   final _deliveryCtrl = TextEditingController();
   int? _selectedCategoryId;
   bool _alwaysAvailable = false;
-  List<File> _imageFiles = [];
-  List<String> _existingImageUrls = [];
+  final List<File> _imageFiles = [];
+  final List<String> _existingImageUrls = [];
   DateTime _calendarFocusedDay = DateTime.now();
   DateTime? _calendarSelectedDay;
   final _calendarDateFormat = DateFormat('yyyy-MM-dd');
@@ -59,7 +59,9 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
       _alwaysAvailable = s['always_available'] == true;
       final images = s['images'];
       if (images is List) {
-        _existingImageUrls = images.map((e) => e.toString()).toList();
+        _existingImageUrls
+          ..clear()
+          ..addAll(images.map((e) => e.toString()));
       }
     }
   }
@@ -74,20 +76,28 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     super.dispose();
   }
 
+  final _imagePicker = ImagePicker();
+
   Future<void> _pickImages() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: true,
+    // image_picker compresses on device (quality 80) and caps width at
+    // 1920 — keeps even multi-shot uploads under the backend size cap and
+    // well inside the 4G upload window.
+    final picked = await _imagePicker.pickMultiImage(
+      imageQuality: 80,
+      maxWidth: 1920,
     );
-    if (result != null) {
-      setState(() {
-        _imageFiles = result.paths
-            .where((p) => p != null)
-            .map((p) => File(p!))
-            .toList();
-        _existingImageUrls = [];
-      });
-    }
+    if (picked.isEmpty) return;
+    setState(() {
+      _imageFiles.addAll(picked.map((x) => File(x.path)));
+    });
+  }
+
+  void _removeNewImage(int index) {
+    setState(() => _imageFiles.removeAt(index));
+  }
+
+  void _removeExistingImage(String url) {
+    setState(() => _existingImageUrls.remove(url));
   }
 
   Future<void> _submit() async {
@@ -113,6 +123,17 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
         'delivery_days': _deliveryCtrl.text.trim(),
       'always_available': _alwaysAvailable ? '1' : '0',
     });
+
+    // Tell the server which previously-attached images to keep so it can
+    // delete the dropped ones and merge the new ones below.
+    if (isEditing) {
+      for (int i = 0; i < _existingImageUrls.length; i++) {
+        formData.fields.add(MapEntry(
+          'existing_images[$i]',
+          _existingImageUrls[i],
+        ));
+      }
+    }
 
     for (int i = 0; i < _imageFiles.length; i++) {
       formData.files.add(MapEntry(
@@ -616,80 +637,145 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
     final hasImages =
         _imageFiles.isNotEmpty || _existingImageUrls.isNotEmpty;
 
-    return GestureDetector(
-      onTap: _pickImages,
-      child: Container(
-        height: hasImages ? 120 : 100,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey.shade200,
-            style: hasImages ? BorderStyle.solid : BorderStyle.none,
+    if (!hasImages) {
+      return GestureDetector(
+        onTap: _pickImages,
+        child: Container(
+          height: 100,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withAlpha(8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.primary.withAlpha(30),
+              style: BorderStyle.solid,
+            ),
           ),
-        ),
-        child: hasImages
-            ? ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.all(8),
-                children: [
-                  ..._imageFiles.map((f) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(f,
-                              width: 100, height: 100, fit: BoxFit.cover),
-                        ),
-                      )),
-                  ..._existingImageUrls.map((url) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(url,
-                              width: 100, height: 100, fit: BoxFit.cover),
-                        ),
-                      )),
-                  GestureDetector(
-                    onTap: _pickImages,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withAlpha(10),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.add_photo_alternate,
-                          color: AppColors.primary, size: 32),
-                    ),
-                  ),
-                ],
-              )
-            : Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withAlpha(8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.primary.withAlpha(30),
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_photo_alternate,
-                        color: AppColors.primary, size: 36),
-                    SizedBox(height: 8),
-                    Text(
-                      'Tap to add images',
-                      style: TextStyle(
-                        color: AppColors.textGrey,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_photo_alternate,
+                  color: AppColors.primary, size: 36),
+              SizedBox(height: 8),
+              Text(
+                'Tap to add images',
+                style: TextStyle(
+                  color: AppColors.textGrey,
+                  fontSize: 13,
                 ),
               ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 124,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.all(8),
+        children: [
+          // Existing images first so the freelancer can see what's already
+          // attached even after picking new ones.
+          for (final url in _existingImageUrls)
+            _ThumbTile(
+              key: ValueKey(url),
+              child: Image.network(
+                url,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey.shade200,
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.broken_image,
+                      color: AppColors.textGrey),
+                ),
+              ),
+              onRemove: () => _removeExistingImage(url),
+            ),
+          for (int i = 0; i < _imageFiles.length; i++)
+            _ThumbTile(
+              key: ValueKey('new-$i-${_imageFiles[i].path}'),
+              child: Image.file(
+                _imageFiles[i],
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
+              onRemove: () => _removeNewImage(i),
+            ),
+          GestureDetector(
+            onTap: _pickImages,
+            child: Container(
+              width: 100,
+              height: 100,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.add_photo_alternate,
+                  color: AppColors.primary, size: 32),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThumbTile extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onRemove;
+
+  const _ThumbTile({
+    super.key,
+    required this.child,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: child,
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(140),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.close,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -52,7 +52,7 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
-            'images.*' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:8192',
         ]);
 
         $imagePaths = [];
@@ -101,7 +101,7 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
-            'images.*' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:8192',
         ]);
 
         $imagePaths = $service->images ?? [];

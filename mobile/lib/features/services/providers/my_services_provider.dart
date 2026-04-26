@@ -114,7 +114,13 @@ class MyServicesNotifier extends StateNotifier<MyServicesState> {
       final response = await _dio.post(
         ApiConstants.myServices,
         data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        options: Options(
+          contentType: 'multipart/form-data',
+          // Image uploads from real devices over cellular routinely take
+          // longer than the 15s default; bump just for this call.
+          sendTimeout: const Duration(seconds: 90),
+          receiveTimeout: const Duration(seconds: 90),
+        ),
       );
       if (response.data['success'] == true) {
         state = state.copyWith(
@@ -148,7 +154,11 @@ class MyServicesNotifier extends StateNotifier<MyServicesState> {
       final response = await _dio.post(
         '${ApiConstants.myServices}/$serviceId',
         data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        options: Options(
+          contentType: 'multipart/form-data',
+          sendTimeout: const Duration(seconds: 90),
+          receiveTimeout: const Duration(seconds: 90),
+        ),
       );
       if (response.data['success'] == true) {
         state = state.copyWith(

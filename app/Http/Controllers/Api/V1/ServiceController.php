@@ -167,7 +167,7 @@ class ServiceController extends Controller
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
             'always_available' => 'nullable|boolean',
-            'images.*' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:8192',
         ]);
 
         $imagePaths = [];
@@ -221,15 +221,43 @@ class ServiceController extends Controller
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
             'always_available' => 'nullable|boolean',
-            'images.*' => 'nullable|image|max:2048',
+            'images.*' => 'nullable|image|max:8192',
+            'existing_images' => 'nullable|array',
+            'existing_images.*' => 'nullable|string',
         ]);
 
-        $imagePaths = $service->images ?? [];
-        if ($request->hasFile('images')) {
-            foreach ($imagePaths as $path) {
+        $existingPaths = $service->images ?? [];
+
+        if ($request->has('existing_images')) {
+            // New client tells us exactly which previously-attached images
+            // to keep. Match by either stored path or full public URL.
+            $keptInput = (array) $request->input('existing_images', []);
+            $kept = array_values(array_filter($existingPaths, function ($path) use ($keptInput) {
+                if (in_array($path, $keptInput, true)) {
+                    return true;
+                }
+                $url = Storage::disk('public')->url($path);
+                return in_array($url, $keptInput, true);
+            }));
+
+            // Delete any existing path the freelancer dropped from the keep-list.
+            foreach (array_diff($existingPaths, $kept) as $dropped) {
+                Storage::disk('public')->delete($dropped);
+            }
+
+            $imagePaths = $kept;
+        } elseif ($request->hasFile('images')) {
+            // Legacy client (no existing_images sent) + new files: replace all.
+            foreach ($existingPaths as $path) {
                 Storage::disk('public')->delete($path);
             }
             $imagePaths = [];
+        } else {
+            // Legacy client + no new files: keep everything as-is.
+            $imagePaths = $existingPaths;
+        }
+
+        if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $imagePaths[] = $image->store('services', 'public');
             }
