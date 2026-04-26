@@ -48,16 +48,30 @@ class SsmVerificationController extends Controller
             ]
         );
 
-        // Try OpenAI verification if API key exists
-        $apiKey = AdminSetting::get('openai_api_key');
-        if ($apiKey) {
-            $this->verifyWithAi($verification, $apiKey);
-        }
+        // Dispatch to whichever AI provider the admin has activated.
+        $this->verifyWithAi($verification);
 
         return back()->with('success', 'SSM document uploaded. Verification is being processed.');
     }
 
-    private function verifyWithAi(SsmVerification $verification, string $apiKey)
+    private function verifyWithAi(SsmVerification $verification): void
+    {
+        $provider = AdminSetting::get('active_ai_provider', 'openai');
+        $keyName = $provider === 'claude' ? 'claude_api_key' : 'openai_api_key';
+        $apiKey = AdminSetting::get($keyName);
+
+        if (! $apiKey) {
+            return;
+        }
+
+        if ($provider === 'claude') {
+            $this->verifyWithClaude($verification, $apiKey);
+        } else {
+            $this->verifyWithOpenAi($verification, $apiKey);
+        }
+    }
+
+    private function verifyWithOpenAi(SsmVerification $verification, string $apiKey): void
     {
         try {
             $filePath = Storage::disk('public')->path($verification->document_path);
@@ -121,6 +135,95 @@ class SsmVerificationController extends Controller
             // Parse JSON from response
             preg_match('/\{.*\}/s', $aiContent, $matches);
             if (!empty($matches)) {
+                $data = json_decode($matches[0], true);
+                if ($data && ($data['is_valid'] ?? false)) {
+                    $verification->update([
+                        'status' => 'verified',
+                        'company_name' => $data['company_name'] ?? null,
+                        'registration_number' => $data['registration_number'] ?? null,
+                        'expiry_date' => $data['expiry_date'] ?? null,
+                        'grace_period_ends_at' => null,
+                        'services_hidden_at' => null,
+                    ]);
+                    Service::where('user_id', $verification->user_id)->update(['is_active' => true]);
+                    return;
+                }
+            }
+
+            $verification->update(['status' => 'failed']);
+        } catch (\Exception $e) {
+            $verification->update([
+                'status' => 'failed',
+                'ai_response' => 'Error: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function verifyWithClaude(SsmVerification $verification, string $apiKey): void
+    {
+        try {
+            $filePath = Storage::disk('public')->path($verification->document_path);
+            $mimeType = mime_content_type($filePath);
+            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+            $prompt = 'Extract the following from this SSM (Suruhanjaya Syarikat Malaysia) business certificate: company_name, registration_number, expiry_date (YYYY-MM-DD format). Return JSON only: {"company_name": "...", "registration_number": "...", "expiry_date": "...", "is_valid": true/false}. If not a valid SSM certificate, set is_valid to false.';
+
+            $content = [];
+
+            if (in_array($extension, ['doc', 'docx'])) {
+                $extractedText = $this->extractTextFromDocx($filePath);
+                if (! $extractedText) {
+                    $verification->update(['status' => 'failed', 'ai_response' => 'Could not extract text from document.']);
+                    return;
+                }
+                $content[] = ['type' => 'text', 'text' => $prompt . "\n\nDocument text content:\n" . $extractedText];
+            } elseif ($extension === 'pdf') {
+                $content[] = [
+                    'type' => 'document',
+                    'source' => [
+                        'type' => 'base64',
+                        'media_type' => 'application/pdf',
+                        'data' => base64_encode(file_get_contents($filePath)),
+                    ],
+                ];
+                $content[] = ['type' => 'text', 'text' => $prompt];
+            } else {
+                $content[] = [
+                    'type' => 'image',
+                    'source' => [
+                        'type' => 'base64',
+                        'media_type' => $mimeType,
+                        'data' => base64_encode(file_get_contents($filePath)),
+                    ],
+                ];
+                $content[] = ['type' => 'text', 'text' => $prompt];
+            }
+
+            $response = \Illuminate\Support\Facades\Http::timeout(60)->withHeaders([
+                'x-api-key' => $apiKey,
+                'anthropic-version' => '2023-06-01',
+                'content-type' => 'application/json',
+            ])->post('https://api.anthropic.com/v1/messages', [
+                'model' => 'claude-haiku-4-5',
+                'max_tokens' => 500,
+                'messages' => [
+                    ['role' => 'user', 'content' => $content],
+                ],
+            ]);
+
+            if ($response->failed()) {
+                $verification->update([
+                    'status' => 'failed',
+                    'ai_response' => 'Anthropic API error: ' . $response->body(),
+                ]);
+                return;
+            }
+
+            $aiContent = $response->json('content.0.text');
+            $verification->update(['ai_response' => $aiContent]);
+
+            preg_match('/\{.*\}/s', (string) $aiContent, $matches);
+            if (! empty($matches)) {
                 $data = json_decode($matches[0], true);
                 if ($data && ($data['is_valid'] ?? false)) {
                     $verification->update([
@@ -244,6 +347,8 @@ class SsmVerificationController extends Controller
     {
         return Inertia::render('Admin/Settings', [
             'openai_api_key' => AdminSetting::get('openai_api_key') ? '••••••••' : '',
+            'claude_api_key' => AdminSetting::get('claude_api_key') ? '••••••••' : '',
+            'active_ai_provider' => AdminSetting::get('active_ai_provider', 'openai'),
         ]);
     }
 
@@ -251,11 +356,19 @@ class SsmVerificationController extends Controller
     {
         $request->validate([
             'openai_api_key' => 'nullable|string|max:255',
+            'claude_api_key' => 'nullable|string|max:255',
+            'active_ai_provider' => 'required|in:openai,claude',
         ]);
 
         if ($request->openai_api_key && $request->openai_api_key !== '••••••••') {
             AdminSetting::set('openai_api_key', $request->openai_api_key);
         }
+
+        if ($request->claude_api_key && $request->claude_api_key !== '••••••••') {
+            AdminSetting::set('claude_api_key', $request->claude_api_key);
+        }
+
+        AdminSetting::set('active_ai_provider', $request->active_ai_provider);
 
         return back()->with('success', 'Settings updated.');
     }

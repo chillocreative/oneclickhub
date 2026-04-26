@@ -444,6 +444,8 @@ class AdminController extends Controller
     {
         return $this->success([
             'openai_api_key' => AdminSetting::get('openai_api_key') ? '••••••••' : '',
+            'claude_api_key' => AdminSetting::get('claude_api_key') ? '••••••••' : '',
+            'active_ai_provider' => AdminSetting::get('active_ai_provider', 'openai'),
         ]);
     }
 
@@ -451,11 +453,19 @@ class AdminController extends Controller
     {
         $request->validate([
             'openai_api_key' => 'nullable|string|max:255',
+            'claude_api_key' => 'nullable|string|max:255',
+            'active_ai_provider' => 'required|in:openai,claude',
         ]);
 
         if ($request->openai_api_key && $request->openai_api_key !== '••••••••') {
             AdminSetting::set('openai_api_key', $request->openai_api_key);
         }
+
+        if ($request->claude_api_key && $request->claude_api_key !== '••••••••') {
+            AdminSetting::set('claude_api_key', $request->claude_api_key);
+        }
+
+        AdminSetting::set('active_ai_provider', $request->active_ai_provider);
 
         return $this->success(null, 'Settings updated.');
     }
