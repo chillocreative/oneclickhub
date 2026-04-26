@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
-import { Bell, Send, Users, Briefcase, Globe } from 'lucide-react';
+import { Head, useForm, router, Link } from '@inertiajs/react';
+import { Bell, Send, Users, Briefcase, Globe, Trash2 } from 'lucide-react';
 import TextInput from '@/Components/TextInput';
 import InputLabel from '@/Components/InputLabel';
 
@@ -19,8 +19,25 @@ export default function Notifications({ notifications, diagnostics }) {
         });
     };
 
+    const removeOne = (notif) => {
+        if (!confirm(`Remove "${notif.title}" from history?`)) return;
+        router.delete(route('admin.notifications.destroy', notif.id), {
+            preserveScroll: true,
+        });
+    };
+
+    const clearAll = () => {
+        const total = diagnostics?.history_total ?? 0;
+        if (total === 0) return;
+        if (!confirm(`Permanently clear all ${total} notification${total === 1 ? '' : 's'} from history? This will not unsend already-delivered pushes.`)) return;
+        router.delete(route('admin.notifications.clearAll'));
+    };
+
     const roleLabels = { all: 'All Users', Freelancer: 'Freelancers', Customer: 'Customers' };
     const roleIcons = { all: Globe, Freelancer: Briefcase, Customer: Users };
+
+    const items = notifications?.data ?? [];
+    const totalHistory = diagnostics?.history_total ?? items.length;
 
     return (
         <AuthenticatedLayout
@@ -125,33 +142,55 @@ export default function Notifications({ notifications, diagnostics }) {
 
                 {/* History */}
                 <div className="bg-white dark:bg-[#111] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="size-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
-                            <Bell size={24} className="text-[#FF6600]" />
+                    <div className="flex items-center justify-between gap-4 mb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center">
+                                <Bell size={24} className="text-[#FF6600]" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-gray-900 dark:text-white">Notification History</h3>
+                                <p className="text-xs text-gray-400">
+                                    {totalHistory} total · showing {items.length}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white">Notification History</h3>
-                            <p className="text-xs text-gray-400">Latest {notifications?.length ?? 0} notifications</p>
-                        </div>
+                        {totalHistory > 0 && (
+                            <button
+                                onClick={clearAll}
+                                className="px-3 py-2 rounded-xl text-xs font-black bg-red-50 text-red-600 hover:bg-red-100 inline-flex items-center gap-1.5"
+                                title="Clear all notification history"
+                            >
+                                <Trash2 size={14} /> Clear all
+                            </button>
+                        )}
                     </div>
 
                     <div className="space-y-4">
-                        {(!notifications || notifications.length === 0) ? (
+                        {items.length === 0 ? (
                             <div className="text-center py-12">
                                 <Bell size={40} className="mx-auto text-gray-200 dark:text-white/10 mb-4" />
                                 <p className="text-gray-400 text-sm font-semibold">No notifications sent yet</p>
                             </div>
                         ) : (
-                            notifications.map((notif) => (
+                            items.map((notif) => (
                                 <div key={notif.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
                                             <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate">{notif.title}</h4>
                                             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notif.body}</p>
                                         </div>
-                                        <span className="flex-none px-2 py-1 text-[10px] font-bold uppercase rounded-full bg-orange-50 text-[#FF6600] dark:bg-orange-500/10">
-                                            {notif.target_role === 'all' ? 'All' : notif.target_role}
-                                        </span>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className="px-2 py-1 text-[10px] font-bold uppercase rounded-full bg-orange-50 text-[#FF6600] dark:bg-orange-500/10">
+                                                {notif.target_role === 'all' ? 'All' : notif.target_role}
+                                            </span>
+                                            <button
+                                                onClick={() => removeOne(notif)}
+                                                className="size-7 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 inline-flex items-center justify-center"
+                                                title="Remove from history"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between mt-3 text-[11px] text-gray-400">
                                         <span>{notif.sent_count} device{notif.sent_count !== 1 ? 's' : ''}</span>
@@ -161,6 +200,30 @@ export default function Notifications({ notifications, diagnostics }) {
                             ))
                         )}
                     </div>
+
+                    {/* Pagination */}
+                    {notifications?.last_page > 1 && (
+                        <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
+                            <span>Page {notifications.current_page} of {notifications.last_page}</span>
+                            <div className="flex gap-1">
+                                {notifications.links?.map((link, idx) => (
+                                    <Link
+                                        key={idx}
+                                        href={link.url || '#'}
+                                        preserveScroll
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-black ${
+                                            link.active
+                                                ? 'bg-[#FF6600] text-white'
+                                                : link.url
+                                                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                                    : 'bg-gray-50 text-gray-300 pointer-events-none'
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

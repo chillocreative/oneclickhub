@@ -204,6 +204,8 @@ Route::middleware('auth')->group(function () {
         // Admin notifications
         Route::get('/admin/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
         Route::post('/admin/notifications/send', [NotificationController::class, 'send'])->name('admin.notifications.send');
+        Route::delete('/admin/notifications', [NotificationController::class, 'clearAll'])->name('admin.notifications.clearAll');
+        Route::delete('/admin/notifications/{notification}', [NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
 
         // Admin settings
         Route::get('/admin/settings', [SsmVerificationController::class, 'adminSettings'])->name('admin.settings');

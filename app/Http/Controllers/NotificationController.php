@@ -13,16 +13,17 @@ use Inertia\Response;
 
 class NotificationController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $notifications = PushNotification::with('sender:id,name')
             ->latest()
-            ->take(5)
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $diagnostics = [
             'total_tokens' => FcmToken::count(),
             'credentials_exists' => file_exists(storage_path('app/firebase-credentials.json')),
+            'history_total' => PushNotification::count(),
         ];
 
         return Inertia::render('Admin/Notifications', [
@@ -56,5 +57,32 @@ class NotificationController extends Controller
 
         return Redirect::route('admin.notifications.index')
             ->with('success', "Notification sent to {$sentCount} device(s).");
+    }
+
+    /**
+     * Delete a single notification from the history table.
+     * Does NOT recall the push from the recipient's device — that's
+     * impossible once delivered. This only clears it from admin history.
+     */
+    public function destroy(PushNotification $notification): RedirectResponse
+    {
+        $notification->delete();
+
+        return back()->with('success', 'Notification removed from history.');
+    }
+
+    /**
+     * Clear the entire notification history table. Also a no-op against
+     * already-delivered pushes — only the admin-facing log is wiped.
+     */
+    public function clearAll(): RedirectResponse
+    {
+        $count = PushNotification::count();
+        PushNotification::truncate();
+
+        return back()->with(
+            'success',
+            "Cleared {$count} notification" . ($count === 1 ? '' : 's') . ' from history.'
+        );
     }
 }
