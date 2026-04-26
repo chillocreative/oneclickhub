@@ -17,6 +17,8 @@ class Subscription extends Model
         'payment_gateway',
         'transaction_id',
         'amount_paid',
+        'grant_type',
+        'granted_by_user_id',
     ];
 
     protected $casts = [
@@ -25,6 +27,28 @@ class Subscription extends Model
         'trial_ends_at' => 'datetime',
         'amount_paid' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Subscription $subscription) {
+            // Throttled WhatsApp ping to admin so they see new sign-ups
+            // without flooding the device with back-to-back messages.
+            try {
+                $user = $subscription->user;
+                $plan = $subscription->plan;
+                $body = "🎉 New subscription\n"
+                    . "User: " . ($user?->name ?? 'unknown') . "\n"
+                    . "Phone: " . ($user?->phone_number ?? '-') . "\n"
+                    . "Plan: " . ($plan?->name ?? 'unknown') . "\n"
+                    . "Type: " . ($subscription->grant_type ?? 'payment');
+                app(\App\Services\AdminWhatsappNotifier::class)->notify($body);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Admin WA on subscription failed', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        });
+    }
 
     /**
      * Subscription status constants

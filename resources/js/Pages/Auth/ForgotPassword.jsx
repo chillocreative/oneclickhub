@@ -20,7 +20,7 @@ export default function ForgotPassword({ status }) {
             <Head title="Forgot Password" />
 
             <div className="mb-4 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                Forgot your password? No problem. Just let us know your <b className="font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter">phone number</b> and we will send you a password reset link via <b className="font-black text-[#FF6600]">WhatsApp</b>.
+                Forgot your password? No problem. Just let us know your <b className="font-black text-gray-900 dark:text-gray-100 uppercase tracking-tighter">phone number</b> and we will WhatsApp you a <b className="font-black text-[#FF6600]">temporary password</b>. You'll be asked to set a new one as soon as you sign in.
             </div>
 
             {status && (
@@ -45,7 +45,7 @@ export default function ForgotPassword({ status }) {
 
                 <div className="mt-4 flex items-center justify-end">
                     <PrimaryButton className="ms-4 w-full" disabled={processing}>
-                        Send WhatsApp Reset Link
+                        Send via WhatsApp
                     </PrimaryButton>
                 </div>
             </form>

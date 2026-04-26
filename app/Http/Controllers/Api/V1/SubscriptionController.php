@@ -45,12 +45,7 @@ class SubscriptionController extends Controller
 
     public function initiatePayment(Request $request, SubscriptionPlan $plan): JsonResponse
     {
-        $request->validate([
-            'gateway' => 'required|string|in:bayarcash,senangpay',
-        ]);
-
         $user = $request->user();
-        $gateway = $request->input('gateway');
 
         if ($user->hasActiveSubscription()) {
             return $this->error('You already have an active subscription.', 422);
@@ -59,6 +54,21 @@ class SubscriptionController extends Controller
         if (!$plan->is_active) {
             return $this->error('This plan is no longer available.', 422);
         }
+
+        // Plans that require approval (e.g. Madani) skip the gateway —
+        // route the customer to the application form instead.
+        if ($plan->requires_approval) {
+            return $this->success([
+                'requires_approval' => true,
+                'plan_slug' => $plan->slug,
+            ], 'This plan requires an application before activation.');
+        }
+
+        $request->validate([
+            'gateway' => 'required|string|in:bayarcash,senangpay',
+        ]);
+
+        $gateway = $request->input('gateway');
 
         $orderNumber = 'PLAN-' . $user->id . '-' . $plan->id . '-' . time();
 

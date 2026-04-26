@@ -163,6 +163,7 @@ class SsmVerificationController extends Controller
             'openai_api_key' => AdminSetting::get('openai_api_key') ? '••••••••' : '',
             'claude_api_key' => AdminSetting::get('claude_api_key') ? '••••••••' : '',
             'active_ai_provider' => AdminSetting::get('active_ai_provider', 'openai'),
+            'early_adopter_enabled' => (string) AdminSetting::get('early_adopter_enabled', '1') === '1',
         ]);
     }
 
@@ -172,6 +173,7 @@ class SsmVerificationController extends Controller
             'openai_api_key' => 'nullable|string|max:255',
             'claude_api_key' => 'nullable|string|max:255',
             'active_ai_provider' => 'required|in:openai,claude',
+            'early_adopter_enabled' => 'nullable|boolean',
         ]);
 
         if ($request->openai_api_key && $request->openai_api_key !== '••••••••') {
@@ -183,6 +185,13 @@ class SsmVerificationController extends Controller
         }
 
         AdminSetting::set('active_ai_provider', $request->active_ai_provider);
+
+        if ($request->has('early_adopter_enabled')) {
+            AdminSetting::set(
+                'early_adopter_enabled',
+                $request->boolean('early_adopter_enabled') ? '1' : '0',
+            );
+        }
 
         return back()->with('success', 'Settings updated.');
     }

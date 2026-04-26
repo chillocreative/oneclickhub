@@ -63,14 +63,17 @@ export default function Plans({ plans }) {
                         </div>
 
                         <Link
-                            href={route('subscribe.checkout', plan.slug)}
+                            href={plan.requires_approval || plan.slug === 'madani'
+                                ? route('madani.create')
+                                : route('subscribe.checkout', plan.slug)}
                             className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-center transition-all block ${
                                 plan.is_popular
                                     ? 'btn-gradient'
                                     : 'bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white hover:bg-[#FF6600]/10 hover:text-[#FF6600]'
                             }`}
                         >
-                            Select Plan <ArrowRight className="inline w-4 h-4 ml-1" />
+                            {plan.requires_approval || plan.slug === 'madani' ? 'Apply' : 'Select Plan'}
+                            <ArrowRight className="inline w-4 h-4 ml-1" />
                         </Link>
                     </motion.div>
                 ))}

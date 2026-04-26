@@ -75,6 +75,10 @@ Route::middleware('auth')->group(function () {
     // Freelancer subscription cancel
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancelSelf'])->name('subscription.cancel');
 
+    // Madani sponsored plan application (customer)
+    Route::get('/madani-application', [\App\Http\Controllers\MadaniController::class, 'create'])->name('madani.create');
+    Route::post('/madani-application', [\App\Http\Controllers\MadaniController::class, 'store'])->name('madani.store');
+
     // Freelancer service management
     Route::prefix('my-services')->name('my-services.')->group(function () {
         Route::get('/', [ServiceController::class, 'index'])->name('index');
@@ -172,6 +176,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/advertisements', [AdvertisementController::class, 'store'])->name('admin.advertisements.store');
         Route::post('/admin/advertisements/{advertisement}', [AdvertisementController::class, 'update'])->name('admin.advertisements.update');
         Route::delete('/admin/advertisements/{advertisement}', [AdvertisementController::class, 'destroy'])->name('admin.advertisements.destroy');
+
+        // Admin Madani applications
+        Route::get('/admin/madani-applications', [\App\Http\Controllers\MadaniController::class, 'adminIndex'])->name('admin.madani.index');
+        Route::post('/admin/madani-applications/{application}/approve', [\App\Http\Controllers\MadaniController::class, 'approve'])->name('admin.madani.approve');
+        Route::post('/admin/madani-applications/{application}/reject', [\App\Http\Controllers\MadaniController::class, 'reject'])->name('admin.madani.reject');
 
         // Admin SSM verifications
         Route::get('/admin/ssm-verifications', [SsmVerificationController::class, 'index'])->name('admin.ssm.index');

@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\UserResource;
 use App\Models\SsmVerification;
 use App\Models\User;
+use App\Services\PasswordResetTemplates;
+use App\Services\SendoraService;
 use App\Traits\ApiResponse;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
@@ -149,46 +150,81 @@ class AuthController extends Controller
         ]);
     }
 
-    public function forgotPassword(Request $request): JsonResponse
+    /**
+     * Phone-based password reset via Sendora WhatsApp.
+     *
+     * Generates a fresh 20-character password, hashes it, marks the user as
+     * must_change_password, and WhatsApps the cleartext password using one
+     * of 20 randomised templates. Returns a generic 200 response either way
+     * so the form can't be used to enumerate accounts.
+     */
+    public function forgotPassword(Request $request, SendoraService $sendora): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email',
+            'phone_number' => 'required|string|max:20',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $genericMessage = 'If your phone number is registered, a temporary password has been sent via WhatsApp.';
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return $this->success(null, __($status));
+        // Throttle by phone+ip to stop spray attacks.
+        $throttleKey = 'forgot-password:' . Str::lower($request->string('phone_number')) . '|' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return $this->error(
+                trans('auth.throttle', [
+                    'seconds' => RateLimiter::availableIn($throttleKey),
+                    'minutes' => 1,
+                ]),
+                429,
+            );
+        }
+        RateLimiter::hit($throttleKey, 60);
+
+        $user = User::where('phone_number', $request->phone_number)->first();
+        if (!$user) {
+            return $this->success(null, $genericMessage);
         }
 
-        return $this->error(__($status), 400);
+        $newPassword = Str::password(20);
+
+        $user->forceFill([
+            'password' => Hash::make($newPassword),
+            'must_change_password' => true,
+        ])->setRememberToken(Str::random(60));
+        $user->save();
+
+        // Invalidate all existing API tokens so old sessions can't keep going.
+        $user->tokens()->delete();
+
+        $body = PasswordResetTemplates::pick($user->name ?? '', $newPassword);
+        $sendora->sendMessage($user->phone_number, $body);
+
+        return $this->success(null, $genericMessage);
     }
 
-    public function resetPassword(Request $request): JsonResponse
+    /**
+     * Force-rotate the current user's password. Used after the temporary
+     * Sendora password lands them in the app (must_change_password = true).
+     */
+    public function changePassword(Request $request): JsonResponse
     {
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
+            'current_password' => 'required|string',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->setRememberToken(Str::random(60));
+        $user = $request->user();
 
-                $user->save();
-            }
-        );
-
-        if ($status === Password::PASSWORD_RESET) {
-            return $this->success(null, __($status));
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => [trans('auth.password')],
+            ]);
         }
 
-        return $this->error(__($status), 400);
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+            'must_change_password' => false,
+        ])->save();
+
+        return $this->success(null, 'Password updated.');
     }
 }

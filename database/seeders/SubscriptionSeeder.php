@@ -36,6 +36,22 @@ class SubscriptionSeeder extends Seeder
                 'is_popular' => false,
                 'features' => ['Custom Reporting', 'White Label Options', 'API Access', 'Dedicated Support Manager', 'Multi-country Market Reach'],
             ],
+            [
+                'name' => 'Madani',
+                'slug' => 'madani',
+                'price' => 0.00,
+                'interval' => 'year',
+                'is_popular' => false,
+                'requires_approval' => true,
+                'sponsored_by' => 'Government of Malaysia',
+                'description' => 'Sponsored access for eligible Malaysian citizens. Subject to approval.',
+                'features' => [
+                    'Sponsored by the Government',
+                    'Full Premium Pro feature set',
+                    'Application reviewed by an admin',
+                    '12-month subscription on approval',
+                ],
+            ],
         ];
 
         foreach ($plans as $plan) {

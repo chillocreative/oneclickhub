@@ -227,18 +227,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
-  Future<String?> forgotPassword(String email) async {
+  /// Phone-based forgot password. Returns null on success or an error
+  /// message string. Server response is intentionally generic so we
+  /// can't enumerate accounts.
+  Future<String?> forgotPassword(String phoneNumber) async {
     try {
       final response = await _dio.post(ApiConstants.forgotPassword, data: {
-        'email': email,
+        'phone_number': phoneNumber,
       });
+      final data = response.data;
+      if (data['success'] == true) return null;
+      return data['message'] ?? 'Failed to send password';
+    } on DioException catch (e) {
+      return e.response?.data?['message'] ?? 'Connection error';
+    }
+  }
 
+  /// Forced password rotation after a Sendora-issued temporary password.
+  Future<String?> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.post('/auth/change-password', data: {
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': newPassword,
+      });
       final data = response.data;
       if (data['success'] == true) {
-        return null; // success
+        // Refresh user so must_change_password flips to false everywhere.
+        await fetchUser();
+        return null;
       }
-      return data['message'] ?? 'Failed to send reset link';
+      return data['message'] ?? 'Could not update password';
     } on DioException catch (e) {
+      final errors = e.response?.data?['errors'];
+      if (errors is Map) {
+        return errors.values
+            .expand((v) => v is List ? v : [v])
+            .join('\n');
+      }
       return e.response?.data?['message'] ?? 'Connection error';
     }
   }

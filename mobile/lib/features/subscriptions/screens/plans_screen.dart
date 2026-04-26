@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
@@ -276,13 +277,22 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                       final isCurrentPlan = subscription != null &&
                           subscription['plan']?['slug'] == plan['slug'] &&
                           subscription['status'] == 'active';
+                      final requiresApproval = plan['requires_approval'] == true
+                          || plan['slug'] == 'madani';
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: _PlanCard(
                           plan: plan,
                           isCurrentPlan: isCurrentPlan,
                           isProcessing: state.isProcessing,
-                          onSubscribe: () => _showGatewaySheet(plan),
+                          requiresApproval: requiresApproval,
+                          onSubscribe: () {
+                            if (requiresApproval) {
+                              context.push('/madani-application');
+                            } else {
+                              _showGatewaySheet(plan);
+                            }
+                          },
                         ),
                       );
                     }),
@@ -446,6 +456,7 @@ class _PlanCard extends StatelessWidget {
   final Map<String, dynamic> plan;
   final bool isCurrentPlan;
   final bool isProcessing;
+  final bool requiresApproval;
   final VoidCallback onSubscribe;
 
   const _PlanCard({
@@ -453,6 +464,7 @@ class _PlanCard extends StatelessWidget {
     required this.isCurrentPlan,
     required this.isProcessing,
     required this.onSubscribe,
+    this.requiresApproval = false,
   });
 
   @override
@@ -554,7 +566,8 @@ class _PlanCard extends StatelessWidget {
                 )
               else
                 GradientButton(
-                  text: 'Subscribe',
+                  text: requiresApproval ? 'Apply' : 'Subscribe',
+                  icon: requiresApproval ? Icons.assignment : null,
                   width: double.infinity,
                   isLoading: isProcessing,
                   onPressed: onSubscribe,
@@ -639,7 +652,7 @@ class _PaymentWebViewScreenState extends State<_PaymentWebViewScreen> {
     // which then redirects to /payment/success, /payment/failed, or /payment/pending
     final uri = Uri.tryParse(url);
     if (uri == null) return;
-    if (!uri.host.contains('oneclickhub.verranet.com')) return;
+    if (!uri.host.contains('oneclickhub.com.my')) return;
 
     final path = uri.path;
     if (path.startsWith('/payment/bayarcash/return') ||

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\CalendarController;
+use App\Http\Controllers\Api\V1\MadaniController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\AdminController;
@@ -30,6 +31,7 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
 // Public: Services & Categories
@@ -110,6 +112,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [SettingsController::class, 'notifications']);
     Route::post('/notifications/mark-read', [SettingsController::class, 'markNotificationsRead']);
 
+    // Madani sponsored plan applications
+    Route::post('/madani-applications', [MadaniController::class, 'store']);
+    Route::get('/madani-applications/me', [MadaniController::class, 'mine']);
+
     // Admin Routes
     Route::middleware('role:Admin')->prefix('admin')->group(function () {
         // Users
@@ -150,5 +156,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Settings
         Route::get('/settings', [AdminController::class, 'settings']);
         Route::patch('/settings', [AdminController::class, 'updateSettings']);
+
+        // Madani applications review
+        Route::get('/madani-applications', [MadaniController::class, 'index']);
+        Route::post('/madani-applications/{application}/approve', [MadaniController::class, 'approve']);
+        Route::post('/madani-applications/{application}/reject', [MadaniController::class, 'reject']);
     });
 });

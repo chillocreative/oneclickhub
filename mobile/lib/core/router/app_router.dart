@@ -4,6 +4,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/change_password_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
@@ -18,6 +19,7 @@ import '../../features/orders/screens/my_bookings_screen.dart';
 import '../../features/chat/screens/conversations_screen.dart';
 import '../../features/chat/screens/chat_screen.dart';
 import '../../features/subscriptions/screens/plans_screen.dart';
+import '../../features/subscriptions/screens/madani_application_screen.dart';
 import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/settings/screens/profile_screen.dart';
 import '../../features/settings/screens/banking_screen.dart';
@@ -32,6 +34,9 @@ import '../widgets/guest_shell_scaffold.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
+  final mustChangePassword = ref.watch(
+    authProvider.select((s) => s.user?.mustChangePassword ?? false),
+  );
 
   return GoRouter(
     initialLocation: '/splash',
@@ -40,10 +45,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isSplash = state.matchedLocation == '/splash';
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isGuestHome = state.matchedLocation == '/home';
+      final isChangePassword = state.matchedLocation == '/auth/change-password';
 
       // Let splash and onboarding screens handle their own navigation
       final isOnboarding = state.matchedLocation == '/onboarding';
       if (isSplash || isOnboarding) return null;
+
+      // Force password change after a Sendora-issued temporary password.
+      if (isAuth && mustChangePassword && !isChangePassword) {
+        return '/auth/change-password';
+      }
 
       // Allow unauthenticated users to access /home, /auth, and guest routes
       final isGuestRoute = state.matchedLocation == '/halal-restaurants' ||
@@ -53,7 +64,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/home';
       }
       // Redirect authenticated users away from guest/auth routes
-      if (isAuth && (isAuthRoute || isGuestHome)) {
+      // (but allow change-password since we just routed them there)
+      if (isAuth && (isAuthRoute || isGuestHome) && !isChangePassword) {
         return '/dashboard';
       }
       return null;
@@ -83,6 +95,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/auth/change-password',
+        name: 'change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '/madani-application',
+        name: 'madani-application',
+        builder: (context, state) => const MadaniApplicationScreen(),
       ),
 
       // Guest home with guest bottom navigation

@@ -11,19 +11,19 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _message;
   bool _success = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (_emailController.text.trim().isEmpty) return;
+    if (_phoneController.text.trim().isEmpty) return;
 
     setState(() {
       _isLoading = true;
@@ -32,13 +32,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     final error = await ref
         .read(authProvider.notifier)
-        .forgotPassword(_emailController.text.trim());
+        .forgotPassword(_phoneController.text.trim());
 
     setState(() {
       _isLoading = false;
       if (error == null) {
         _success = true;
-        _message = 'Password reset link sent to your email.';
+        _message =
+            'If your phone number is registered, a temporary password has been sent to your WhatsApp.';
       } else {
         _success = false;
         _message = error;
@@ -56,10 +57,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Enter your email address and we will send you a password reset link.',
+              'Enter your registered phone number. We will WhatsApp you a '
+              'temporary password — please change it once you sign in.',
             ),
             const SizedBox(height: 24),
-
             if (_message != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
@@ -76,18 +77,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 16),
             ],
-
             TextFormField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
+                labelText: 'Phone number',
+                hintText: 'e.g. 0123456789',
+                prefixIcon: Icon(Icons.phone),
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),
-
             FilledButton(
               onPressed: _isLoading ? null : _submit,
               style: FilledButton.styleFrom(
@@ -100,7 +100,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white),
                     )
-                  : const Text('Send Reset Link'),
+                  : const Text('Send via WhatsApp'),
             ),
           ],
         ),

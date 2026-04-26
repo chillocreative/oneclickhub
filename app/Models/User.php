@@ -27,8 +27,10 @@ class User extends Authenticatable
         'company_name',
         'business_name',
         'phone_number',
+        'address',
         'email',
         'password',
+        'must_change_password',
         'identity_document',
         'profile_picture',
         'position',
@@ -55,8 +57,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'notification_read_at' => 'datetime',
         ];
+    }
+
+    public function madaniApplications(): HasMany
+    {
+        return $this->hasMany(MadaniApplication::class);
+    }
+
+    public function latestMadaniApplication(): HasOne
+    {
+        return $this->hasOne(MadaniApplication::class)->latestOfMany();
     }
 
     /**
@@ -141,24 +154,37 @@ class User extends Authenticatable
         return $this->hasMany(FcmToken::class);
     }
 
-    public function subscribeToPlan(SubscriptionPlan $plan, array $paymentData = []): Subscription
-    {
+    /**
+     * Subscribe a user to a plan.
+     *
+     * @param  SubscriptionPlan  $plan
+     * @param  array  $paymentData  payment_gateway, transaction_id, amount_paid (optional)
+     * @param  int  $durationDays  defaults to 365 days for legacy paid flow
+     * @param  string  $grantType   payment | early_adopter | madani | admin_grant
+     * @param  ?int  $grantedByUserId  Admin user id when grant_type = admin_grant
+     */
+    public function subscribeToPlan(
+        SubscriptionPlan $plan,
+        array $paymentData = [],
+        int $durationDays = 365,
+        string $grantType = 'payment',
+        ?int $grantedByUserId = null,
+    ): Subscription {
         // Cancel any existing active subscription
         $this->subscriptions()
             ->where('status', Subscription::STATUS_ACTIVE)
             ->update(['status' => Subscription::STATUS_CANCELLED]);
 
-        // Annual subscription: 365 days from now
-        $endsAt = now()->addDays(365);
-
         $subscription = $this->subscriptions()->create([
             'subscription_plan_id' => $plan->id,
             'status' => Subscription::STATUS_ACTIVE,
             'starts_at' => now(),
-            'ends_at' => $endsAt,
+            'ends_at' => now()->addDays($durationDays),
             'payment_gateway' => $paymentData['payment_gateway'] ?? null,
             'transaction_id' => $paymentData['transaction_id'] ?? null,
-            'amount_paid' => $paymentData['amount_paid'] ?? $plan->price,
+            'amount_paid' => $paymentData['amount_paid'] ?? ($grantType === 'payment' ? $plan->price : 0),
+            'grant_type' => $grantType,
+            'granted_by_user_id' => $grantedByUserId,
         ]);
 
         // Start 30-day SSM grace period for freelancers without SSM verification

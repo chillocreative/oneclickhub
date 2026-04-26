@@ -26,12 +26,13 @@ const PROVIDERS = [
     },
 ];
 
-export default function AdminSettings({ openai_api_key, claude_api_key, active_ai_provider }) {
+export default function AdminSettings({ openai_api_key, claude_api_key, active_ai_provider, early_adopter_enabled }) {
     const { t } = useLanguage();
     const { data, setData, patch, processing, errors } = useForm({
         openai_api_key: openai_api_key || '',
         claude_api_key: claude_api_key || '',
         active_ai_provider: active_ai_provider || 'openai',
+        early_adopter_enabled: !!early_adopter_enabled,
     });
 
     const submit = (e) => {
@@ -142,6 +143,28 @@ export default function AdminSettings({ openai_api_key, claude_api_key, active_a
                             </div>
                         );
                     })}
+                </div>
+
+                {/* Early adopter toggle — auto-grants every new signup a 90-day Starter Hub subscription */}
+                <div className="bg-white dark:bg-[#111] p-6 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 className="text-base font-black text-gray-900 dark:text-white">Early adopter free trial</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                                When enabled, every brand-new account is automatically granted 90 days of the Starter Hub plan, free.
+                                Switch off once the campaign ends.
+                            </p>
+                        </div>
+                        <label className="inline-flex items-center cursor-pointer shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={data.early_adopter_enabled}
+                                onChange={e => setData('early_adopter_enabled', e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-12 h-7 bg-gray-200 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-5 after:content-[''] after:absolute after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all relative peer-checked:bg-[#FF6600]"></div>
+                        </label>
+                    </div>
                 </div>
 
                 <button

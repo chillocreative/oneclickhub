@@ -10,13 +10,15 @@ use Illuminate\Support\Str;
 class SubscriptionPlan extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'price', 'interval', 'features', 'is_active', 'is_popular', 'description'
+        'name', 'slug', 'price', 'interval', 'features', 'is_active', 'is_popular',
+        'description', 'requires_approval', 'sponsored_by',
     ];
 
     protected $casts = [
         'features' => 'array',
         'is_active' => 'boolean',
         'is_popular' => 'boolean',
+        'requires_approval' => 'boolean',
         'price' => 'decimal:2',
     ];
 
