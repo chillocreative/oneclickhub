@@ -13,6 +13,8 @@ export default function AppStoreBadges({ align = 'center', className = '' }) {
         : align === 'end' ? 'justify-end'
         : 'justify-center';
 
+    const pill = "inline-flex items-center justify-center gap-3 px-5 rounded-xl bg-black text-white border border-white/10 hover:bg-gray-900 transition-colors w-[200px] h-[64px]";
+
     return (
         <div className={`flex flex-wrap ${justify} gap-3 ${className}`}>
             <a
@@ -20,9 +22,9 @@ export default function AppStoreBadges({ align = 'center', className = '' }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Get it on Google Play"
-                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl bg-black text-white border border-white/10 hover:bg-gray-900 transition-colors min-w-[180px]"
+                className={pill}
             >
-                <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" aria-hidden="true">
                     <defs>
                         <linearGradient id="gp-a" x1="0" y1="0" x2="1" y2="1">
                             <stop offset="0" stopColor="#00C2FF" /><stop offset="1" stopColor="#0073FF" />
@@ -53,12 +55,12 @@ export default function AppStoreBadges({ align = 'center', className = '' }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Explore it on AppGallery"
-                className="inline-block hover:opacity-90 transition-opacity"
+                className={pill}
             >
                 <img
-                    src="/images/appgallery-badge.png"
+                    src="/images/appgallery-badge.png?v=3"
                     alt="Explore it on Huawei AppGallery"
-                    className="h-12 w-auto"
+                    className="max-h-10 w-auto object-contain"
                 />
             </a>
         </div>
