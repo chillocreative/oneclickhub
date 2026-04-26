@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -23,7 +25,9 @@ class ServiceDetailScreen extends ConsumerStatefulWidget {
 
 class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
   bool _isLoading = true;
+  bool _isStartingChat = false;
   Map<String, dynamic>? _service;
+  List<String> _availableDates = [];
   String? _error;
   int _currentImageIndex = 0;
 
@@ -43,8 +47,12 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
       final response =
           await dio.get('${ApiConstants.services}/${widget.slug}');
       if (response.data['success'] == true) {
+        final data = response.data['data'];
         setState(() {
-          _service = response.data['data']['service'];
+          _service = data['service'];
+          _availableDates = (data['available_dates'] as List? ?? [])
+              .map((d) => d.toString())
+              .toList();
           _isLoading = false;
         });
       }
@@ -59,6 +67,151 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
   bool get _isOwner {
     final userId = ref.read(authProvider).user?.id;
     return userId != null && _service?['user_id'] == userId;
+  }
+
+  Future<void> _startChatWithFreelancer() async {
+    final freelancerId = _service?['user_id'];
+    if (freelancerId == null || _isStartingChat) return;
+
+    setState(() => _isStartingChat = true);
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.post(
+        ApiConstants.chatStart,
+        data: {'user_id': freelancerId},
+      );
+      if (res.data['success'] == true && mounted) {
+        final conversationId = res.data['data']['id'];
+        context.push('/chat/$conversationId');
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.response?.data?['message']?.toString()
+                ?? 'Could not start chat'),
+            backgroundColor: AppColors.statusRejected,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isStartingChat = false);
+    }
+  }
+
+  void _showAvailabilitySheet() {
+    final alwaysAvailable = _service?['always_available'] == true;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today,
+                      color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Freelancer Availability',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (alwaysAvailable)
+                _availabilityBanner(
+                  icon: Icons.check_circle,
+                  color: AppColors.statusActive,
+                  title: 'Always Available',
+                  subtitle:
+                      'This freelancer accepts bookings on any date.',
+                )
+              else if (_availableDates.isEmpty)
+                _availabilityBanner(
+                  icon: Icons.event_busy,
+                  color: Colors.grey,
+                  title: 'No availability set',
+                  subtitle:
+                      'The freelancer has not published any open dates yet. '
+                      'Tap "Chat with Freelancer" to ask.',
+                )
+              else
+                _AvailableDatesGrid(dates: _availableDates),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _availabilityBanner({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textGrey,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _editService() async {
@@ -413,6 +566,43 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
                   ),
                 ],
 
+                // Customer actions: chat + check availability
+                if (!_isOwner && _service?['user_id'] != null) ...[
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _showAvailabilitySheet,
+                          icon: const Icon(Icons.calendar_today, size: 18),
+                          label: const Text('Check Availability'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: const BorderSide(color: AppColors.primary),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GradientButton(
+                          text: 'Chat with Freelancer',
+                          icon: Icons.chat_bubble_outline,
+                          isLoading: _isStartingChat,
+                          onPressed: _startChatWithFreelancer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
                 // Edit button for owner
                 if (_isOwner) ...[
                   const SizedBox(height: 24),
@@ -430,6 +620,53 @@ class _ServiceDetailScreenState extends ConsumerState<ServiceDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AvailableDatesGrid extends StatelessWidget {
+  final List<String> dates;
+
+  const _AvailableDatesGrid({required this.dates});
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = DateFormat('EEE, MMM d');
+    final parsed = dates
+        .map((d) => DateTime.tryParse(d))
+        .whereType<DateTime>()
+        .toList()
+      ..sort();
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 320),
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: parsed.map((date) {
+            return Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withAlpha(60),
+                ),
+              ),
+              child: Text(
+                fmt.format(date),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }

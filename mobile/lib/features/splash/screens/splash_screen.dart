@@ -229,32 +229,38 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 AnimatedBuilder(
                   animation: _textController,
                   builder: (context, _) {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ONE CLICK
-                        ..._buildLetters(
-                          _oneclick,
-                          0,
-                          const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textDark,
-                            letterSpacing: 1.5,
-                          ),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // ONE CLICK
+                            ..._buildLetters(
+                              _oneclick,
+                              0,
+                              const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textDark,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            // HUB
+                            ..._buildLetters(
+                              _hub,
+                              _oneclick.length,
+                              const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
                         ),
-                        // HUB
-                        ..._buildLetters(
-                          _hub,
-                          _oneclick.length,
-                          const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.primary,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
+                      ),
                     );
                   },
                 ),

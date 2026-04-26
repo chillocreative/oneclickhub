@@ -19,6 +19,7 @@ class ServiceResource extends JsonResource
             'price_from' => $this->price_from,
             'price_to' => $this->price_to,
             'delivery_days' => $this->delivery_days,
+            'always_available' => (bool) $this->always_available,
             'tags' => $this->tags,
             'images' => collect($this->images)->map(fn ($path) => $path ? Storage::disk('public')->url($path) : null)->filter()->values(),
             'is_active' => $this->is_active,

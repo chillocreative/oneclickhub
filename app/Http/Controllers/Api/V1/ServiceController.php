@@ -166,6 +166,7 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
+            'always_available' => 'nullable|boolean',
             'images.*' => 'nullable|image|max:2048',
         ]);
 
@@ -183,6 +184,7 @@ class ServiceController extends Controller
             'price_from' => $validated['price_from'],
             'price_to' => $validated['price_to'] ?? null,
             'delivery_days' => $validated['delivery_days'] ?? null,
+            'always_available' => $request->boolean('always_available'),
             'images' => $imagePaths ?: null,
         ]);
 
@@ -218,6 +220,7 @@ class ServiceController extends Controller
             'price_from' => 'required|numeric|min:0',
             'price_to' => 'nullable|numeric|min:0|gte:price_from',
             'delivery_days' => 'nullable|integer|min:1',
+            'always_available' => 'nullable|boolean',
             'images.*' => 'nullable|image|max:2048',
         ]);
 
@@ -240,6 +243,7 @@ class ServiceController extends Controller
             'price_from' => $validated['price_from'],
             'price_to' => $validated['price_to'] ?? null,
             'delivery_days' => $validated['delivery_days'] ?? null,
+            'always_available' => $request->boolean('always_available'),
             'images' => $imagePaths ?: null,
         ]);
 

@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\ChatConversationResource;
 use App\Http\Resources\V1\ChatMessageResource;
 use App\Models\ChatConversation;
+use App\Services\FcmService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ChatController extends Controller
 {
@@ -88,6 +90,29 @@ class ChatController extends Controller
         ]);
 
         $conversation->update(['last_message_at' => now()]);
+
+        // Push-notify the other participant so they see the new message
+        // outside the app and can deep-link straight into this conversation.
+        $recipientId = $conversation->user_one_id === $userId
+            ? $conversation->user_two_id
+            : $conversation->user_one_id;
+
+        $sender = $request->user();
+        $title = $sender->name ?: 'New message';
+        $body = $message->body !== ''
+            ? Str::limit($message->body, 100)
+            : ($attachmentPath ? '📎 Sent an attachment' : '');
+
+        try {
+            app(FcmService::class)->sendToUser($recipientId, $title, $body, [
+                'type' => 'chat',
+                'conversation_id' => (string) $conversation->id,
+                'sender_id' => (string) $userId,
+            ]);
+        } catch (\Throwable $e) {
+            // FCM failure must not block the message itself.
+            \Log::warning('Chat FCM send failed', ['error' => $e->getMessage()]);
+        }
 
         return $this->success(
             new ChatMessageResource($message->load('sender')),

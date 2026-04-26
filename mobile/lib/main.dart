@@ -26,9 +26,19 @@ class _OneClickHubAppState extends ConsumerState<OneClickHubApp> {
   @override
   void initState() {
     super.initState();
-    // Wire notification tap → navigate to dashboard
-    PushNotificationService.onNotificationTap = () {
+    // Wire notification tap. If the FCM data payload identifies a chat
+    // conversation we deep-link straight into it; otherwise we fall back
+    // to the dashboard.
+    PushNotificationService.onNotificationTap = (data) {
       final router = ref.read(routerProvider);
+      final type = data?['type']?.toString();
+      final conversationId = data?['conversation_id']?.toString();
+
+      if (type == 'chat' && conversationId != null && conversationId.isNotEmpty) {
+        router.push('/chat/$conversationId');
+        return;
+      }
+
       router.go('/dashboard');
     };
   }

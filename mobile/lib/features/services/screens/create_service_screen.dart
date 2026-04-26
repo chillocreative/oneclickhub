@@ -26,6 +26,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
   final _priceToCtrl = TextEditingController();
   final _deliveryCtrl = TextEditingController();
   int? _selectedCategoryId;
+  bool _alwaysAvailable = false;
   List<File> _imageFiles = [];
   List<String> _existingImageUrls = [];
 
@@ -48,6 +49,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
       final delivery = s['delivery_days'];
       if (delivery != null) _deliveryCtrl.text = delivery.toString();
       _selectedCategoryId = s['category']?['id'];
+      _alwaysAvailable = s['always_available'] == true;
       final images = s['images'];
       if (images is List) {
         _existingImageUrls = images.map((e) => e.toString()).toList();
@@ -102,6 +104,7 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
         'price_to': _priceToCtrl.text.trim(),
       if (_deliveryCtrl.text.trim().isNotEmpty)
         'delivery_days': _deliveryCtrl.text.trim(),
+      'always_available': _alwaysAvailable ? '1' : '0',
     });
 
     for (int i = 0; i < _imageFiles.length; i++) {
@@ -252,6 +255,44 @@ class _CreateServiceScreenState extends ConsumerState<CreateServiceScreen> {
               const SizedBox(height: 8),
               _buildTextField(_deliveryCtrl, 'e.g. 7',
                   keyboardType: TextInputType.number),
+              const SizedBox(height: 16),
+
+              // Availability
+              _buildLabel('Availability'),
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: _alwaysAvailable,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _alwaysAvailable = v),
+                  title: const Text(
+                    'Always Available',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _alwaysAvailable
+                        ? 'Customers can book any date.'
+                        : 'Customers see your calendar availability dates.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGrey,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
 
               const SizedBox(height: 32),

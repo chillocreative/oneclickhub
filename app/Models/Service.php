@@ -24,6 +24,7 @@ class Service extends Model
         'price_from',
         'price_to',
         'delivery_days',
+        'always_available',
         'tags',
         'images',
         'is_active',
@@ -37,6 +38,7 @@ class Service extends Model
             'price_from' => 'decimal:2',
             'price_to' => 'decimal:2',
             'is_active' => 'boolean',
+            'always_available' => 'boolean',
         ];
     }
 

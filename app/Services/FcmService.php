@@ -44,6 +44,19 @@ class FcmService
         return $this->sendToTokens($tokens, $title, $body);
     }
 
+    /**
+     * Send a notification to all FCM tokens belonging to a single user.
+     * Returns the number of devices the message was successfully delivered to.
+     */
+    public function sendToUser(int $userId, string $title, string $body, array $data = []): int
+    {
+        $tokens = FcmToken::where('user_id', $userId)->pluck('token')->toArray();
+        if (empty($tokens)) {
+            return 0;
+        }
+        return $this->sendToTokens($tokens, $title, $body, $data);
+    }
+
     public function sendToTokens(array $tokens, string $title, string $body, array $data = []): int
     {
         $accessToken = $this->getAccessToken();

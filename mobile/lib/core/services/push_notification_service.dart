@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
+
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -23,9 +26,10 @@ class PushNotificationService {
   bool _authTokenRegistered = false;
   bool _guestTokenRegistered = false;
 
-  /// Callback invoked when a notification is tapped.
-  /// Set this after the router is ready to navigate on tap.
-  static void Function()? onNotificationTap;
+  /// Callback invoked when a notification is tapped. Receives the FCM
+  /// message's `data` payload so callers can deep-link (e.g. open a chat
+  /// conversation). Set this after the router is ready to navigate on tap.
+  static void Function(Map<String, dynamic>? data)? onNotificationTap;
 
   static const _androidChannel = AndroidNotificationChannel(
     'high_importance_channel',
@@ -41,12 +45,26 @@ class PushNotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_androidChannel);
 
-    // Initialize local notifications with tap callback
+    // Initialize local notifications with tap callback that decodes the
+    // payload back into the original FCM data map.
     await _localNotifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        ),
       ),
-      onDidReceiveNotificationResponse: (_) => _handleNotificationTap(),
+      onDidReceiveNotificationResponse: (response) {
+        Map<String, dynamic>? data;
+        if (response.payload != null && response.payload!.isNotEmpty) {
+          try {
+            data = Map<String, dynamic>.from(jsonDecode(response.payload!));
+          } catch (_) {}
+        }
+        _handleNotificationTap(data);
+      },
     );
 
     // Request FCM permission
@@ -76,16 +94,21 @@ class PushNotificationService {
       _sendTokenToServer(newToken);
     });
 
-    // Foreground: show notification using local notifications
-    FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+    // Foreground: show notification using local notifications (Android only)
+    // iOS handles foreground display via setForegroundNotificationPresentationOptions
+    if (Platform.isAndroid) {
+      FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+    }
 
     // Background tap — navigate when user taps notification
-    FirebaseMessaging.onMessageOpenedApp.listen((_) => _handleNotificationTap());
+    FirebaseMessaging.onMessageOpenedApp.listen(
+      (msg) => _handleNotificationTap(msg.data),
+    );
 
     // Cold start tap — app was killed, user tapped notification to open
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      _handleNotificationTap();
+      _handleNotificationTap(initialMessage.data);
     }
 
     // iOS foreground presentation (Android uses local notifications above)
@@ -96,14 +119,18 @@ class PushNotificationService {
     );
   }
 
-  void _handleNotificationTap() {
-    debugPrint('FCM notification tapped');
-    onNotificationTap?.call();
+  void _handleNotificationTap(Map<String, dynamic>? data) {
+    debugPrint('FCM notification tapped, data=$data');
+    onNotificationTap?.call(data);
   }
 
   void _showForegroundNotification(RemoteMessage message) {
     final notification = message.notification;
     if (notification == null) return;
+
+    // Forward the FCM data payload through local-notification payload so
+    // the tap handler can deep-link the same way background taps do.
+    final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
 
     _localNotifications.show(
       notification.hashCode,
@@ -119,6 +146,7 @@ class PushNotificationService {
           icon: '@mipmap/ic_launcher',
         ),
       ),
+      payload: payload,
     );
   }
 
