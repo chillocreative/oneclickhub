@@ -9,8 +9,8 @@
  * the parent isn't already centring children.
  */
 export default function AppStoreBadges({ align = 'center', className = '' }) {
-    const justify = align === 'start' ? 'justify-start'
-        : align === 'end' ? 'justify-end'
+    const justify = align === 'start' ? 'justify-center md:justify-start'
+        : align === 'end' ? 'justify-center md:justify-end'
         : 'justify-center';
 
     const pill = "inline-flex items-center justify-center gap-3 px-5 rounded-xl bg-black text-white border border-white/10 hover:bg-gray-900 transition-colors w-[200px] h-[64px]";

@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
+import PublicHeader from '@/Components/PublicHeader';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Terms() {
@@ -7,25 +8,10 @@ export default function Terms() {
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
             <Head title="Terms of Service" />
 
-            {/* Navigation */}
-            <nav className="bg-white dark:bg-[#111] border-b border-gray-100 dark:border-white/5 h-20">
-                <div className="max-w-4xl mx-auto px-6 h-full flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 flex items-center justify-center">
-                            <ApplicationLogo />
-                        </div>
-                        <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
-                            ONE CLICK <span className="text-[#FF6600]">HUB</span>
-                        </span>
-                    </Link>
-                    <Link href="/" className="text-sm font-bold text-[#FF6600] hover:underline">
-                        Back to Home
-                    </Link>
-                </div>
-            </nav>
+            <PublicHeader />
 
             {/* Content */}
-            <div className="max-w-4xl mx-auto px-6 py-16">
+            <div className="max-w-4xl mx-auto px-6 pt-36 pb-16">
                 <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter mb-2">
                     Terms of <span className="text-[#FF6600]">Service</span>
                 </h1>

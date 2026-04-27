@@ -1,8 +1,8 @@
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Clock, Tag, User, Briefcase, ArrowLeft, MessageCircle, Star } from 'lucide-react';
-import ApplicationLogo from '@/Components/ApplicationLogo';
 import AvailabilityCalendar from '@/Components/AvailabilityCalendar';
+import PublicHeader from '@/Components/PublicHeader';
 import { useState } from 'react';
 
 export default function ShowService({ service, relatedServices, availableDates = [], bookedDates = [], reviews = [] }) {
@@ -38,27 +38,12 @@ export default function ShowService({ service, relatedServices, availableDates =
         <div className="min-h-screen bg-[#FFFBF7] dark:bg-[#0c0c0c]">
             <Head title={service.title} />
 
-            {/* Nav */}
-            <nav className="sticky top-0 z-50 bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-xl border-b border-gray-100 dark:border-white/5">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 overflow-hidden"><ApplicationLogo /></div>
-                        <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">ONE CLICK <span className="text-[#FF6600]">HUB</span></span>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <Link href={route('services.browse')} className="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-[#FF6600] flex items-center gap-2">
-                            <ArrowLeft size={16} /> Back to Services
-                        </Link>
-                        {auth?.user ? (
-                            <Link href={route('dashboard')} className="btn-gradient px-5 py-2 text-xs">Dashboard</Link>
-                        ) : (
-                            <Link href={route('register')} className="btn-gradient px-5 py-2 text-xs">Get Started</Link>
-                        )}
-                    </div>
-                </div>
-            </nav>
+            <PublicHeader active="services" />
 
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-6 pt-32 pb-12">
+                <Link href={route('services.browse')} className="text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-[#FF6600] inline-flex items-center gap-2 mb-6">
+                    <ArrowLeft size={16} /> Back to Services
+                </Link>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-8">
