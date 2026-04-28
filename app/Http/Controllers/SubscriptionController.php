@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentGateway;
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -13,7 +16,116 @@ class SubscriptionController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Subscriptions/Index');
+        return Inertia::render('Subscriptions/Index', [
+            'stats' => $this->overviewStats(),
+            'recentSubscribers' => $this->recentSubscribers(),
+        ]);
+    }
+
+    /**
+     * Live KPIs for the Revenue Overview cards.
+     *
+     * Each metric is paired with a month-over-month delta so the
+     * green pill on each card tracks the real trend instead of the
+     * mock "+12%" / "+8.4%" / "+2.1%" placeholders.
+     */
+    private function overviewStats(): array
+    {
+        $hasSubs = Schema::hasTable('subscriptions');
+        $hasTx = Schema::hasTable('transactions');
+        $hasUsers = Schema::hasTable('users');
+
+        $now = now();
+        $startThis = $now->copy()->startOfMonth();
+        $startLast = $now->copy()->subMonthNoOverflow()->startOfMonth();
+        $endLast = $startThis->copy()->subSecond();
+
+        // Active subscribers — distinct users with a still-running subscription
+        $activeNow = $hasSubs
+            ? Subscription::active()->distinct('user_id')->count('user_id')
+            : 0;
+        $activeLast = $hasSubs
+            ? Subscription::whereIn('status', [Subscription::STATUS_ACTIVE, Subscription::STATUS_CANCELLED])
+                ->where('starts_at', '<=', $endLast)
+                ->where(function ($q) use ($endLast) {
+                    $q->whereNull('ends_at')->orWhere('ends_at', '>', $endLast);
+                })
+                ->distinct('user_id')->count('user_id')
+            : 0;
+
+        // Monthly revenue — sum of successful transactions in the current calendar month
+        $revenueThis = $hasTx
+            ? (float) Transaction::where('status', Transaction::STATUS_SUCCESS)
+                ->where('created_at', '>=', $startThis)
+                ->sum('amount')
+            : 0.0;
+        $revenueLast = $hasTx
+            ? (float) Transaction::where('status', Transaction::STATUS_SUCCESS)
+                ->whereBetween('created_at', [$startLast, $endLast])
+                ->sum('amount')
+            : 0.0;
+
+        // Subscription rate — share of users currently subscribed
+        $totalUsers = $hasUsers ? User::count() : 0;
+        $rateNow = $totalUsers > 0 ? round(($activeNow / $totalUsers) * 100, 1) : 0.0;
+        $rateLast = $totalUsers > 0 ? round(($activeLast / $totalUsers) * 100, 1) : 0.0;
+
+        return [
+            'activeSubscribers' => [
+                'value' => $activeNow,
+                'delta' => $this->percentDelta($activeNow, $activeLast),
+            ],
+            'monthlyRevenue' => [
+                'value' => $revenueThis,
+                'delta' => $this->percentDelta($revenueThis, $revenueLast),
+            ],
+            'subscriptionRate' => [
+                'value' => $rateNow,
+                'delta' => $this->percentDelta($rateNow, $rateLast),
+            ],
+        ];
+    }
+
+    /**
+     * Latest paid sign-ups for the "Recent Subscribers" list.
+     *
+     * Times are pre-formatted with diffForHumans so the React page
+     * doesn't need a date library, and amount falls back to the
+     * plan price when the subscription was granted manually.
+     */
+    private function recentSubscribers(int $limit = 4): array
+    {
+        if (! Schema::hasTable('subscriptions')) {
+            return [];
+        }
+
+        return Subscription::with(['user:id,name', 'plan:id,name,price'])
+            ->latest()
+            ->limit($limit)
+            ->get()
+            ->map(function (Subscription $sub) {
+                $amount = $sub->amount_paid ?? optional($sub->plan)->price ?? 0;
+                return [
+                    'id' => $sub->id,
+                    'name' => optional($sub->user)->name ?? 'Unknown',
+                    'plan' => optional($sub->plan)->name ?? 'Unknown plan',
+                    'date' => optional($sub->created_at)->diffForHumans() ?? '',
+                    'amount' => 'RM ' . number_format((float) $amount, 0),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function percentDelta(float $current, float $previous): string
+    {
+        if ($previous <= 0) {
+            return $current > 0 ? '+100%' : '+0%';
+        }
+
+        $delta = round((($current - $previous) / $previous) * 100, 1);
+        $prefix = $delta >= 0 ? '+' : '';
+        return $prefix . $delta . '%';
     }
 
     public function plans()

@@ -4,14 +4,35 @@ import { motion } from 'framer-motion';
 import { CreditCard, Zap, TrendingUp, Users, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/Contexts/LanguageContext';
 
-export default function SubscriptionIndex() {
+export default function SubscriptionIndex({ stats: serverStats, recentSubscribers = [] }) {
     const { t } = useLanguage();
 
+    const fmtNumber = (n) => Number(n ?? 0).toLocaleString('en-US');
+    const fmtMoney = (n) => 'RM ' + Number(n ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    const fmtPercent = (n) => `${Number(n ?? 0)}%`;
+
     const stats = [
-        { label: t('subscriptions.activeSubscribers'), value: '1,284', grow: '+12%', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
-        { label: t('subscriptions.monthlyRevenue'), value: 'RM 12,450', grow: '+8.4%', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-        { label: t('subscriptions.subscriptionRate'), value: '42%', grow: '+2.1%', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50' },
+        {
+            label: t('subscriptions.activeSubscribers'),
+            value: fmtNumber(serverStats?.activeSubscribers?.value),
+            grow: serverStats?.activeSubscribers?.delta ?? '+0%',
+            icon: Users, color: 'text-blue-500', bg: 'bg-blue-50',
+        },
+        {
+            label: t('subscriptions.monthlyRevenue'),
+            value: fmtMoney(serverStats?.monthlyRevenue?.value),
+            grow: serverStats?.monthlyRevenue?.delta ?? '+0%',
+            icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50',
+        },
+        {
+            label: t('subscriptions.subscriptionRate'),
+            value: fmtPercent(serverStats?.subscriptionRate?.value),
+            grow: serverStats?.subscriptionRate?.delta ?? '+0%',
+            icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50',
+        },
     ];
+
+    const isPositiveDelta = (g) => !String(g).startsWith('-');
 
     return (
         <AuthenticatedLayout
@@ -45,7 +66,11 @@ export default function SubscriptionIndex() {
                                 <div className={`size-14 rounded-2xl ${stat.bg} dark:bg-white/5 flex items-center justify-center ${stat.color}`}>
                                     <stat.icon size={28} />
                                 </div>
-                                <div className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-lg">
+                                <div className={`px-3 py-1 text-[10px] font-black rounded-lg ${
+                                    isPositiveDelta(stat.grow)
+                                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500'
+                                        : 'bg-red-50 dark:bg-red-500/10 text-red-500'
+                                }`}>
                                     {stat.grow}
                                 </div>
                             </div>
@@ -87,13 +112,12 @@ export default function SubscriptionIndex() {
                         {/* Recent Subscribers List */}
                         <div className="space-y-6">
                             <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">{t('subscriptions.recentSubscribers')}</h4>
-                            {[
-                                { name: 'Ahmad Faisal', plan: 'Premium Pro', date: '2 mins ago', amount: 'RM 199' },
-                                { name: 'Tristan Tan', plan: 'Starter Hub', date: '3 hours ago', amount: 'RM 49' },
-                                { name: 'Siti Norhaliza', plan: 'Premium Pro', date: '5 hours ago', amount: 'RM 199' },
-                                { name: 'Marcus Wong', plan: 'Starter Hub', date: 'Yesterday', amount: 'RM 49' },
-                            ].map((sub, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 bg-[#fcfcfc] dark:bg-white/5 rounded-2xl border border-gray-50 dark:border-white/5 group hover:border-[#FF6600]/30 transition-all">
+                            {recentSubscribers.length === 0 ? (
+                                <div className="p-6 bg-[#fcfcfc] dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-white/10 text-center">
+                                    <div className="text-xs font-black text-gray-400 uppercase tracking-widest">No subscribers yet</div>
+                                </div>
+                            ) : recentSubscribers.map((sub) => (
+                                <div key={sub.id} className="flex items-center justify-between p-4 bg-[#fcfcfc] dark:bg-white/5 rounded-2xl border border-gray-50 dark:border-white/5 group hover:border-[#FF6600]/30 transition-all">
                                     <div className="flex items-center gap-4">
                                         <div className="size-10 rounded-full bg-gradient-to-tr from-[#FF6600] to-[#FFB800] p-[2px]">
                                             <div className="size-full bg-white dark:bg-[#111] rounded-full flex items-center justify-center font-black text-[#FF6600] text-xs uppercase">
