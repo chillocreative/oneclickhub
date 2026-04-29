@@ -1,12 +1,13 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Privacy() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
-            <Head title="Privacy Policy" />
+            <SEO title="Privacy Policy" description="How OneClickHub collects, uses, and protects your personal information." />
 
             <PublicHeader />
 

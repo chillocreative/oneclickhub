@@ -1,6 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Mail, MapPin, Send, CheckCircle } from 'lucide-react';
 
@@ -23,7 +24,7 @@ export default function Contact() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
-            <Head title="Contact Us" />
+            <SEO title="Contact Us" description="Get in touch with the OneClickHub team — questions, partnerships, support." />
 
             <PublicHeader />
 

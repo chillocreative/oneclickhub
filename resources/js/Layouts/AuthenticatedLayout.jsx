@@ -215,6 +215,13 @@ function AdminSidebar({ collapsed, t }) {
                     collapsed={collapsed}
                 />
                 <SidebarItem
+                    href={route('admin.seo')}
+                    icon={Search}
+                    label="SEO"
+                    active={route().current('admin.seo')}
+                    collapsed={collapsed}
+                />
+                <SidebarItem
                     href={route('profile.edit')}
                     icon={User}
                     label={t('sidebar.profile')}

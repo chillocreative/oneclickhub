@@ -12,7 +12,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SeoSettingsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SsmVerificationController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
@@ -54,6 +57,10 @@ Route::get('/account-deletion', function () {
 // Public service browsing
 Route::get('/services', [ServiceController::class, 'browse'])->name('services.browse');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
+
+// SEO crawler endpoints
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', [RobotsController::class, 'index'])->name('robots');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
@@ -220,6 +227,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/settings', [SsmVerificationController::class, 'adminSettings'])->name('admin.settings');
         Route::patch('/admin/settings', [SsmVerificationController::class, 'updateSettings'])->name('admin.settings.update');
         Route::post('/admin/settings/sendora-test', [SsmVerificationController::class, 'sendoraTest'])->name('admin.settings.sendora.test');
+
+        // Admin SEO settings (POST for update because of file uploads)
+        Route::get('/admin/seo', [SeoSettingsController::class, 'index'])->name('admin.seo');
+        Route::post('/admin/seo', [SeoSettingsController::class, 'update'])->name('admin.seo.update');
     });
 });
 

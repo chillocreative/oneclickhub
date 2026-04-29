@@ -22,8 +22,12 @@
         @viteReactRefresh
         @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
         @inertiaHead
+
+        {{-- SEO: verification metas + analytics (GA4, GTM, Pixel) --}}
+        @include('partials.seo-head')
     </head>
     <body class="font-sans antialiased">
+        @include('partials.seo-body')
         @inertia
     </body>
 </html>

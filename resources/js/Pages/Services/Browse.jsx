@@ -5,6 +5,7 @@ import { Search, Briefcase, MapPin, Clock, User, SlidersHorizontal, ChevronDown 
 import { AnimatePresence } from 'framer-motion';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { useLanguage } from '@/Contexts/LanguageContext';
 
 export default function BrowseServices({ services, categories, filters }) {
@@ -25,7 +26,10 @@ export default function BrowseServices({ services, categories, filters }) {
 
     return (
         <div className="min-h-screen bg-[#FFFBF7] dark:bg-[#0c0c0c]">
-            <Head title={t('browse.title')} />
+            <SEO
+                title={t('browse.title')}
+                breadcrumbs={[{ name: 'Services', url: '/services' }]}
+            />
 
             <PublicHeader active="services" />
 
@@ -121,7 +125,13 @@ export default function BrowseServices({ services, categories, filters }) {
                                 >
                                     <div className="h-44 bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
                                         {service.image_urls?.[0] ? (
-                                            <img src={service.image_urls[0]} alt={service.title} className="w-full h-full object-cover" />
+                                            <img
+                                                src={service.image_urls[0]}
+                                                alt={service.title}
+                                                loading="lazy"
+                                                decoding="async"
+                                                className="w-full h-full object-cover"
+                                            />
                                         ) : (
                                             <Briefcase size={48} className="text-[#FF6600]/30" />
                                         )}

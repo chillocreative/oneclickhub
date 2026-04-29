@@ -3,6 +3,7 @@ import AnimatedPreloader from '@/Components/AnimatedPreloader';
 import AppStoreBadges from '@/Components/AppStoreBadges';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
@@ -56,7 +57,7 @@ export default function Welcome({ auth, plans }) {
             {showPreloader && <AnimatedPreloader onComplete={() => setShowPreloader(false)} />}
 
             <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c] selection:bg-[#FF6600] selection:text-white overflow-x-hidden font-sans">
-                <Head title={t('meta.title')} />
+                <SEO title={t('meta.title')} organization />
 
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">

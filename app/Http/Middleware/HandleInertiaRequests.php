@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SeoSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -65,6 +66,33 @@ class HandleInertiaRequests extends Middleware
                 'graceDaysRemaining' => $user->ssmGraceDaysRemaining(),
                 'servicesHidden' => (bool) $user->ssmVerification?->services_hidden_at,
             ] : null,
+            'seo' => fn () => $this->seoPayload($request),
+        ];
+    }
+
+    private function seoPayload(Request $request): array
+    {
+        $settings = SeoSettings::all();
+        $canonicalHost = SeoSettings::canonicalHost();
+        $path = $request->getPathInfo();
+
+        return [
+            'siteName'           => $settings['site_name'] ?? 'OneClickHub',
+            'titleTemplate'      => $settings['title_template'] ?? ':page',
+            'defaultTitle'       => $settings['default_title'] ?? '',
+            'defaultDescription' => $settings['default_description'] ?? '',
+            'defaultKeywords'    => $settings['default_keywords'] ?? '',
+            'defaultOgImage'     => SeoSettings::ogImageUrl(),
+            'organizationLogo'   => SeoSettings::organizationLogoUrl(),
+            'organizationName'   => $settings['organization_legal_name'] ?: ($settings['site_name'] ?? 'OneClickHub'),
+            'organizationPhone'  => $settings['organization_phone'] ?? '',
+            'organizationEmail'  => $settings['organization_email'] ?? '',
+            'socialLinks'        => SeoSettings::socialLinks(),
+            'canonicalHost'      => $canonicalHost,
+            'currentUrl'         => $canonicalHost . $path,
+            'twitterHandle'      => $settings['twitter_handle'] ?? '',
+            'allowIndexing'      => SeoSettings::allowsIndexing(),
+            'locale'             => str_replace('_', '-', app()->getLocale()),
         ];
     }
 }

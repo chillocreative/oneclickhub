@@ -1,6 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
@@ -80,7 +81,7 @@ export default function About() {
     if (embedded) {
         return (
             <div className="min-h-screen bg-white dark:bg-[#0c0c0c]">
-                <Head title="About Us" />
+                <SEO title="About Us" description="Learn about OneClickHub — Malaysia's all-in-one freelancer marketplace connecting customers with verified service providers." />
                 <div className="px-5 py-6 text-gray-700 dark:text-gray-300">
                     {article}
                 </div>
@@ -90,7 +91,7 @@ export default function About() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
-            <Head title="About Us" />
+            <SEO title="About Us" description="Learn about OneClickHub — Malaysia's all-in-one freelancer marketplace connecting customers with verified service providers." />
 
             <PublicHeader />
 

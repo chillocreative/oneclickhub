@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Tag, User, Briefcase, ArrowLeft, MessageCircle, Star } from 'lucide-react';
 import AvailabilityCalendar from '@/Components/AvailabilityCalendar';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { useState } from 'react';
 
 export default function ShowService({ service, relatedServices, availableDates = [], bookedDates = [], reviews = [] }) {
@@ -36,7 +37,16 @@ export default function ShowService({ service, relatedServices, availableDates =
 
     return (
         <div className="min-h-screen bg-[#FFFBF7] dark:bg-[#0c0c0c]">
-            <Head title={service.title} />
+            <SEO
+                title={service.title}
+                description={(service.description || '').replace(/\s+/g, ' ').slice(0, 160)}
+                ogImage={service.cover_image || service.images?.[0]}
+                type="product"
+                breadcrumbs={[
+                    { name: 'Services', url: '/services' },
+                    { name: service.title, url: `/services/${service.slug}` },
+                ]}
+            />
 
             <PublicHeader active="services" />
 
@@ -51,7 +61,13 @@ export default function ShowService({ service, relatedServices, availableDates =
                         <div className="bg-white dark:bg-[#0c0c0c] rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
                             <div className="h-80 md:h-[400px] bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
                                 {service.image_urls?.[0] ? (
-                                    <img src={service.image_urls[0]} alt={service.title} className="w-full h-full object-cover" />
+                                    <img
+                                        src={service.image_urls[0]}
+                                        alt={service.title}
+                                        decoding="async"
+                                        fetchpriority="high"
+                                        className="w-full h-full object-cover"
+                                    />
                                 ) : (
                                     <Briefcase size={80} className="text-[#FF6600]/20" />
                                 )}
@@ -60,7 +76,13 @@ export default function ShowService({ service, relatedServices, availableDates =
                                 <div className="flex gap-2 p-4 overflow-x-auto">
                                     {service.image_urls.map((url, idx) => (
                                         <div key={idx} className="flex-none size-20 rounded-xl overflow-hidden border border-gray-200 dark:border-white/10">
-                                            <img src={url} alt="" className="w-full h-full object-cover" />
+                                            <img
+                                                src={url}
+                                                alt={`${service.title} — image ${idx + 1}`}
+                                                loading="lazy"
+                                                decoding="async"
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -230,7 +252,13 @@ export default function ShowService({ service, relatedServices, availableDates =
                                     >
                                         <div className="h-36 bg-gradient-to-br from-[#FF6600]/10 to-[#FFB800]/10 flex items-center justify-center">
                                             {s.image_urls?.[0] ? (
-                                                <img src={s.image_urls[0]} alt={s.title} className="w-full h-full object-cover" />
+                                                <img
+                                                    src={s.image_urls[0]}
+                                                    alt={s.title}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="w-full h-full object-cover"
+                                                />
                                             ) : (
                                                 <Briefcase size={32} className="text-[#FF6600]/30" />
                                             )}

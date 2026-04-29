@@ -1,12 +1,13 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link } from '@inertiajs/react';
 
 export default function AccountDeletion() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
-            <Head title="Request Account Deletion" />
+            <SEO title="Request Account Deletion" description="Request permanent deletion of your OneClickHub account and associated data." noindex />
 
             <PublicHeader />
 

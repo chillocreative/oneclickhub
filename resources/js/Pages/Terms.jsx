@@ -1,12 +1,13 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import BackToTop from '@/Components/BackToTop';
 import PublicHeader from '@/Components/PublicHeader';
+import SEO from '@/Components/SEO';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Terms() {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-[#0c0c0c]">
-            <Head title="Terms of Service" />
+            <SEO title="Terms of Service" description="Terms governing use of OneClickHub by customers and freelancers." />
 
             <PublicHeader />
 
