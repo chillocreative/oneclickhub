@@ -648,5 +648,6 @@
     "common.confirm": "Confirm",
     "common.back": "Back",
     "common.clear": "Clear",
-    "common.success": "Success!"
+    "common.success": "Success!",
+    "common.failed": "Failed!"
 }

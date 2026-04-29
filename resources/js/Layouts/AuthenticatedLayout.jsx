@@ -32,7 +32,6 @@ import {
     Mail,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SuccessNotification from '@/Components/SuccessNotification';
 import { router } from '@inertiajs/react';
 import { useLanguage, LanguageSwitcher } from '@/Contexts/LanguageContext';
 
@@ -377,13 +376,11 @@ function CustomerSidebar({ collapsed, t }) {
 }
 
 export default function AuthenticatedLayout({ header, children }) {
-    const { auth, flash, unreadMessages, notificationCount, ssm } = usePage().props;
+    const { auth, unreadMessages, notificationCount, ssm } = usePage().props;
     const user = auth.user;
     const roles = user?.roles || [];
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
     const { t } = useLanguage();
 
     const isAdmin = roles.includes('Admin');
@@ -394,13 +391,6 @@ export default function AuthenticatedLayout({ header, children }) {
         if (isFreelancer) return 'Freelancer';
         return 'Customer';
     };
-
-    useEffect(() => {
-        if (flash?.success) {
-            setSuccessMessage(flash.success);
-            setShowSuccess(true);
-        }
-    }, [flash?.success]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -414,10 +404,6 @@ export default function AuthenticatedLayout({ header, children }) {
 
     return (
         <div className="min-h-screen bg-[#FFFBF7] dark:bg-[#0c0c0c] flex overflow-hidden">
-            <SuccessNotification
-                message={showSuccess ? successMessage : ''}
-                onClear={() => setShowSuccess(false)}
-            />
             {/* Mobile Menu Backdrop */}
             <AnimatePresence>
                 {isMobileMenuOpen && (

@@ -5,6 +5,7 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { LanguageProvider } from '@/Contexts/LanguageContext';
+import FlashToaster from '@/Components/FlashToaster';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -45,7 +46,37 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        root.render(<LanguageProvider><App {...props} /></LanguageProvider>);
+        // Children render-prop puts FlashToaster inside Inertia's PageContext
+        // so usePage() works. We reproduce App's default render (including
+        // the static `Component.layout` pattern) and append the toaster.
+        const renderPage = ({ Component, props: pageProps, key }) => {
+            const child = <Component key={key} {...pageProps} />;
+            let rendered;
+            if (typeof Component.layout === 'function') {
+                rendered = Component.layout(child);
+            } else if (Array.isArray(Component.layout)) {
+                rendered = Component.layout
+                    .concat(child)
+                    .reverse()
+                    .reduce((children, Layout) => (
+                        <Layout {...pageProps}>{children}</Layout>
+                    ));
+            } else {
+                rendered = child;
+            }
+            return (
+                <>
+                    {rendered}
+                    <FlashToaster />
+                </>
+            );
+        };
+
+        root.render(
+            <LanguageProvider>
+                <App {...props}>{renderPage}</App>
+            </LanguageProvider>,
+        );
     },
     progress: {
         color: '#4B5563',

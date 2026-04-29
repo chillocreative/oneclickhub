@@ -648,5 +648,6 @@
     "common.confirm": "Sahkan",
     "common.back": "Kembali",
     "common.clear": "Kosongkan",
-    "common.success": "Berjaya!"
+    "common.success": "Berjaya!",
+    "common.failed": "Gagal!"
 }
