@@ -1,4 +1,4 @@
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import SuccessNotification from '@/Components/SuccessNotification';
 import ErrorNotification from '@/Components/ErrorNotification';
@@ -6,27 +6,33 @@ import ErrorNotification from '@/Components/ErrorNotification';
 /**
  * Global toast surface for Inertia flash messages. Mounted once in
  * resources/js/app.jsx so every page (public, auth, customer, freelancer,
- * admin) shows the same save-feedback UI. Controllers signal success or
- * failure with back()->with('success', ...) / back()->with('error', ...).
+ * admin) shows the same save-feedback UI.
  *
- * Field-level validation errors stay where they are (rendered next to
- * inputs via the form's `errors` prop) — toasts here are for the overall
- * save outcome, not per-field problems.
+ * We listen on Inertia's `router.on('success')` event rather than diffing
+ * usePage().props.flash. Prop diffing misses two real cases:
+ *   1. Saving twice in a row with the same flash text — useEffect dep
+ *      compares 'Saved.' to 'Saved.' and bails out, so the second toast
+ *      never appears.
+ *   2. Some page renders re-evaluate shared closures unevenly, so the
+ *      flash value can be stale by the time React reconciles.
+ *
+ * The router 'success' event fires once per successful request with the
+ * fresh page in event.detail.page, which is the canonical signal.
  */
 export default function FlashToaster() {
-    const page = usePage();
-    const flash = page?.props?.flash || {};
+    const initialFlash = usePage()?.props?.flash || {};
 
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-
-    useEffect(() => {
-        if (flash.success) setSuccessMessage(flash.success);
-    }, [flash.success]);
+    const [successMessage, setSuccessMessage] = useState(initialFlash.success || '');
+    const [errorMessage, setErrorMessage] = useState(initialFlash.error || '');
 
     useEffect(() => {
-        if (flash.error) setErrorMessage(flash.error);
-    }, [flash.error]);
+        const remove = router.on('success', (event) => {
+            const fresh = event.detail?.page?.props?.flash || {};
+            if (fresh.success) setSuccessMessage(fresh.success);
+            if (fresh.error) setErrorMessage(fresh.error);
+        });
+        return () => remove();
+    }, []);
 
     return (
         <>

@@ -1,0 +1,1 @@
+import{j as c}from"./app-BCIIyVJN.js";function s({className:i="",disabled:t,children:r,...n}){const o=e=>{if(t){e.preventDefault(),e.stopPropagation();return}n.onClick&&n.onClick(e)};return c.jsx("button",{...n,onClick:o,className:`btn-gradient uppercase tracking-widest text-xs inline-flex items-center justify-center ${t&&"opacity-25"} `+i,disabled:t,children:r})}export{s as P};
