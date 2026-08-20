@@ -38,7 +38,7 @@ jobs:
       - name: 📂 Deploy via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: "64.120.94.82"
+          host: "157.20.105.252"
           username: "chilloc1"
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
@@ -77,7 +77,7 @@ jobs:
       - name: 🔧 Post-deploy commands
         uses: appleboy/ssh-action@v1
         with:
-          host: "64.120.94.82"
+          host: "157.20.105.252"
           username: "chilloc1"
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
