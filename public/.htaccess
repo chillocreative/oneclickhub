@@ -5,6 +5,11 @@
 
     RewriteEngine On
 
+    # Force https and non-www on the canonical host
+    RewriteCond %{HTTP_HOST} ^www\.oneclickhub\.com\.my$ [NC,OR]
+    RewriteCond %{HTTPS} off
+    RewriteRule ^ https://oneclickhub.com.my%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

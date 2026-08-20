@@ -36,6 +36,7 @@ Disallow: /orders
 Disallow: /payment
 Disallow: /api
 Disallow: /profile
+Disallow: /cgi-bin/
 Allow: /
 
 Sitemap: {$host}/sitemap.xml
